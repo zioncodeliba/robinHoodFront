@@ -1,0 +1,89 @@
+.viewoffers_page{padding:69px 20px 144px;min-height: 100vh;position: relative;}
+.viewoffers_page .wrapper{max-width: 851px;}
+.viewoffers_page h1{text-align: center;font-size: 22px;line-height: 24px;}
+.viewoffers_page .routes_mortgage_sec{margin-top: 70px;padding:30px 59px 139px;box-shadow: 0 4px 60px #27450E0D;background: #FFFFFF;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 1) 0%, rgba(225, 240, 223, 1) 100%);}
+.viewoffers_page .inner{background-color: #FFFFFF;box-shadow: 0 4px 60px #27450E0D;border-radius: 15px;position: relative;padding: 24px 22px;max-width: calc(100% - 16px);margin:-132px auto 0;}
+
+.viewoffers_page .offer_col{width:calc(50% - 15px); min-height: 103px; border-radius: 10px; border: 1px dashed var(--green); position: relative; padding: 31px 33px 12px 10px;margin-top: 32px;}
+.viewoffers_page .offer_col>img{position: absolute;top: -51px;right:39px;}
+.viewoffers_page .offer_col h4{color: var(--orange);font-size: 16px;line-height: 20px;}
+.viewoffers_page .offer_col p{font-size: 16px;line-height: 20px;}
+/* affordable offer */
+
+.affordable_offer_sec{width: calc(50% - 15px);border-radius: 15px;position: relative;    background: #FFFFFF;
+    background: linear-gradient(-90deg, rgba(255, 255, 255, 1) 0%, rgba(225, 240, 223, 1) 100%);
+    padding:15px 146px 43px 34px;}
+.affordable_offer_sec::before { content: ''; position: absolute; inset: 0; border-radius:15px; padding: 1px; background: linear-gradient(to top, #ffffff08, #E27600); -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0); mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0); -webkit-mask-composite: xor; mask-composite: exclude; pointer-events: none; }
+.affordable_offer_sec>img{position: absolute;top:-10px;right: 0;}
+.affordable_offer_sec h3{color: var(--black);font-size: 18px;line-height: 20px;margin-bottom: 10px;}
+.affordable_offer_sec h4{font-size:32px;line-height: 20px;font-weight: bold;}
+.affordable_offer_sec h4 i{font-size: 15px;line-height: 8px;font-style: normal;}
+.affordable_offer_sec .btn{background-color: var(--green);font-size: 12px;padding: 7px 11px;position: absolute;left:-16px;bottom:-19px;box-shadow: 0 4px 30px #8FDB6E66;}
+
+.my_statuses_summary_sec{width: 100%;margin-top: 67px;}
+.my_statuses_summary_sec h2{width: 100%;margin-bottom: 26px;font-size: 22px;line-height: 24px;}
+
+/* bank offer list */
+.bank_offer_list{width: calc(50% - 15px);border: 1px dashed var(--green);border-radius: 10px;padding: 16px 15px 55px;position: relative;}
+.bank_offer_list ul{display: flex;align-items: center;justify-content: flex-start;border-bottom: 1px dashed #27450E;padding:10px 0;}
+.bank_offer_list ul:nth-last-child(2){border: none !important;}
+.bank_offer_list ul li{width: 194px;display: flex;align-items: center;justify-content: flex-start;}
+.bank_offer_list ul li+li{width: calc(100% - 194px);justify-content: flex-end;}
+.bank_offer_list ul li h4{font-size: 18px;font-weight:400;}
+.bank_offer_list ul li span{margin-left:13px;}
+.bank_offer_list ul li a{background-color: #D9E8D8;padding: 0 14.5px;color:var(--green);font-size: 12px;line-height: 24px;border-radius: 15px;}
+.bank_offer_list ul li a.awaiting_approval{}
+.bank_offer_list ul li a.final_approval{background-color: #4E8FF7;color: var(--white);}
+.bank_offer_list .most_offer{line-height: 35px;text-align: center;background-color: #90968A;color:var(--white);font-size: 18px;font-weight: 400;position: absolute;bottom: 0;left: 0;width: 100%;border-radius: 0 0 10px 10px;}
+
+
+/* Bank Expireday */
+.bank_expireday_list{width: calc(50% - 15px);position: relative;}
+.bank_expireday_list ul{display: flex;align-items: center;justify-content: flex-start;padding:7.5px 16px 7.5px 9px;border: 1px dashed var(--green);border-radius: 10px;margin-bottom: 16px;}
+.bank_expireday_list ul:last-child{margin-bottom: 0;}
+.bank_expireday_list ul li{width: 194px;display: flex;align-items: center;justify-content: flex-start;}
+.bank_expireday_list ul li+li{width: calc(100% - 194px);justify-content: flex-end;}
+.bank_expireday_list ul li h4{font-size: 18px;font-weight:400;}
+.bank_expireday_list ul li span{margin-left:11px;width: 40px;height: 40px;display: flex;align-items: center;justify-content: center;}
+.bank_expireday_list ul li a.expire{background-color: #D9E8D8;padding: 0 12.5px;color:var(--green);font-size: 11px;line-height: 24px;border-radius: 15px;}
+
+/* responsive */
+@media (max-width:1399px) {
+    .viewoffers_page { padding: 50px 20px 144px; }
+    .viewoffers_page .routes_mortgage_sec { margin-top: 50px; } 
+}
+@media (max-width:1279px) {
+    .next_prev_box a { height: 60px; width: 80px; }
+    .next_prev_box a img{max-width: 42px;}
+}
+@media (max-width:767px) {
+    .viewoffers_page { padding: 26px 13px 146px; }
+    .viewoffers_page h1 { font-weight: 300; }
+    .next_prev_box a { height: 38px; width: 46px;padding: 0 5px;}
+    .next_prev_box a img { max-width: 28px; }
+    .viewoffers_page .routes_mortgage_sec { margin-top: 56px; padding: 0; box-shadow: none; background: no-repeat; }
+    .viewoffers_page .routes_mobile { max-width: calc(100% - 32px); }
+    .viewoffers_page .routes_mortgage_sec h2{display: none;}
+
+    .viewoffers_page .inner { background-color: transparent; box-shadow: none; border-radius: 0; position: relative; padding: 0; max-width: 100%; margin: 20px auto 0; }
+    .affordable_offer_sec { width: 100%; }
+    .affordable_offer_sec .btn { padding: 7px 20px; left: -13px; bottom: -21px; border-radius: 0 20px 20px 0; }
+    .affordable_offer_sec>img { top: -10px; right: 10px;}
+    .viewoffers_page .offer_col { width: 100%; margin-top: 77px; }
+    .viewoffers_page .offer_col>img { right: 3px; }
+    .my_statuses_summary_sec { width: 100%; margin-top: 30px; }
+    .bank_offer_list { width: 100%;margin-bottom: 16px;padding: 10px 15px 35px;}
+    .bank_expireday_list{width: 100%; }
+    .bank_expireday_list ul li h4 { font-size: 16px; }
+
+}
+@media (max-width:413px) {
+    .viewoffers_page .routes_mobile { max-width: 100%; }
+    .bank_expireday_list ul li { width: 178px; }
+    .bank_expireday_list ul li+li { width: calc(100% - 172px); }
+    .bank_expireday_list ul li a.expire { padding: 0 8px; font-size: 9.6px; }
+    
+
+
+}

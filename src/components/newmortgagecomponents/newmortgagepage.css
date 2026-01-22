@@ -1,0 +1,59 @@
+.mortgagepage{padding: 69px 0 0;}
+.mortgagepage .wrapper{max-width: 945px;background-color: var(--white);box-shadow: 0 4px 60px #27450E0D;border-radius: 15px;margin-top: 27px;padding: 35px 0 51px;}
+.mortgagepage .wrapper>div{position: relative;z-index: 1;}
+.mortgagepage .homeimage{position: absolute;left: -335px; bottom: -91px;}
+.mortgagepage .right_col{width: 485px;min-height: 500px;}
+.mortgagepage .left_col{width: 460px;padding-top:124px;}
+.mortgagepage .offer_box{padding-bottom: 134px;padding-right: 33px;position: relative;}
+.mortgagepage .offer_box .robin_man{position: absolute;    left: 20px; bottom: -9px;}
+.mortgagepage .offer_col{max-width: 226px;min-height: 103px;border-radius: 10px;border: 1px dashed var(--green);position: relative;text-align: center;padding: 31px 10px 10px;background: #EAF5E7;
+background: linear-gradient(90deg, rgba(234, 245, 231, 1) 60%, rgba(255, 255, 255, 1) 90%);}
+.mortgagepage .offer_col img{position: absolute;left: 0;right: 0;top:-51px;margin: 0 auto;}
+.mortgagepage .offer_col h4{color: var(--black);font-size: 18px;line-height: 20px;margin-bottom: 12px;}
+.mortgagepage .offer_col h5{font-size:32px;line-height: 20px;}
+.mortgagepage .offer_col h5 em{font-size:15px;line-height: 20px;font-style: normal;}
+
+
+/* responsive */
+@media (max-width:1599px) {
+    .mortgagepage .homeimage { left: -175px; bottom: -80px; max-width: 280px; }
+    
+}
+@media (max-width:1279px) {
+    .mortgagepage .homeimage { left: -50px; bottom: -100px; max-width: 250px; }
+    
+}
+@media (max-width:1023px) {
+    .mortgagepage .wrapper { max-width: 600px; }
+    .mortgagepage .right_col,
+    .mortgagepage .left_col { width: 100%; }
+    .mortgagepage .left_col {padding-top: 61px; }
+    .mortgagepage .status_summary_sec { max-width: calc(100% - 40px); margin: 0 auto; }
+    .mortgagepage .offer_col { max-width: calc(100% - 190px); }
+    .mortgagepage .homeimage { left: -90px; bottom: -100px; max-width: 250px; }
+    
+    
+    
+}
+@media (max-width:767px) {
+    .mortgagepage { padding: 28px 0 180px; }
+    .das_top_title h2 { margin-bottom: 21px; }
+    .mortgagepage .wrapper { max-width: 945px; background-color: transparent; box-shadow: none; border-radius: 0; margin-top: 22px; padding: 0; }
+    .das_top_title h1 { margin-bottom: 22px; font-weight: 300; }
+    .das_top_title .bank_title { min-width: 264px;justify-content: flex-start;}
+   
+    .mortgagepage .offer_box { padding-bottom: 102px; padding-right: 0; }
+    .mortgagepage .offer_col { max-width: 226px; margin: 0 auto; }
+    .mortgagepage .offer_box .robin_man { position: absolute; left: 0; bottom: 30px; right: -260px; margin: 0 auto; max-width: 150px; transform: scale3d(-1, 1, 1); z-index: 1; }
+    .mortgagepage .homeimage{display: none;}
+     .mortgagepage .routes_explanation .total { max-width: 90%; left: 0; right: 0; }
+
+
+
+}
+@media (max-width:413px) {
+
+    .mortgagepage .offer_col { left: -20px; }
+    .mortgagepage .status_summary_sec { max-width: calc(100% - 20px);}
+
+}

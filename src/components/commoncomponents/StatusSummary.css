@@ -1,0 +1,33 @@
+.status_summary_sec{max-width: 100%;border: 1px dashed var(--green);border-radius: 10px;padding: 20px 19px 0 14px;position: relative;}
+.status_summary_sec .title{margin-bottom: 17.29px;}
+.status_summary_sec .title h3{line-height: 27.29px;font-size: 18px;}
+.status_summary_sec ul{display: flex;align-items: center;justify-content: flex-start;border-top: 1px dashed #27450E;    padding: 10px 0;}
+.status_summary_sec ul li{width: 194px;display: flex;align-items: center;justify-content: flex-start;}
+.status_summary_sec ul li+li{width: calc(100% - 194px);padding-left: 30px;justify-content: flex-end;}
+.status_summary_sec ul li h4{font-size: 16px;font-weight: 300;}
+.status_summary_sec ul li span{margin-left:15px;width: 30px;height: 30px;display: flex;justify-content: center;align-items: center;}
+.status_summary_sec ul li a{background-color: #D9E8D8;padding: 0 14.5px;color:var(--green);font-size: 11px;line-height: 26px;border-radius: 15px;}
+.status_summary_sec ul li a.awaiting_approval{}
+.status_summary_sec ul li a.final_approval{background-color: var(--orange);color: var(--white);}
+.status_summary_sec .most_offer{    line-height: 35px; text-align: center; background-color: #90968A; color: var(--white); font-size: 18px; font-weight: 400; position: relative; bottom: 0; left: 19px; width: calc(100% + 33px); border-radius: 0 0 10px 10px;}
+
+
+
+
+@media (max-width:767px) {
+    .status_summary_sec ul li { width: 182px; }
+    .status_summary_sec ul li+li { width: calc(100% - 182px); padding-left: 30px; }
+
+
+
+
+
+}
+@media (max-width:413px) {
+    .status_summary_sec ul li a { padding: 0 8px;width: 100%;text-align: center;}
+    .status_summary_sec ul li span { margin-left: 5px; }
+    .status_summary_sec ul li+li { width: calc(100% - 182px); padding-left: 0; }
+
+
+
+}

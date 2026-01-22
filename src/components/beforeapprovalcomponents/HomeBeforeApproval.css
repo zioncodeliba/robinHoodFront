@@ -1,0 +1,71 @@
+/* homebefore_approval */
+.homebefore_approval_page{padding: 69px 0 143px;}
+.homebefore_approval_page .wrapper{max-width: 836px;}
+.homebefore_approval_page h1 { text-align: center; font-size: 22px; line-height: 24px;margin-bottom: 35px;}
+.homebefore_approval_page .bank_title{width:fit-content;margin: 0 auto;}
+.homebefore_approval_page .bank_title span{width: 63px;height: 63px;display: flex;align-items: center;justify-content: center;    margin: 0 auto;}
+.homebefore_approval_page .bank_title h3{font-size: 18px;line-height: 24px;font-weight: 400;}
+
+.awaiting_approval_box{position: relative;background: #FFFFFF; background: linear-gradient(180deg, rgba(255, 255, 255, 1) 0%, rgba(225, 240, 223, 1) 100%);min-height: 196px; padding: 46px 20px 20px;margin-top: 46px;border-radius: 15px;}
+.awaiting_approval_box .tag{line-height: 48px;background-color: var(--white);border-radius: 50px;border: 1px solid var(--orange);display: flex;align-items: center;justify-content: center;position: absolute;top:-30px;left: 0;right: 0;margin: 0 auto;width:fit-content;padding: 0 18px;color: var(--orange);font-size: 16px;font-weight: 500;}
+.awaiting_approval_box .tag img{margin-left: 5px;}
+.awaiting_approval_box ul{}
+.awaiting_approval_box ul li{min-width:120px;text-align: center;position: relative;}
+.awaiting_approval_box ul li span{width: 56px;height: 56px;background-color: #27450E;border-radius: 50%;display: flex;align-items: center;justify-content: center;margin:0 auto;font-size: 28.8px;border: 2px solid var(--white);color: var(--white);box-shadow: 0 4px 30px #E2760045;}
+.awaiting_approval_box ul li h3{font-weight: 400;font-size: 16px;font-weight: 500;line-height: 20px;margin-top: 7px;}
+.awaiting_approval_box ul li:nth-child(2) span {background-color: var(--orange);}
+.awaiting_approval_box ul li:not(:first-child)::after{content: ''; position: absolute; right: -15px; width: 27px; height: 4px; background-color: var(--orange); border-radius: 5px; top: 26px;}
+.homebefore_approval_page .inner{background-color: var(--white);border-radius: 15px;box-shadow: 0 4px 60px #27450E0D;padding: 51px 22px 29px;    margin-top: -45px; position: relative;}
+.homebefore_approval_page .inner>div{width: calc(50% - 9.5px);}
+
+.frequently_questions_sec{border: 1px solid #E5E7EB;background-color: var(--white);padding: 19px 26px 0 14px;box-shadow: 0 4px 30px #00000040;border-radius: 24px;}
+.frequently_questions_sec h2{color: var(--orange);font-size: 24px;line-height: 33px;font-weight: 600;text-align: center;margin-bottom: 16px;}
+.frequently_questions_sec .colin{margin-bottom: 21px;border-bottom: 1px solid #E5E7EB;}
+.frequently_questions_sec .colin:last-child{border: none;}
+.frequently_questions_sec h3{color: #27450E;font-size: 18px;line-height: 28px;font-weight: 500;padding-left: 35px;position: relative;cursor: pointer;margin-bottom: 7px;}
+.frequently_questions_sec p{color: #4B5563;font-weight: 400;font-size: 16px;line-height: 24px;max-width: 308px;padding:0 0 16px;   }
+.frequently_questions_sec .text{ max-height: 500px; overflow: hidden;transition:max-height 0.5s ease;}
+.frequently_questions_sec span{width: 13px;height: 13px;position: absolute;left:7px;top:8px;}
+.frequently_questions_sec span::after,
+.frequently_questions_sec span::before{content:'';position: absolute;top: 0;width: 100%;height: 2px;bottom: 0;background-color:#27450E;left: 0;margin: auto;}
+.frequently_questions_sec span::before{transform:rotate(90deg);opacity: 0;background-color: var(--orange);}
+.frequently_questions_sec .colin.open span::after{background-color: var(--orange);}
+.frequently_questions_sec .colin.open span::before{opacity: 1;}
+.frequently_questions_sec .colin.open .text{max-height:0;transition: max-height 0.5s ease;}
+
+/* offer_col */
+.homebefore_approval_page .offer_col{width:100%; min-height: 103px; border-radius: 10px; border: 1px dashed var(--green); position: relative; padding: 31px 33px 25px 11px;}
+.homebefore_approval_page .offer_col>img{position: absolute;top: -51px;right:10px;}
+.homebefore_approval_page .offer_col h4{color: var(--orange);font-size: 16px;line-height: 20px;}
+.homebefore_approval_page .offer_col p{font-size: 16px;line-height: 20px;}
+.homebefore_approval_page .sandicon{margin: -18px auto 0;}
+.homebefore_approval_page .status_summary_sec{margin-top: 18px;}
+
+.homebefore_approval_page .prev_page_link{display: none;}
+.homebefore_approval_page .left_col .frequently_questions_sec{display: none;} 
+
+
+/* responsive */
+@media (max-width:1399px){
+    .homebefore_approval_page { padding: 50px 0 50px;}
+    .homebefore_approval_page h1 { margin-bottom: 16px;}
+}
+@media (max-width:1023px){
+    .homebefore_approval_page { padding: 50px 20px 50px; }
+}
+@media (max-width:767px){
+    .homebefore_approval_page { padding: 22px 13px 178px; }
+    .homebefore_approval_page .prev_page_link { display: block;}
+    .homebefore_approval_page h1 { margin-bottom: 40px; font-weight: 300; }
+    .homebefore_approval_page .inner { background-color: transparent; border-radius: 0; box-shadow: none; padding: 0; margin-top: 19px;}
+    .homebefore_approval_page .inner>div { width: 100%; }
+    .homebefore_approval_page .inner .right_col{display: none;}
+    .homebefore_approval_page .left_col .frequently_questions_sec{display:block;}
+    .frequently_questions_sec{margin-top: 43px;}
+    .homebefore_approval_page .status_summary_sec { margin-top: 38px; }
+
+}
+@media (max-width:413px){
+    
+
+}

@@ -1,0 +1,49 @@
+.notifications_page{padding-top: 85px;}
+.notifications_page h1{text-align: center;font-size: 64px;line-height: 40px;margin-bottom: 85px;}
+.notifications_page .inner{max-width: 1100px;margin: 0 auto;position: relative;padding-bottom: 285px;}
+.notifications_page .notifi_list{}
+.notifications_page .notifi_col{width: calc(50% - 11.72px);background-color: var(--white);box-shadow: 0 7px 21px #00000014;border-radius: 7px;margin-bottom: 13.36px;color: #7B7B7B;font-size: 24.68px;line-height:34px;font-weight: 400;padding:20px 77px 20px 20px;position: relative;}
+.notifications_page .notifi_col .icon{position: absolute;top: 0;right: 10px;bottom: 0;margin: auto;}
+.notifications_page .notifi_col .remove{position: absolute;top: 0;left: 22px;top: 0;bottom: 0;margin: auto;height: fit-content;cursor: pointer;}
+.notifications_page .approval_note{width: calc(50% - 11.72px);background-color: var(--orange);border-radius: 10px;padding:32px 38px 42px 39px;position: relative;margin-top: 28px;}
+.notifications_page .approval_note p{color:var(--white);font-size: 30px;line-height:37px;text-align: center;}
+.notifications_page .approval_note .btn{position: absolute;left: 0;right: 0;width: fit-content;margin:0 auto;bottom: -27px;background-color: var(--green);}
+.notifications_page .approval_note .btn:hover{background-color:var(--orange);}
+.notifications_page .notificationsman{position: absolute;left:-40px;bottom: 0;}
+
+
+
+/* responsive */
+@media (max-width:1850px) {
+    .notifications_page { padding-top: 40px;}
+    .notifications_page h1 { font-size: 55px; line-height: 40px; margin-bottom: 55px; }
+    .notifications_page .notificationsman { left: -40px; bottom: 10%; max-width: 390px; }
+    
+    
+}
+@media (max-width:1399px) {
+    .notifications_page .notifi_col { margin-bottom: 14px; font-size: 18px; line-height: 20px; padding: 15px 44px 15px 20px; }
+    .notifications_page .notifi_col .icon { max-width: 22px; }
+    .notifications_page .notifi_col .remove { left: 12px; max-width: 30px; }
+
+}
+@media (max-width:1279px) {
+    .notifications_page .inner { max-width: calc(100% - 60px); padding-bottom: 180px; }
+    .notifications_page .notificationsman { left: -30px; bottom: 20px; max-width: 330px; }
+    
+    
+    
+}
+@media (max-width:767px) {
+    .notifications_page{padding:22px 0 294px;}
+    .notifications_page h1 { font-size: 22px; line-height: 24px; margin-bottom: 40px; font-weight: 300; }
+    .notifications_page .notifi_col{width: 100%;font-size: 14px; }
+    .notifications_page .approval_note { width: 100%; padding: 18px 23px 55px 39px; margin-top: 0;}
+    .notifications_page .approval_note p { font-size: 14px; line-height: 20px; text-align: right; max-width: 220px; }
+    .notifications_page .approval_note .btn { left: auto; right: 23px; bottom: -21px; font-size: 14px; line-height: 19px;}
+    .notifications_page .inner { max-width: calc(100% - 60px); padding-bottom: 0; }
+    .notifications_page .notificationsman { left: -15px; bottom: -90px; max-width: 160px; }
+
+
+
+}

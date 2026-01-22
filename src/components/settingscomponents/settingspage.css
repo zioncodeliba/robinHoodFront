@@ -1,0 +1,64 @@
+.settings_page{padding: 53px 133px 96px;position: relative;z-index: 2;}
+.settings_page .settings_inner{max-width: 600px;}
+.settings_page h1{font-size: 65px;line-height: 40px;margin-bottom: 35px;}
+.settings_page p{color: var(--green);font-size: 18px;line-height: 24px;margin-bottom: 42px;}
+.settings_page .settings_options{background-color: #FFFFFF;border-radius: 15px;box-shadow: 0 4px 30px #00000040;max-width: 512px;padding: 45px 88px;}
+.settings_page .settings_list{}
+.settings_page .settings_list ul{display: flex;align-items: center;justify-content:space-between;margin-bottom: 52px;}
+.settings_page .settings_list ul li{color:var(--green);font-size: 22px;line-height: 24px;font-weight: 500;width:50%;}
+.settings_page .settings_list ul li:first-child{width:50%;}
+.settings_page .settings_list ul li+li{display: flex;align-items: center;justify-content: flex-end;}
+.settings_page .settings_list .yes_no{font-weight: 700;width: 40px;text-align: right;}
+.settings_page .settings_list .yes_no span:not(.open){display: none;}
+.settings_page .settings_list label{width: 86px;height: 48px;border: 2px solid #8D8D8D;border-radius: 50px;position:relative;cursor: pointer;}
+.settings_page .settings_list label input{position: absolute;top: 0;opacity: 0;}
+.settings_page .settings_list label::after{content:'';width: 34px;height: 34px;border-radius: 50%;background-color: var(--green);position: absolute;right:4px;top: 0;bottom: 0;margin: auto;}
+.settings_page .settings_list label:has(input:checked)::after{transform: translateX(calc(-100% - 4px));background-color: #E27600;}
+.settings_page .settings_list label:has(input:checked){border-color: #E27600;}
+.settings_page .terms_conditions{font-size: 18px; line-height: 24px; display: block; margin: 0 auto; width: fit-content; text-decoration: underline;font-weight: 500;margin-top: 120px;}
+.settings_page .save_settings{border: none !important;margin:36px auto 0; display: block;}
+.settings_page .settings_img{width:calc(100% - 600px);}
+.settings_page .settings_img img{display: block;margin: 100px auto 0;}
+
+/* responsive */
+@media (max-width:1850px) {
+    .settings_page .settings_options { max-width: 510px; padding: 30px 60px; }
+    .settings_page .settings_list ul { margin-bottom: 30px; }
+    .settings_page .save_settings { margin: 25px auto 0; }
+    .settings_page .terms_conditions { margin-top: 60px; }
+    .settings_page .settings_img img { margin: 100px auto 0; max-width: 540px; }
+}
+@media (max-width:1399px) {
+    .settings_page h1 { font-size: 50px; margin-bottom: 20px; }
+    .settings_page .settings_img img { max-width: 420px; }
+    .settings_page .settings_list ul { margin-bottom: 40px; }
+}
+@media (max-width:1279px) {
+    .settings_page { padding: 50px 40px 60px; }
+    .settings_page .settings_inner { max-width: 530px; }
+    .settings_page .settings_img img { max-width: 420px; margin: 160px auto 0; }
+}
+@media (max-width:1023px) {
+    .settings_page .settings_img{display: none;}
+    .settings_page .settings_inner { max-width: 100%; text-align: center; }
+    .settings_page .settings_options { max-width: 100%; padding: 30px 60px; }
+    .settings_page .settings_list ul li:first-child{text-align: right;}
+    .settings_page .settings_list ul { margin-bottom: 49px; }
+    .settings_page .terms_conditions { margin-top:92px; }
+    .settings_page .save_settings { margin: 47px auto 0; font-size: 20px; font-weight: 500; padding: 17px 47px; }
+    .settings_page .settings_list ul li:first-child { width: 140px; }
+}
+@media (max-width:767px) {
+    .settings_page { padding: 30px 30px 160px; }
+    .settings_page h1 { font-size: 22px; margin-bottom:42px;}
+    .settings_page p{display: none;}
+    .settings_page .settings_inner { width: 100%;}
+    .settings_page .settings_options { max-width: 100%; padding: 0; background-color: transparent; box-shadow: none; }
+}
+@media (max-width:413px) {
+    .settings_page { padding: 30px 15px 160px; }
+    .settings_page .settings_list ul { margin-bottom: 40px; }
+    .settings_page .terms_conditions { margin-top: 60px; }
+    .settings_page .save_settings { margin: 35px auto 0; }
+
+}

@@ -1,0 +1,25 @@
+.routes_explanation{text-align: center;}
+.routes_explanation h2{font-size: 20px;line-height: 24px;margin-bottom: 21px;}
+.routes_explanation .note{font-size: 14px;font-weight: 500;color: var(--green);margin-right: -110px;margin-bottom: 11px;}
+.routes_explanation .note img{margin-left: 13px;}
+.routes_explanation .note span{text-decoration: underline;}
+.routes_explanation ul{padding-right: 87px;}
+.routes_explanation ul li{width: 96px;text-align: right;}
+.routes_explanation ul li:nth-child(2){width: 113px;padding-left: 20px;}
+.routes_explanation ul li:nth-child(3){width: 60px;padding-left: 16px;}
+.routes_explanation ul li:nth-child(4){width: 124px;}
+.routes_explanation .title_routes{margin-bottom: 7px;}
+.routes_explanation .title_routes li{font-size: 18px;font-weight: 600;color: #1e1e1e;}
+.routes_explanation .list_routes{background-color: var(--white);box-shadow: 0 4px 50px #E2760029;position: relative;margin-bottom: 72px;}
+.routes_explanation .list_routes ul{display: flex;align-items: center;}
+.routes_explanation .list_routes::after{content:'';position: absolute;width:96px;background-color: #E4061F;border-radius: 15px;box-shadow: 0 4px 50px #582FFF2E;height: calc(100% - 16px);top: 8px;right:87px;}
+.routes_explanation .list_routes ul li{color: #1E1E1E;font-size: 18px;font-weight: 500;line-height: 26px;position: relative;padding: 11px 0;}
+.routes_explanation .list_routes ul:not(:first-child) li{border-top: 1px dashed #E4061F;}
+.routes_explanation .list_routes ul li:nth-child(2),
+.routes_explanation .list_routes ul li:nth-child(3){text-align: center;}
+.routes_explanation .list_routes ul li:first-child::after{}
+.routes_explanation .list_routes ul span{ display: block; color: #ffff; position: relative; z-index: 1; text-align: center; }
+.routes_explanation .list_routes ul span em{font-style:normal;font-size: 14px;}
+.routes_explanation .total{background-color: #ABCBA2;max-width: 330px;margin:0 auto;line-height: 44px;border-radius: 0 0 15px 15px;position: absolute;left:-40px;right: 0;top: 100%;color: var(--green);font-size: 18px;font-weight: 500;}
+
+

@@ -1,0 +1,88 @@
+.mortgagecyclecheck_page{padding: 85px 0 90px;text-align: center;position: relative;}
+.mortgagecyclecheck_page h1{font-size: 65px;line-height: 40px;}
+.mortgagecyclecheck_page .check_nav{margin-top: 40px;}
+.mortgagecyclecheck_page .note{display: flex;align-items: center;justify-content: center;margin-top: 40px;color: var(--green);font-size: 22px;line-height: 24px;font-weight: 700;}
+.mortgagecyclecheck_page .note img{width: 24px;margin-left: 11px;}
+
+.mortgagecyclecheck_page .upload_file_box{margin-top: 58px;position: relative;}
+.mortgagecyclecheck_page .upload_file_box h3{color: var(--green);font-size: 22px;line-height: 24px;margin-bottom: 26px;font-weight: 300;}
+.mortgagecyclecheck_page .upload_file_box .upload_area{border: 2px dashed #E27600;border-radius: 10px;width:353px;margin: 0 auto;height: 202px;display: flex;align-items: center;justify-content: space-between;padding: 20px 44px 20px 56px;}
+.mortgagecyclecheck_page .upload_file_box .upload_area span{color: var(--green);font-size: 18px;line-height: 23px;font-weight: 500;max-width: 110px;}
+
+.mortgagecyclecheck_page .uploaded_list{max-width: 353px;margin:53px auto 21px;}
+.mortgagecyclecheck_page .uploaded_list h3{color: var(--green);font-size: 22px;line-height: 24px;margin-bottom: 26px;font-weight: 300;text-align: right;}
+.mortgagecyclecheck_page .uploaded_list .file_item{width: 100%;background-color: var(--white);border-radius: 30px;line-height: 42px;display: flex;align-items: center;justify-content: flex-start;padding: 0 24px;color: var(--green);font-weight: 500;font-size: 14px;position: relative;margin:2px 0;}
+.mortgagecyclecheck_page .uploaded_list .file_item button{background-color: transparent;border: none;position: absolute;top: 0;bottom: 0;height: fit-content;margin: auto;}
+.mortgagecyclecheck_page .uploaded_list .delete_btn{left:19px;}
+.mortgagecyclecheck_page .uploaded_list .view_btn{left: 45px;}
+
+.mortgagecyclecheck_page .camera_upload_box{border: 2px dashed #E27600;border-radius: 10px;width:353px;margin: 0 auto;height: 202px;display: flex;align-items: center;justify-content: space-between;padding: 20px 30px 20px 40px;display: none;}
+.mortgagecyclecheck_page .camera_upload_box span{color: var(--green);font-size: 18px;line-height: 23px;font-weight: 500;max-width: 200px;}
+
+.mortgage_finaldetails{max-width: 368px;margin:29px auto 0;}
+.mortgage_finaldetails h2{color: var(--green);font-size: 22px;line-height: 24px;margin-bottom: 11px;font-weight: 300;}
+.mortgage_finaldetails .inner{background-color: var(--white);border-radius: 20px;box-shadow: 0 0 25px #E2760033;padding: 12px 32px;text-align: right;}
+.mortgage_finaldetails h4{color: var(--green);font-size:16px;line-height: 30px;font-weight:400;}
+.mortgage_finaldetails .in{margin-bottom: 25px;width: 100%;height: 43px;border: 1px solid #27450E33;border-radius: 40px;background-color: #F8F8F8;padding: 0 18px;outline:none;font-size: 14px;font-weight: 400;color: #6F6F6F;}
+.mortgage_finaldetails select.in{background-image: url(../../assets/images/select.png);background-repeat: no-repeat;background-position: left 20px center;}
+.mortgage_finaldetails .in:focus{border-color: var(--orange);}
+
+.mortgagecyclecheck_page .next_prev_btnk{margin-top: 80px;}
+
+/* error popup */
+.mortgage_fileError_popup{width: 730px;background-color: #24242475;border-radius: 20px;padding: 58px 40px 24px;position: absolute;top: 0;left: 0;right: 0;margin: auto;z-index: 2;backdrop-filter: blur(70px);visibility: hidden;transition: 0.4s ease all;}
+.mortgage_fileError_popup.open{visibility: visible;}
+.mortgage_fileError_popup .colse{position: absolute;left:21px;top:16px;cursor: pointer;}
+.mortgage_fileError_popup .text{margin-bottom: 43px;}
+.mortgage_fileError_popup .text h3{font-size: 20px;line-height: 30px;font-weight: 700;color: var(--white);margin-bottom: 0;}
+.mortgage_fileError_popup .text p{font-size: 16px;line-height: 30px;font-weight: 400;color: var(--white);}
+.mortgage_fileError_popup .confirmation{width:204px;margin: 0 auto;display: block;border: 1px solid #FFFFFF;border-radius: 50px;box-shadow: 0 4px 30px #00000040;background-color: transparent;line-height: 39px;color: var(--white);font-size: 14px;font-weight: 400;cursor: pointer;}
+.mortgage_fileError_popup .confirmation:hover{background-color: var(--orange);border-color:  var(--orange);}
+
+/* mortgage conversion for free */
+.mortgage_conversion_free_popup{width:730px;background-color: #24242475;border-radius: 20px;padding: 29px 32px 24px;position: absolute;top: 0;left: 0;right: 0;margin: auto;z-index: 2;backdrop-filter: blur(70px);visibility:hidden;transition: 0.4s ease all;text-align: right;}
+.mortgage_conversion_free_popup.open{visibility: visible;}
+.mortgage_conversion_free_popup .colse{position: absolute;left:21px;top:16px;cursor: pointer;}
+.mortgage_conversion_free_popup .text{}
+.mortgage_conversion_free_popup .text h3{font-size: 20px;line-height: 24px;font-weight: 700;color: var(--white);margin-bottom: 0;margin-bottom: 24px;}
+.mortgage_conversion_free_popup .text p{font-size: 16px;line-height: 24px;font-weight: 400;color: var(--white);margin-bottom: 24px;}
+
+
+/* responsive */
+@media (max-width:1850px) {
+    .mortgagecyclecheck_page .uploaded_list h3+.file_item+.file_item{margin-top: 10px;}
+
+}
+@media (max-width:1399px) {
+    .mortgagecyclecheck_page { padding: 40px 0 50px; }
+    .mortgagecyclecheck_page h1 { font-size: 50px; line-height: 40px; }
+
+}
+@media (max-width:1279px) {
+    .prev_page_link { top: 40px; right: 30px; }
+}
+@media (max-width:767px) {
+    .mortgagecyclecheck_page { padding: 30px 0 156px; }
+    .mortgagecyclecheck_page h1 { font-size: 22px; line-height: 24px; font-weight: 300; }
+    .prev_page_link { top: 49px; right: auto; position: fixed; left: 25px; z-index: 999; }
+    .mortgagecyclecheck_page .check_nav { margin-top: 21px; }
+    .mortgagecyclecheck_page .note { font-size: 18px; line-height: 24px; max-width: 273px; margin: 21px auto 0;font-weight: 400;}
+    .mortgagecyclecheck_page .note img { width: 24px; margin-left: 11px; top: -10px; position: relative; }
+    .mortgagecyclecheck_page .upload_file_box { margin-top: 12px; }
+    .mortgagecyclecheck_page .uploaded_list { max-width: 353px; margin: 0px auto 26px; display: flex; flex-direction: column-reverse; justify-content: center; }
+    .mortgagecyclecheck_page .uploaded_list h3 { font-size: 22px; line-height: 24px; margin-bottom: 0; text-align: center; margin-top: 26px; }
+    .mortgagecyclecheck_page .upload_file_box .upload_area { width: 281px; height: 107px; padding: 20px 44px 20px 25px; }
+    .mortgagecyclecheck_page .upload_file_box .upload_area span { font-size: 14px; line-height: 16px; max-width: 110px; }
+    .mortgage_finaldetails { max-width: 368px; margin: 22px auto 0; }
+    .mortgage_finaldetails h2 { margin-bottom: 28px; }
+    .mortgagecyclecheck_page .next_prev_btnk { margin-top: 51px; }
+    .mortgagecyclecheck_page .btn { font-size: 20px; padding: 18px 47px 19px; line-height: 24px; }
+
+
+
+
+
+
+}
+
+

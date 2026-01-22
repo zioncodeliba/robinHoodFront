@@ -1,0 +1,81 @@
+@font-face {
+    font-family: 'Noto Sans Hebrew';
+    src: url('NotoSansHebrew-ExtraBold.woff2') format('woff2'),
+        url('NotoSansHebrew-ExtraBold.woff') format('woff');
+    font-weight: bold;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Noto Sans Hebrew';
+    src: url('NotoSansHebrew-Bold.woff2') format('woff2'),
+        url('NotoSansHebrew-Bold.woff') format('woff');
+    font-weight: bold;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Noto Sans Hebrew';
+    src: url('NotoSansHebrew-Medium.woff2') format('woff2'),
+        url('NotoSansHebrew-Medium.woff') format('woff');
+    font-weight: 500;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Noto Sans Hebrew';
+    src: url('NotoSansHebrew-Regular.woff2') format('woff2'),
+        url('NotoSansHebrew-Regular.woff') format('woff');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Noto Sans Hebrew';
+    src: url('NotoSansHebrew-ExtraLight.woff2') format('woff2'),
+        url('NotoSansHebrew-ExtraLight.woff') format('woff');
+    font-weight: 200;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Noto Sans Hebrew';
+    src: url('NotoSansHebrew-SemiBold.woff2') format('woff2'),
+        url('NotoSansHebrew-SemiBold.woff') format('woff');
+    font-weight: 600;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Noto Sans Hebrew';
+    src: url('NotoSansHebrew-Thin.woff2') format('woff2'),
+        url('NotoSansHebrew-Thin.woff') format('woff');
+    font-weight: 100;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Noto Sans Hebrew';
+    src: url('NotoSansHebrew-Black.woff2') format('woff2'),
+        url('NotoSansHebrew-Black.woff') format('woff');
+    font-weight: 900;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Noto Sans Hebrew';
+    src: url('NotoSansHebrew-Light.woff2') format('woff2'),
+        url('NotoSansHebrew-Light.woff') format('woff');
+    font-weight: 300;
+    font-style: normal;
+    font-display: swap;
+}
+

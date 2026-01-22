@@ -1,0 +1,94 @@
+.suggestions_page{padding: 85px 0 55px;}
+.suggestions_page .title{padding: 0 20px;text-align: center;margin-bottom: 68px;}
+.suggestions_page .title h1{font-size: 65px; line-height: 40px; text-align: center; margin-bottom: 39px;}
+.suggestions_page .title p{font-size: 22px; line-height: 24px; text-align: center;color: var(--green);font-weight: 700;}
+.suggestions_page .wrapper{max-width: 1319px;}
+.suggestions_page .colin{width: 386px;position: relative;}
+.suggestions_page .colin .note{display: flex; align-items: center; margin-top: 8px; }
+.suggestions_page .colin .note img { margin-left: 20px; width: 24px; }
+.suggestions_page .colin .note p { color: var(--green); font-size: 14px; line-height: 1; font-weight: 500; text-decoration: underline;cursor: pointer;}
+
+
+/* bank_mortgage_card */
+.bank_mortgage_card{position: relative;border: 2.44px solid var(--color);border-radius:15px;padding:29px 27px 0 24px;background: #FFFFFF;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 1) 0%, rgba(225, 240, 223, 1) 100%);}
+.bank_mortgage_card::after{content:'';position: absolute;bottom: -1px;left: 0;right: 0;margin: 0 auto;width: calc(100% - 50px);height: 5px;background-color: var(--color);}
+.bank_mortgage_card .bank_icon{position: absolute;width: 60px;height: 60px;border-radius: 50%;right: 20px;top: -28px;display: flex; align-items: center; justify-content: center;}
+.bank_mortgage_card .tag { font-size: 12px; line-height: 26px; font-weight: 400; padding: 0 12px; color: var(--white); background-color:var(--color); border-radius:20px; text-align: center; position: absolute; left:37px; top: -13px; }
+.bank_mortgage_card h2{text-align: right;font-size: 18px;line-height: 24px;font-weight: 400;margin-bottom: 8px;}
+.bank_mortgage_card ul{}
+.bank_mortgage_card ul li{width:50%;padding-right: 0;padding-bottom: 8px;margin-bottom: 8px;}
+.bank_mortgage_card ul li:nth-child(2),
+.bank_mortgage_card ul li:first-child{border-bottom: 1.22px dashed #27450E;}
+.bank_mortgage_card ul li:nth-child(3){width: 100%;margin-bottom: 0px;}
+.bank_mortgage_card ul li:not(:first-child,:nth-child(2)) h3{font-size: 14px;}
+.bank_mortgage_card ul li h3,
+.bank_mortgage_card ul li p{font-size:18px;line-height: 24px;color: #27450E;}
+.bank_mortgage_card ul li p{margin-top: -4.5px;}
+    
+/* baskets list */
+.suggestions_page .baskets_list{margin-top: 15px;}
+.suggestions_page .baskets_list li{border: 1px solid #C9C9C9;box-shadow: 0 4px 30px #e2750025;color: var(--green);font-size: 14px;line-height: 24px;font-weight:500;padding:6px 20px 6px 27px;border-radius: 20px;margin: 0 4.5px;cursor: pointer;}
+
+/* routes_bank_mortgage */
+.routes_bank_mortgage{position: relative;margin-top: 17px;background-color: var(--white);border-radius: 20px; box-shadow: 0 4px 50px color-mix(in srgb, var(--color) 20%, transparent);} 
+.routes_bank_mortgage::after{content: ''; position: absolute; width: 78px; background-color: var(--color); border-radius: 15px; box-shadow: 0 4px 50px #582FFF2E; height: calc(100% - 10px); top: 5px; right: 12px;box-shadow: 0 4px 50px color-mix(in srgb, var(--color) 50%, transparent);}
+.routes_bank_mortgage ul{display: flex; align-items: center;}
+.routes_bank_mortgage ul:not(:last-child){border-bottom: 1px dashed var(--color);}
+.routes_bank_mortgage ul li{line-height: 48px;display: block;width: 90px;padding-right: 12px;text-align: center;font-size: 18px;line-height: 48px;font-weight: 500;text-align: center;min-width: 90px;}
+.routes_bank_mortgage ul li+li{width: calc(100% + 90px);}
+.routes_bank_mortgage ul li span{color: var(--white);position: relative;z-index: 1;display: block;}
+
+/* chart_sec */
+.suggestions_page .chart_sec{margin-top: 19px;max-width: 100%;    display: flex; flex-direction: column-reverse;}
+.suggestions_page .chart_legend {margin-top: 23px;}
+.suggestions_page .chart_sec .chart_legend>div.interest span{background-color: var(--orange);}
+.suggestions_page .chart_sec .chart-container { height: 262px; }
+
+.note_popup { position: absolute; top: -15px; width: 100%; padding: 26px 28px 15px 37px; background-color: #24242475; border-radius: 20px; backdrop-filter: blur(70px); z-index: 2; right: 0; height:89%;transition: 0.4s ease all;visibility: hidden;opacity: 0;}
+.note_popup.open{visibility: visible;opacity: 1;}
+.note_popup .close{position: absolute; left:24px; top:29px;cursor: pointer;}
+.note_popup .inner{overflow-y: scroll;height: 100%;}
+.note_popup .col{margin-bottom: 24px;}
+.note_popup h2{color: var(--white);font-size: 20px;line-height: 24px;}
+.note_popup h3{color: var(--white);font-size: 16px;line-height: 24px;font-weight: 900;}
+.note_popup p{color: var(--white);font-size: 16px;line-height: 24px;font-weight: 400;letter-spacing: 0.5px;}
+
+.suggestions_page .prev_page_link{display: none;}
+
+/* responsive */
+@media (max-width:1399px) {
+    .suggestions_page { padding: 50px 0 50px; }
+    .suggestions_page .wrapper { max-width: 1200px; }
+    .suggestions_page .title h1 { font-size: 50px; margin-bottom: 30px; }
+}
+@media (max-width:1279px) {
+    .suggestions_page .wrapper { padding: 0 20px; }
+    .suggestions_page .colin { width: calc(33.33% - 10px); }
+    .suggestions_page .baskets_list li{margin-bottom: 5px;}
+}
+@media (max-width:1023px) {
+    .suggestions_page .colin { width: calc(50% - 10px);margin-bottom: 30px;}
+}
+@media (max-width:767px) {
+    .suggestions_page { padding: 22px 0 136px; }
+    .suggestions_page .prev_page_link { display: block;}
+    .suggestions_page .title { margin-bottom: 0; }
+    .suggestions_page .title h1 { font-size: 22px; margin-bottom: 20px;font-weight: 300;}
+    .suggestions_page .title p{display: none;}
+    .suggestions_page .wrapper { padding: 0; }
+    .suggestions_page .colin { width: 100%; margin-bottom: 30px; }
+    .suggestions_page .colin:last-child{margin-bottom: 0;}
+    .suggestions_page .routes_bank_mortgage { border-radius: 0; }
+    .suggestions_page .bank_mortgage_card{max-width:calc(100% - 58px);margin: 0 auto;}
+    .suggestions_page .colin .note{margin-right: 58px;}
+    .suggestions_page .chart_sec { max-width: calc(100% - 28px);margin:19px auto 0; }
+    .suggestions_page .chart_legend { margin-top: 10px; }
+}
+@media (max-width:413px) {
+    .suggestions_page .bank_mortgage_card { max-width: calc(100% - 24px); }
+    .suggestions_page .colin .note { margin-right: 20px; }
+
+
+
+}

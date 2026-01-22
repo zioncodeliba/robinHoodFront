@@ -1,0 +1,102 @@
+/* RoutesMortgageetails */
+.routes_mortgage_sec{margin-top: 39px;border-radius: 15px;background-color: var(--white);box-shadow: 0 4px 48px #E2760029;padding: 31.56px;position: relative;}
+.routes_mortgage_sec h2{line-height: 31px;font-size: 23px;margin-bottom: 23px;text-align: center;}
+.routes_mortgage_sec .emi_details{margin-bottom:30.61px;}
+.routes_mortgage_sec .emi_details li{border-left:1px solid #E5E7EB;margin-left: 2%;width:18.351%;text-align: center;}
+.routes_mortgage_sec .emi_details li:last-child{margin-left: 0;border-left: 0;}
+.routes_mortgage_sec .emi_details li p{color: #6B7280;font-weight: 400;font-size: 13.39px;line-height: 20px;}
+.routes_mortgage_sec .emi_details li h3{font-size:19.13px;line-height: 25px;}
+.routes_mortgage_sec .total_payments{border-top: 2px solid #4E8FF7;padding-top: 17px;text-align: center;margin-bottom: 30px;}
+.routes_mortgage_sec .total_payments p{color: #6B7280;font-weight: 400;font-size: 13.39px;line-height: 20px;}
+.routes_mortgage_sec .total_payments h4{color: #4E8FF7;font-size: 23px;line-height: 31px;font-weight: 400;}
+.routes_mortgage_sec .routes_explanation{margin-top: 19px;}
+.routes_mortgage_sec .routes_explanation ul.title_routes{margin-bottom: 0;border-bottom: 1px solid #4E8FF7;padding-bottom: 12px;}
+.routes_mortgage_sec .routes_explanation ul.title_routes li:first-child{padding-right: 32px;}
+.routes_mortgage_sec .routes_explanation ul{ padding-right: 0;}
+.routes_mortgage_sec .routes_explanation ul li{color: #2E4C40;font-size:17.22px;font-weight: 400;}
+.routes_mortgage_sec .routes_explanation ul li:first-child{width:41.6%;}
+.routes_mortgage_sec .routes_explanation ul li:nth-child(2){width:22.6%;text-align: center;padding-left: 0;}
+.routes_mortgage_sec .routes_explanation ul li:last-child{width:35.8%;padding-left: 15px;text-align: left;}
+
+.routes_mortgage_sec .routes_explanation .list_routes ul:not(:first-child) li{border-color: #4e8ff7;}
+.routes_mortgage_sec .routes_explanation .list_routes ul span { line-height: 26px; width: 150px; display: flex; align-items: center; justify-content: flex-start; margin-right: 22px; }
+.routes_mortgage_sec .routes_explanation .list_routes ul span em{width: 55%;text-align: center;}
+.routes_mortgage_sec .routes_explanation .list_routes::after { width: 150px; background-color: #4e8ff7; height: 100%; top: 0; right: 22px; }
+.routes_mortgage_sec .routes_explanation .total { max-width: max-content; line-height: 24px; border-radius: 15px; left: -39px; right: auto; top: calc(100% + 32px); padding: 20px 23px 10px; }
+.routes_mortgage_sec .routes_explanation .total p{line-height: 24px;}
+.routes_mortgage_sec .routes_explanation .total p strong{font-weight: 500;}
+.routes_mortgage_sec .routes_explanation .list_routes { background-color: transparent; box-shadow: none; position: relative; margin-bottom: 0;}
+.routes_mortgage_sec .routes_explanation .list_routes::after{background-color:var(--bgcolor) !important;}
+
+.routes_mortgage_sec .routs_note{display: flex;align-items: center;margin-top: 8px;}
+.routes_mortgage_sec .routs_note img{margin-left: 20px;width: 24px;}
+.routes_mortgage_sec .routs_note p{color: var(--green);font-size: 14px;line-height: 1;font-weight: 500;text-decoration: underline;}
+.routes_mortgage_sec .bank_logo{position: absolute; top: -30px; width: 79px; height: 79px; right: 30px;}
+.routes_mortgage_sec .expire_offer{background-color: #D9E8D8;border-radius: 20px;line-height: 26px;padding: 0 11px;color: var(--green);font-size: 12px;font-weight: 400;position: absolute;left: 68px;top:-13px;z-index: 2;}
+.routes_mortgage_sec .expire_offer strong{font-weight: 500;}
+
+
+@media (max-width:767px) {
+    .routes_explanation .title_routes,
+    .routes_explanation .list_routes ul{ padding-right: 30px; }
+    .routes_explanation .list_routes::after { right: 30px; }
+    .routes_explanation ul li { width: 96px; }
+    .routes_explanation ul li:nth-child(2) { width: 111px; padding-left: 0; }
+    .routes_explanation ul li:nth-child(4) { width: 114px; }
+    .routes_mortgage_sec .emi_details{margin: 0;}
+    .routes_mortgage_sec .bank_logo { top: -30px; width: 60px; height: 60px; right: 21px; }
+    .routes_mortgage_sec { margin-top:0; border-radius: 0; background-color: transparent; box-shadow: none; padding: 0;}
+    .routes_mobile{ margin-bottom: 0; max-width: calc(100% - 50px); margin: 0 auto; padding: 32px 24px 14px; border-radius: 15px;     background: #FFFFFF;background: linear-gradient(180deg, rgba(255, 255, 255, 1) 0%, rgba(225, 240, 223, 1) 100%);        position: relative;box-shadow: 0 4px 60px #27450E0D;}
+    .routes_mobile::after{content:'';position: absolute;bottom: 0;left: 0;right: 0;margin: 0 auto;width: calc(100% - 50px);background-color:var(--bgcolor);height: 5px;border-radius: 10px;}
+    .routes_mortgage_sec .emi_details li{margin: 0; text-align: start; border: none; }
+    .routes_mortgage_sec .emi_details li p{color: #27450E;font-weight: 700;font-size: 18px;line-height: 24px;}
+    .routes_mortgage_sec .emi_details li h3{color: #27450E;font-weight: 400;font-size: 18px;line-height: 24px;}
+    .routes_mortgage_sec .emi_details li+li+li+li p{font-size: 14px;}
+
+    .routes_mortgage_sec .emi_details li:first-child { width: 100%;order: 1;}
+    .routes_mortgage_sec .emi_details li:first-child p{display: none !important;}
+    .routes_mortgage_sec .emi_details li:first-child h3{font-size: 18px;line-height: 24px;font-weight: 400;}
+    .routes_mortgage_sec .emi_details li:nth-child(2){width: 131px;order: 2;}
+    .routes_mortgage_sec .emi_details li:nth-child(3){width:calc(100% - 131px);order: 3;}
+    .routes_mortgage_sec .emi_details li:last-child{width:100%;order: 4;margin-top: 8px;padding-top: 8px;border-top: 1px dashed #27450E;margin-bottom: 8px;}
+    .routes_mortgage_sec .emi_details li:nth-child(4){width:50%;order: 5;}
+    .routes_mortgage_sec .total_payments { border-top: none; padding-top: 0; text-align: right; margin-bottom: 0; width: 50%; position: absolute; bottom: 14px; right: 50%; }
+    .routes_mortgage_sec .total_payments p,
+    .routes_mortgage_sec .total_payments h4{color: #27450E !important;font-weight: 700;font-size: 14px;line-height: 24px;}
+    .routes_mortgage_sec .total_payments h4{font-weight: 400;font-size: 18px;}
+    .routes_mortgage_sec .routs_note { margin-top: 21px;margin-right: 44px;}
+    
+    .routes_mortgage_sec .routes_explanation .list_routes{background-color: var(--white);padding: 10px 0 !important;box-shadow:  0 4px 50px #E2760029;}
+    .routes_mortgage_sec .routes_explanation .list_routes::after { width: 110px; height: calc(100% - 20px); top: 10px; right: 30px; }
+    .routes_mortgage_sec .routes_explanation ul.title_routes { padding-bottom: 8px; padding-right: 32px; border: none !important;}
+    .routes_mortgage_sec .routes_explanation ul li { font-size: 18px; font-weight: 600; }
+    .routes_mortgage_sec .routes_explanation ul.title_routes li:first-child { padding-right: 0; }
+    .routes_mortgage_sec .routes_explanation .list_routes ul span { width: 110px; margin-right: 0;}
+    .routes_mortgage_sec .routes_explanation ul li:first-child { width: 110px; }
+    .routes_mortgage_sec .routes_explanation ul li:nth-child(2) { width:calc(50% - 55px); }
+    .routes_mortgage_sec .routes_explanation ul li:last-child { width:calc(50% - 55px); padding-left: 0; text-align: right; }
+    .routes_mortgage_sec .routes_explanation .total p{font-size: 18px;color: var(--green);}
+    .routes_mortgage_sec .routes_explanation .total { border-radius: 0 0 15px 15px; left: 0; right: 0; top: 100%; padding: 11px 45px; }
+
+
+
+
+}
+@media (max-width:413px) {
+    .routes_explanation .title_routes,
+    .routes_explanation .list_routes ul{ padding-right: 10px; }
+    .routes_explanation .list_routes::after { right: 10px; }
+    .routes_explanation ul li { width: 80px; }
+    .routes_explanation ul li:nth-child(2) { width: 85px; padding-left: 0; }
+    .routes_explanation ul li:nth-child(3) { width: 50px; padding-left: 0; }
+    .routes_explanation ul li:nth-child(4) { width: 90px; }
+
+    .routes_explanation .list_routes::after { width: 80px; }
+    .routes_explanation .list_routes ul li { font-size: 14px; padding: 11px 0; }
+    .routes_explanation .title_routes li { font-size: 14px; }
+    .routes_mobile { max-width: calc(100% - 20px); padding: 32px 15px 14px; }
+    .routes_mortgage_sec .routes_explanation .list_routes::after { right: 10px; }
+    .routes_mortgage_sec .routes_explanation ul.title_routes { padding-right: 10px; }
+
+
+}
