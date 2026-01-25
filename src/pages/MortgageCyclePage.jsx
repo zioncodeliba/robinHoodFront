@@ -1,5 +1,6 @@
 // Homepage.jsx
-import React from "react";
+import React, { useMemo } from "react";
+import { useLocation } from "react-router-dom";
 import '../components/mortgagecyclecomponents/MortgageCyclepage.css';
 
 import prevIcon from '../assets/images/prev_icon.png';
@@ -12,36 +13,25 @@ import YourRoutesMortgageDetails from '../components/commoncomponents/YourRoutes
 import SavingsList from '../components/mortgagecyclecomponents/SavingsList';
 import BarChartsavings from '../components/mortgagecyclecomponents/BarChartsavings';
 import ReturnsChart from '../components/commoncomponents/ReturnsChart';
+import {
+  buildBankMortgageData,
+  buildMortgageDataFromOptimal,
+  loadMortgageCycleResult,
+} from "../utils/mortgageCycleResult";
 
 
 const MortgageCyclePage = () => {
-
-  const mortgageData1 = {
-    title: "המשכנתא שלך:",
-    details: {
-      bank: "בנק הפועלים",
-      amount: "₪1,500,000",
-      years: "30",
-      firstMonthlyPayment: "₪7,982",
-      maxMonthlyPayment: "₪8,330",
-    },
-    totalPayments: "₪1,458,966",
-    note: {
-      text: "הסבר על המסלולים",
-    },
-    routes: {
-      headers: ["מסלולים", "ריבית", "יתרה"],
-      list: [
-        { name: 'ק"צ', percentage: "40%", interest: "5%", balance: "₪640,000" },
-        { name: 'מ"צ', percentage: "40%", interest: "5%", balance: "₪368,000" },
-        { name: 'פריים', percentage: "40%", interest: "5%", balance: "₪592,000" },
-      ],
-      totals: {
-        indexLinked: "100,000 ש\"ח",
-        overall: "1,700,000 ש\"ח",
-      },
-    },
-  };
+  const location = useLocation();
+  const storedResult = useMemo(() => loadMortgageCycleResult(), []);
+  const bankResponse = location.state?.bankResponse || storedResult;
+  const bankMortgageData = useMemo(
+    () => buildBankMortgageData(bankResponse),
+    [bankResponse]
+  );
+  const { mortgageData } = useMemo(
+    () => buildMortgageDataFromOptimal(bankResponse),
+    [bankResponse]
+  );
 
   const mortgageCycleData = {
     "1": [
@@ -73,9 +63,9 @@ const MortgageCyclePage = () => {
           </div>
         </div>
         <div className="right_col">
-          <BankMortgage />
+          <BankMortgage data={bankMortgageData} />
           {/* <YourRoutesMortgageDetails /> */}
-          <YourRoutesMortgageDetails data={mortgageData1} themeColor="#4E8FF7" />
+          <YourRoutesMortgageDetails data={mortgageData} themeColor="#4E8FF7" />
           {/* <RoutesMortgageDetails /> */}
           <div className="comparison_graph">
             {/* <ReturnsChart charttitle={'גרף השוואה'} interest={'משכנתא נוכחית'} fund={'משכנתא לאחר מחזור'} /> */}

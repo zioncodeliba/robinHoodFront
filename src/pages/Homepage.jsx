@@ -26,7 +26,7 @@ const Homepage = () => {
         <h3>מה נרצה לעשות היום?</h3>
         <ul className="d_flex">
           <li>
-            <Link to="/new-loan">
+            <Link to="/aichat">
               <img src={mortgageimg1} alt="" />
               <span>לקיחת <br /> משכנתא חדשה</span>
             </Link>

@@ -284,7 +284,22 @@ header .left_col>div>.btn.registration:hover{background-color: var(--orange);}
 .ai_charpage .wrapper{max-width: 1214px;}
 .ai_charpage .title h1{font-size: 65px;line-height: 40px;margin-bottom: 39px;}
 .ai_charpage .title p{font-size: 22px;line-height: 24px;color: var(--green);font-weight: 700;margin-bottom: 39px;}
-.ai_charpage .aichatImage{display: block;margin: 0 auto;}
+.ai_chat_panel{background: var(--white);border-radius: 28px;box-shadow: 0 10px 45px rgba(0,0,0,0.12);padding: 22px;text-align: right;}
+.ai_chat_messages{background: #f6f6f6;border-radius: 20px;min-height: 320px;max-height: 52vh;overflow-y: auto;padding: 18px;display:flex;flex-direction: column;gap: 14px;border: 1px solid #e7e7e7;}
+.ai_chat_bubble{max-width: 78%;padding: 12px 18px;border-radius: 18px;font-size: 18px;line-height: 28px;white-space: pre-line;box-shadow: 0 6px 20px rgba(0,0,0,0.06);}
+.ai_chat_bubble p{color: inherit;}
+.ai_chat_bubble.bot{background: var(--white);color: var(--green);align-self: flex-start;border: 1px solid #e1e1e1;}
+.ai_chat_bubble.user{background: var(--green);color: var(--white);align-self: flex-end;}
+.ai_chat_actions{margin-top: 16px;display:flex;flex-direction: column;gap: 12px;}
+.ai_chat_buttons{display:flex;flex-wrap: wrap;gap: 10px;}
+.ai_chat_option{background: var(--white);border: 1px solid var(--green);color: var(--green);padding: 10px 18px;border-radius: 999px;font-size: 16px;cursor: pointer;}
+.ai_chat_option:hover{background: var(--green);color: var(--white);}
+.ai_chat_input_wrap{display:flex;gap: 10px;flex-wrap: wrap;}
+.ai_chat_input{flex: 1;border: 1px solid #d8d8d8;border-radius: 999px;padding: 12px 18px;font-size: 16px;background: var(--white);}
+.ai_chat_send{background: var(--orange);color: var(--white);border-radius: 999px;padding: 12px 22px;font-size: 16px;cursor: pointer;box-shadow: 0 8px 24px rgba(226,118,0,0.25);}
+.ai_chat_send:hover{background: var(--green);}
+.ai_chat_error{background: #d64545;color: #fff;border-radius: 12px;padding: 10px 14px;font-size: 14px;}
+.ai_chat_status{font-size: 16px;color: var(--green);text-align: center;padding: 8px 0;}
 .form_error,.form_success{background:red;color:#fff;border-radius:5px;text-align:center;margin-bottom:10px;padding:10px}
 .form_success{background:#27450e}
 .form_error:empty,.form_success:empty{display: none;}
@@ -348,6 +363,9 @@ header .left_col>div>.btn.registration:hover{background-color: var(--orange);}
   .ai_charpage { padding: 50px 20px 0; }
   .ai_charpage .title h1 { font-size: 40px; margin-bottom: 30px; }
   .ai_charpage .title p { font-size: 18px; line-height: 20px; margin-bottom: 20px; }
+  .ai_chat_panel{padding: 18px;}
+  .ai_chat_messages{max-height: 48vh;}
+  .ai_chat_bubble{font-size: 16px;line-height: 24px;}
 
 
 

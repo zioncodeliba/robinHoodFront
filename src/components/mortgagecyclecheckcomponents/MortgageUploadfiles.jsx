@@ -1,35 +1,40 @@
-import React, { useState, useRef } from "react";
+import React, { useRef } from "react";
 import notificationIcon from "../../assets/images/note_i.png";
 import uploadIcon from "../../assets/images/upload_icon.png";
 import eyeIcon from "../../assets/images/eye.png";
 import closeIcon from "../../assets/images/up_close.png";
-import cameraIcon from "../../assets/images/camera.png"; 
+import cameraIcon from "../../assets/images/camera.png";
 
 // MortgageFileErrorPopup
-import MortgageFileErrorPopup from './MortgageFileErrorPopup';
-import MortgageConversionFreePopup from './MortgageConversionFreePopup';
+import MortgageFileErrorPopup from "./MortgageFileErrorPopup";
+import MortgageConversionFreePopup from "./MortgageConversionFreePopup";
 
-
-const MortgageUploadfiles = () => {
-  const [files, setFiles] = useState([]);
+const MortgageUploadfiles = ({ files, setFiles }) => {
   const fileInputRef = useRef(null);
   const cameraInputRef = useRef(null);
 
-  // 🔹 Regular file upload
+  const isValidFile = (file) => {
+    if (file.size > 5 * 1024 * 1024) {
+      alert(`❌ ${file.name} is larger than 5MB`);
+      return false;
+    }
+    if (!["application/pdf", "image/jpeg", "image/jpg"].includes(file.type)) {
+      alert(`❌ ${file.name} must be PDF or JPG`);
+      return false;
+    }
+    return true;
+  };
+
+  const addFiles = (selectedFiles) => {
+    const validFiles = selectedFiles.filter(isValidFile);
+    if (validFiles.length === 0) return;
+    setFiles((prev) => [...prev, ...validFiles]);
+  };
+
+  // 🔹 Regular file select
   const handleFileChange = (e) => {
     const newFiles = Array.from(e.target.files);
-    const validFiles = newFiles.filter((file) => {
-      if (file.size > 5 * 1024 * 1024) {
-        alert(`❌ ${file.name} is larger than 5MB`);
-        return false;
-      }
-      if (!["application/pdf", "image/jpeg", "image/jpg"].includes(file.type)) {
-        alert(`❌ ${file.name} must be PDF or JPG`);
-        return false;
-      }
-      return true;
-    });
-    setFiles((prev) => [...prev, ...validFiles]);
+    addFiles(newFiles);
     e.target.value = ""; // reset input
   };
 
@@ -41,7 +46,7 @@ const MortgageUploadfiles = () => {
   // 🔹 Handle captured photo
   const handleCameraChange = (e) => {
     const photoFiles = Array.from(e.target.files);
-    setFiles((prev) => [...prev, ...photoFiles]);
+    addFiles(photoFiles);
     e.target.value = "";
   };
 
@@ -52,7 +57,8 @@ const MortgageUploadfiles = () => {
 
   const handleView = (file) => {
     const fileURL = URL.createObjectURL(file);
-    window.open(fileURL);
+    window.open(fileURL, "_blank", "noopener");
+    setTimeout(() => URL.revokeObjectURL(fileURL), 60_000);
   };
 
   return (
@@ -68,7 +74,6 @@ const MortgageUploadfiles = () => {
       </div>
 
       <div className="upload_file_box">
-
         {/* MortgageFileErrorPopup */}
         <MortgageFileErrorPopup />
         <MortgageConversionFreePopup />
@@ -76,23 +81,13 @@ const MortgageUploadfiles = () => {
         <div className="uploaded_list">
           <h3>ניתן להוסיף קבצים נוספים</h3>
 
-          {/* Default file when none uploaded */}
-          {files.length === 0 && (
+          {files.length === 0 ? (
             <div className="file_item">
-              <span className="file_name">Clearance Schedule.pdf</span>
-              <button className="view_btn">
-                <img src={eyeIcon} alt="view" />
-              </button>
-              <button className="delete_btn">
-                <img src={closeIcon} alt="remove" />
-              </button>
+              <span className="file_name">עדיין לא נבחרו קבצים</span>
             </div>
-          )}
-
-          {/* Uploaded files list */}
-          {files.length > 0 &&
+          ) : (
             files.map((file, index) => (
-              <div className="file_item" key={index}>
+              <div className="file_item" key={`${file.name}-${index}`}>
                 <span className="file_name">{file.name}</span>
                 <button className="view_btn" onClick={() => handleView(file)}>
                   <img src={eyeIcon} alt="view" />
@@ -101,7 +96,8 @@ const MortgageUploadfiles = () => {
                   <img src={closeIcon} alt="remove" />
                 </button>
               </div>
-            ))}
+            ))
+          )}
         </div>
 
         {/* 📂 Regular Upload */}
