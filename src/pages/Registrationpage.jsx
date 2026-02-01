@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import useGoogleAuth from '../utils/useGoogleAuth';
+import { getGatewayApiBase } from '../utils/apiBase';
 
 import logoup from '../assets/images/logoup.svg';
 import appleIcon from '../assets/images/apple_i.svg';
@@ -39,7 +40,7 @@ const Registrationpage = () => {
 
     setIsSubmitting(true);
     try {
-      const res = await fetch(`${process.env.REACT_APP_API_BASE_URL}/register`, {
+      const res = await fetch(`${getGatewayApiBase()}/register`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -90,7 +91,7 @@ const Registrationpage = () => {
     setSuccess('');
 
     try {
-      const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}/google-login`, {
+      const response = await fetch(`${getGatewayApiBase()}/google-login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -152,8 +153,8 @@ const Registrationpage = () => {
   };
 
   const onAppleClick = () => {
-    const apiBase = process.env.REACT_APP_API_BASE_URL;
-    if (!apiBase) {
+    const apiBaseEnv = process.env.REACT_APP_API_BASE_URL;
+    if (!apiBaseEnv) {
       setError('חסר REACT_APP_API_BASE_URL להגדרת הרשמה עם אפל.');
       return;
     }
@@ -164,7 +165,7 @@ const Registrationpage = () => {
 
     // Backend should start Apple OAuth and then redirect back with token in query (?token=...)
     const returnTo = window.location.origin + '/';
-    window.location.href = `${apiBase}/apple-login?redirect_uri=${encodeURIComponent(returnTo)}`;
+    window.location.href = `${getGatewayApiBase()}/apple-login?redirect_uri=${encodeURIComponent(returnTo)}`;
   };
 
   return (

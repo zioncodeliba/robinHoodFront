@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from 'react-router-dom';
+import { getGatewayApiBase } from "../utils/apiBase";
 
 import brand from '../assets/images/logoup_m.svg';
 import nextI from '../assets/images/next_icon.png';
@@ -24,7 +25,7 @@ const OtpScreen = () => {
     setIsSubmitting(true);
 
     try {
-      const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}/generate-otp`, {
+      const response = await fetch(`${getGatewayApiBase()}/generate-otp`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -49,6 +50,8 @@ const OtpScreen = () => {
           'שגיאה בשליחת הקוד. נסה שוב.';
         throw new Error(errorMessage);
       }
+
+      console.log(data);
 
       setSuccess(data?.message || 'קוד נשלח בהצלחה');
 
@@ -98,6 +101,14 @@ const OtpScreen = () => {
               className="phone"
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault();
+                  if (!isSubmitting) {
+                    handleSubmit();
+                  }
+                }
+              }}
             />
 
           </div>

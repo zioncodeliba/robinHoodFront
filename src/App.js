@@ -39,6 +39,7 @@ import ExplanationScreen2 from './pages/ExplanationScreen2';
 import OtpScreen from './pages/OtpScreen';
 import OtpVerify from './pages/OtpVerify';
 import AIChatpage from './pages/AIChatpage';
+import AIChatpageStatic from './pages/AIChatpageStatic';
 
 
 function AppWrapper() {
@@ -94,7 +95,7 @@ function AppWrapper() {
   const hidepan = ["/simulatorpage", "/brokerhomepage", "/login"].includes(path);
   const appointmentBg = ["/appointment"].includes(path);
   const exscreenBg = ["/explanation-screen", "/explanation-screen2", "/login-with-otp", "/otp-verify", "/registration", "/login"].includes(path);
-  const HidestickyMenu = ["/registration", "/login", "/login-with-otp", "/otp-verify", "/aichat"].includes(path);
+  const HidestickyMenu = ["/registration", "/login", "/login-with-otp", "/otp-verify", "/aichat", "/aichat-static"].includes(path);
 
 
   return (
@@ -137,6 +138,7 @@ function AppWrapper() {
           <Route path="/explanation-screen" element={<ProtectedRoute><ExplanationScreen1 /></ProtectedRoute>} />
           <Route path="/explanation-screen2" element={<ProtectedRoute><ExplanationScreen2 /></ProtectedRoute>} />
           <Route path="/aichat" element={<ProtectedRoute><AIChatpage /></ProtectedRoute>} />
+          <Route path="/aichat-static" element={<ProtectedRoute><AIChatpageStatic /></ProtectedRoute>} />
         </Routes>
 
       </div>

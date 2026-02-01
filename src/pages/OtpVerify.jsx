@@ -1,5 +1,6 @@
 import React, { useRef, useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { getGatewayApiBase } from "../utils/apiBase";
 
 import nextI from '../assets/images/next_icon.png';
 import brand from '../assets/images/logoup_m.svg';
@@ -111,15 +112,13 @@ const OtpVerify = () => {
       inputsRef.current[index + 1]?.focus();
     }
 
-    // Auto-submit when all 4 digits are entered (on last input)
-    /* if (value && index === 3) {
+    // Auto-submit when the last digit is entered
+    if (value && index === 3) {
       const fullOtp = newOtp.join('');
-      if (fullOtp.length === 4) {
-        setTimeout(() => {
-          handleVerifyOtp(fullOtp);
-        }, 100);
+      if (fullOtp.length === 4 && !isSubmitting) {
+        handleVerifyOtp(fullOtp);
       }
-    } */
+    }
 
   };
 
@@ -168,7 +167,7 @@ const OtpVerify = () => {
     setIsResending(true);
 
     try {
-      const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}/generate-otp`, {
+      const response = await fetch(`${getGatewayApiBase()}/generate-otp`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -231,7 +230,7 @@ const OtpVerify = () => {
     const shouldBypassOnError = otpToVerify === bypassOtpCode;
 
     try {
-      const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}/verify-otp`, {
+      const response = await fetch(`${getGatewayApiBase()}/verify-otp`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -317,7 +316,7 @@ const OtpVerify = () => {
           <img src={otpverifiy} className="img" alt="" />
           <h1>קוד חד פעמי</h1>
 
-          <p>נשלח לך סיסמה חד־פעמית (OTP) למספר הנייד הזה:</p>
+          <p>נשלח לך סיסמה חד־פעמית (0O0OTPPPP) למספר הנייד הזה:</p>
           <p className="phone_text">{phoneNumber ? formatPhoneNumber(phoneNumber) : '---'}</p>
 
           <div className="form_input">

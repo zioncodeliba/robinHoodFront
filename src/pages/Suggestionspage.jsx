@@ -167,6 +167,8 @@ const Suggestionspage = () => {
         },
     ];
 
+  const hasOffers = bankOffers.length > 0;
+
   return (
     <div className="suggestions_page">
       <a href="/" className="prev_page_link"><img src={previcon} alt="" /></a>
@@ -174,38 +176,47 @@ const Suggestionspage = () => {
         <h1>ההצעות של רובין.</h1>
         <p>לפניכם מגוון הצעות שיאפשרו לכם להוציא יותר מהכסף שלכם</p>
       </div>
-      <div className="wrapper d_flex d_flex_jb">
-          {bankOffers.map(offer => (
-              <div className="colin" key={offer.id}>
-                  <BankMortgageCard bankData={offer} />
-                  <div className="baskets_list">
-                    <ul className="d_flex">
-                      <li>סל אחיד 1</li>
-                      <li>סל אחיד 2</li>
-                      <li>סל אחיד 3</li>
-                    </ul>
+      {hasOffers ? (
+        <>
+          <div className="wrapper d_flex d_flex_jb">
+              {bankOffers.map(offer => (
+                  <div className="colin" key={offer.id}>
+                      <BankMortgageCard bankData={offer} />
+                      <div className="baskets_list">
+                        <ul className="d_flex">
+                          <li>סל אחיד 1</li>
+                          <li>סל אחיד 2</li>
+                          <li>סל אחיד 3</li>
+                        </ul>
+                      </div>
+                      <div className="note" onClick={() => openPopup(offer.id)}>
+                        <img src={notei} alt="" />
+                        <p>הסבר על המסלולים</p>
+                      </div>
+                      <RoutesBankMortgage color={offer.color} routes={offer.routes} />
+                      <ReturnsChart 
+                         charttitle={'החזרים'} 
+                         interest={'ריבית'} 
+                         fund={'קרן'} 
+                         dataSets={offer.simulatorchartdata} 
+                         kerenColor={"#27450E"}
+                         rivitColor={"#E27600"}
+                       />
+                       <NotePopup isOpen={openPopupId === offer.id} onClose={closePopup} />
                   </div>
-                  <div className="note" onClick={() => openPopup(offer.id)}>
-                    <img src={notei} alt="" />
-                    <p>הסבר על המסלולים</p>
-                  </div>
-                  <RoutesBankMortgage color={offer.color} routes={offer.routes} />
-                  <ReturnsChart 
-                     charttitle={'החזרים'} 
-                     interest={'ריבית'} 
-                     fund={'קרן'} 
-                     dataSets={offer.simulatorchartdata} 
-                     kerenColor={"#27450E"}
-                     rivitColor={"#E27600"}
-                   />
-                   <NotePopup isOpen={openPopupId === offer.id} onClose={closePopup} />
-              </div>
-          ))}
-      </div>
-      <div className="next_prev_box">
-            <a href="/" className="prev"><img src={nextprevarrow} alt="" /></a>
-            <a href="/" className="next"><img src={nextprevarrow} alt="" /></a>
+              ))}
+          </div>
+          <div className="next_prev_box">
+                <a href="/" className="prev"><img src={nextprevarrow} alt="" /></a>
+                <a href="/" className="next"><img src={nextprevarrow} alt="" /></a>
+            </div>
+        </>
+      ) : (
+        <div className="no_offers">
+          <h2>אין הצעות כרגע</h2>
+          <p>ברגע שתתקבל הצעה חדשה — היא תופיע כאן.</p>
         </div>
+      )}
     </div>
   );
 };

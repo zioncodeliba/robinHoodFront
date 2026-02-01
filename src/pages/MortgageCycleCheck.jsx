@@ -12,6 +12,7 @@ import {
   hasCalculatorOffer,
   saveMortgageCycleResult,
 } from "../utils/mortgageCycleResult";
+import { getGatewayBase } from "../utils/apiBase";
 
 const MortgageCycleCheck = () => {
   const [selectedFiles, setSelectedFiles] = useState([]);
@@ -20,10 +21,7 @@ const MortgageCycleCheck = () => {
   const [submitting, setSubmitting] = useState(false);
   const navigate = useNavigate();
 
-  const apiBase = useMemo(
-    () => (process.env.REACT_APP_API_BASE_URL || "http://localhost:3000").replace(/\/api\/?$/, ""),
-    []
-  );
+  const apiBase = useMemo(() => getGatewayBase(), []);
 
   const handleContinue = async () => {
     if (selectedFiles.length === 0) {

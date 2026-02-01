@@ -7,6 +7,7 @@
 .status_summary_sec ul li h4{font-size: 16px;font-weight: 300;}
 .status_summary_sec ul li span{margin-left:15px;width: 30px;height: 30px;display: flex;justify-content: center;align-items: center;}
 .status_summary_sec ul li a{background-color: #D9E8D8;padding: 0 14.5px;color:var(--green);font-size: 11px;line-height: 26px;border-radius: 15px;}
+.status_summary_sec ul li a.status_summary_bank{background-color: transparent;padding: 0;color: inherit;font-size: inherit;line-height: inherit;border-radius: 0;display: flex;align-items: center;text-decoration: none;}
 .status_summary_sec ul li a.awaiting_approval{}
 .status_summary_sec ul li a.final_approval{background-color: var(--orange);color: var(--white);}
 .status_summary_sec .most_offer{    line-height: 35px; text-align: center; background-color: #90968A; color: var(--white); font-size: 18px; font-weight: 400; position: relative; bottom: 0; left: 19px; width: calc(100% + 33px); border-radius: 0 0 10px 10px;}

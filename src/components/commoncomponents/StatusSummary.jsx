@@ -18,18 +18,30 @@ const StatusSummary = ({ statusData }) => {
         {list.map((item, index) => (
           <ul key={index}>
             <li>
-              <span>
-                <img src={item.bankLogo} alt={item.bankName} />
-              </span>
-              <h4>{item.bankName}</h4>
+              {item.link ? (
+                <a className="status_summary_bank" href={item.link}>
+                  <span>
+                    {item.bankLogo ? (
+                      <img src={item.bankLogo} alt={item.bankName} />
+                    ) : null}
+                  </span>
+                  <h4>{item.bankName}</h4>
+                </a>
+              ) : (
+                <>
+                  <span>
+                    {item.bankLogo ? (
+                      <img src={item.bankLogo} alt={item.bankName} />
+                    ) : null}
+                  </span>
+                  <h4>{item.bankName}</h4>
+                </>
+              )}
             </li>
 
             {/* Status Button */}
             <li>
-              <a
-                href={item.link}
-                className={item.statusClass}
-              >
+              <a href={item.link} className={item.statusClass}>
                 {item.statusText}
               </a>
             </li>

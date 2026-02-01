@@ -53,9 +53,25 @@ const useGoogleAuth = () => {
 
       // Use One Tap prompt first
       window.google.accounts.id.prompt((notification) => {
+        const logPromptState = (state) => {
+          const getReason = () => {
+            if (notification.isNotDisplayed?.()) return notification.getNotDisplayedReason?.();
+            if (notification.isSkippedMoment?.()) return notification.getSkippedReason?.();
+            if (notification.isDismissedMoment?.()) return notification.getDismissedReason?.();
+            return undefined;
+          };
+          const info = {
+            state,
+            moment: notification.getMomentType?.(),
+            reason: getReason(),
+          };
+          console.warn('[Google One Tap]', info);
+          return info;
+        };
 
         // If One Tap is not displayed or was dismissed, use popup flow
         if (notification.isNotDisplayed() || notification.isSkippedMoment() || notification.isDismissedMoment()) {
+          logPromptState('fallback_to_popup');
           // Create a hidden button and trigger it
           const buttonContainer = document.createElement('div');
           buttonContainer.id = 'google-signin-hidden';
@@ -83,6 +99,8 @@ const useGoogleAuth = () => {
               if (onError) onError('Unable to initiate Google sign-in. Please try again.');
             }
           }, 200);
+        } else {
+          logPromptState('one_tap_displayed');
         }
       });
     } catch (error) {

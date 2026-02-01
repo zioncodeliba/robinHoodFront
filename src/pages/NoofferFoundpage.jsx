@@ -4,6 +4,7 @@ import { useLocation } from "react-router-dom";
 import '../components/nooffercompomponents/NoofferFoundpage.css';
 
 import mirroricon from "../assets/images/mirror.png";
+import prevIcon from '../assets/images/prev_icon.png';
 
 import YourRoutesMortgageDetails from '../components/commoncomponents/YourRoutesMortgageDetails';
 import {
@@ -27,6 +28,7 @@ const NoofferFoundpage = () => {
 
   return (
     <div className="no_offer_found_page">
+      <a href="/recycle-loan" className="prev_page_link"><img src={prevIcon} alt="" /></a>
       <h1>בדיקת מחזור משכנתא</h1>
       <h2>נא לעלות את מסמכי המשכנתא הנוכחית שלכם </h2>
       <div className="check_nav d_flex d_flex_ac d_flex_jc">

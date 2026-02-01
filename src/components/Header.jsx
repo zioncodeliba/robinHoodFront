@@ -6,6 +6,8 @@ import whatsapp from '../assets/images/whatsapp.svg';
 import hambergericon from '../assets/images/hamberger_icon.svg';
 import noficationIcon from '../assets/images/nofication_i.svg';
 import panmemuImage from '../assets/images/pan_memu.png';
+import { getGatewayBase } from '../utils/apiBase';
+import { getGatewayApiBase } from '../utils/apiBase';
 
 import HomeIcon from '../assets/images/m_home.svg';
 import NotificationIcon from '../assets/images/m_notification.svg';
@@ -27,6 +29,7 @@ const Header = () => {
   const [showRegistrationPopup, setShowRegistrationPopup] = useState(false);
   const [showloginPopup, setShowloginPopup] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
 
   const togglePopuprg = (e) => {
     e.preventDefault();
@@ -60,13 +63,52 @@ const Header = () => {
     };
   }, []);
 
+  useEffect(() => {
+    let isMounted = true;
+    const loadUnreadCount = async () => {
+      const token = localStorage.getItem("auth_token");
+      if (!token) {
+        if (isMounted) setUnreadCount(0);
+        return;
+      }
+      try {
+        const response = await fetch(`${getGatewayBase()}/auth/v1/notifications/me`, {
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            'Authorization': `Bearer ${token}`,
+          },
+        });
+        const data = await response.json().catch(() => null);
+        if (!response.ok) {
+          if (isMounted) setUnreadCount(0);
+          return;
+        }
+        const unread = Array.isArray(data) ? data.filter((n) => !n.read_at).length : 0;
+        if (isMounted) setUnreadCount(unread);
+      } catch (error) {
+        if (isMounted) setUnreadCount(0);
+      }
+    };
+
+    const handler = () => loadUnreadCount();
+    loadUnreadCount();
+    window.addEventListener('notifications:updated', handler);
+    return () => {
+      isMounted = false;
+      window.removeEventListener('notifications:updated', handler);
+    };
+  }, []);
+
+  const badgeText = unreadCount > 99 ? '99+' : `${unreadCount}`;
+
   const hambergerhandle = () =>{
      setIsOpen(true);
   }
 
   const handleLogout = async () => {
     const token = localStorage.getItem("auth_token");
-    const apiBase = process.env.REACT_APP_API_BASE_URL;
+    const apiBase = getGatewayApiBase();
     try{
       if (token && apiBase) {
         await fetch(`${apiBase}/logout`, {
@@ -84,6 +126,8 @@ const Header = () => {
     }
     localStorage.removeItem("auth_token");
     localStorage.removeItem("user_data");
+    localStorage.removeItem("mortgage_cycle_result");
+    localStorage.removeItem("new_mortgage_submitted");
     navigate("/login");
   }
 
@@ -102,6 +146,15 @@ const Header = () => {
               <li><Link to="/suggestionspage">ההצעות שלי</Link></li>
               {/* my files */}
               <li><Link to="/recycle-loan">הקבצים שלי </Link></li>
+              {/* notifications */}
+              <li>
+                <Link to="/notifications" className="nav_notification_link">
+                  ההתראות שלי
+                  {unreadCount > 0 ? (
+                    <span className="notification_badge">{badgeText}</span>
+                  ) : null}
+                </Link>
+              </li>
               {/* Mortgage monitoring */}
               <li><Link to="/treatmentstatus"> ניטור משכנתא</Link></li>
               {/* simulation */}
@@ -114,7 +167,14 @@ const Header = () => {
               {/* My suggestions */}
               <li><Link to="/suggestionspage">ההצעות שלי</Link></li>
               {/* notifications */}
-              <li><Link to="/notifications">ההתראות שלי</Link></li>
+              <li>
+                <Link to="/notifications" className="nav_notification_link">
+                  ההתראות שלי
+                  {unreadCount > 0 ? (
+                    <span className="notification_badge">{badgeText}</span>
+                  ) : null}
+                </Link>
+              </li>
               {/* simulation */}
               <li><Link to="/simulatorpage">סימולציה</Link></li>
               <li><Link to="/appointment" className='whatsapp'>תמיכה בWhatsApp <img src={whatsapp} alt="" /></Link></li>
@@ -129,7 +189,14 @@ const Header = () => {
           <h2>ברוך הבא, {userData?.firstName || ''}</h2>
             <ul>
                 <li><Link to="/" onClick={() => setIsOpen(false)}><img src={HomeIcon} alt="" /> דף הבית</Link></li>
-                <li><Link to="/notifications" onClick={() => setIsOpen(false)}><img src={NotificationIcon} alt="" />ההודעות שלי</Link></li>
+                <li>
+                  <Link to="/notifications" onClick={() => setIsOpen(false)} className="nav_notification_link">
+                    <img src={NotificationIcon} alt="" />ההודעות שלי
+                    {unreadCount > 0 ? (
+                      <span className="notification_badge">{badgeText}</span>
+                    ) : null}
+                  </Link>
+                </li>
                 <li><Link to="/settings" onClick={() => setIsOpen(false)}><img src={SettingIcon} alt="" />הגדרות</Link></li>
                 <li><Link to="/appointment" onClick={() => setIsOpen(false)}><img src={whatsapp} alt="" />תמיכה בווצאפ</Link></li>
                 <li><Link to="#" onClick={(e) => {e.preventDefault(); handleLogout(); setIsOpen(false);}}><img src={logoutIcon} alt="" />התנתק</Link></li>

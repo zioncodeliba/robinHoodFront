@@ -7,6 +7,9 @@
 .suggestions_page .colin .note{display: flex; align-items: center; margin-top: 8px; }
 .suggestions_page .colin .note img { margin-left: 20px; width: 24px; }
 .suggestions_page .colin .note p { color: var(--green); font-size: 14px; line-height: 1; font-weight: 500; text-decoration: underline;cursor: pointer;}
+.suggestions_page .no_offers{max-width: 720px;margin: 20px auto 90px;padding: 32px 28px;text-align: center;border: 1px dashed var(--green);border-radius: 16px;background: linear-gradient(180deg, rgba(255, 255, 255, 1) 0%, rgba(225, 240, 223, 1) 100%);}
+.suggestions_page .no_offers h2{font-size: 28px;line-height: 34px;margin-bottom: 10px;}
+.suggestions_page .no_offers p{font-size: 18px;line-height: 24px;color: var(--green);font-weight: 500;}
 
 
 /* bank_mortgage_card */
@@ -76,6 +79,9 @@
     .suggestions_page .title { margin-bottom: 0; }
     .suggestions_page .title h1 { font-size: 22px; margin-bottom: 20px;font-weight: 300;}
     .suggestions_page .title p{display: none;}
+    .suggestions_page .no_offers{margin: 12px 20px 90px;padding: 22px 18px;}
+    .suggestions_page .no_offers h2{font-size: 20px;line-height: 26px;}
+    .suggestions_page .no_offers p{font-size: 14px;line-height: 20px;}
     .suggestions_page .wrapper { padding: 0; }
     .suggestions_page .colin { width: 100%; margin-bottom: 30px; }
     .suggestions_page .colin:last-child{margin-bottom: 0;}

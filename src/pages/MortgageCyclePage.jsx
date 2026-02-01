@@ -1,6 +1,6 @@
 // Homepage.jsx
 import React, { useMemo } from "react";
-import { useLocation } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import '../components/mortgagecyclecomponents/MortgageCyclepage.css';
 
 import prevIcon from '../assets/images/prev_icon.png';
@@ -47,7 +47,7 @@ const MortgageCyclePage = () => {
 
   return (
     <div className="mortgage_cycle_page">
-      <a href="/" className="prev_page_link"><img src={prevIcon} alt="" /></a>
+      <a href="/recycle-loan" className="prev_page_link"><img src={prevIcon} alt="" /></a>
       <h1>בדיקת מחזור משכנתא</h1>
       <h2>נא לעלות את מסמכי המשכנתא הנוכחית שלכם </h2>
       <div className="check_nav d_flex d_flex_ac d_flex_jc">
@@ -85,10 +85,10 @@ const MortgageCyclePage = () => {
               <img src={offerman} className="mobile_img" alt="" />
             </div>
             <p>זה הסכום שתחסכו עד סוף תקופת המשכנתא.</p>
-            <a href="/" className="btn"> 
+            <Link to="/schedulemeetings" className="btn"> 
               <em className="desktop_img">למחזור משכנתא לחץ כאן</em>
               <em className="mobile_img">לתיאום שיחת מחזור משכנתא לחץ כאן</em>
-            </a>
+            </Link>
             <span>השיחה ללא עלות וללא התחייבות</span>
           </div>
           <SavingsList />

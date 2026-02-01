@@ -10,6 +10,10 @@ import sandicon from "../assets/images/sandicon.png";
 import hapoalimbankicon from "../assets/images/bank_hapoalim.png";
 import nationalbank from "../assets/images/national_bank.png";
 import mizrahitefahotbank from "../assets/images/mfahot_bank.png";
+import discountbankicon from "../assets/images/bank_discount.svg";
+import internationalbankicon from "../assets/images/bank_international.svg";
+import mercantilebankicon from "../assets/images/bank_mercantile.svg";
+import allbanksicon from "../assets/images/bank_all.svg";
 
 
 // components
@@ -41,23 +45,44 @@ const HomeBeforeApproval2 = () => {
             {
                 bankLogo: hapoalimbankicon,
                 bankName: "בנק הפועלים",
-                statusText: "ממתין לאישור עקרוני",
+                statusText: "בקשה נשלחה",
                 statusClass: "awaiting_approval",
-                link: "/approval-status"
+                link: "/homebeforeapproval?bankId=3&status=sent"
             },
             {
                 bankLogo: nationalbank,
                 bankName: "בנק לאומי",
-                statusText: "ממתין לאישור עקרוני",
+                statusText: "בקשה נשלחה",
                 statusClass: "awaiting_approval",
-                link: "/approval-status"
+                link: "/homebeforeapproval?bankId=2&status=sent"
             },
             {
                 bankLogo: mizrahitefahotbank,
                 bankName: "בנק מזרחי טפחות",
-                statusText: "אישור סופי",
-                statusClass: "final_approval",
-                link: "/approval-status"
+                statusText: "בקשה נשלחה",
+                statusClass: "awaiting_approval",
+                link: "/homebeforeapproval?bankId=1&status=sent"
+            },
+            {
+                bankLogo: discountbankicon,
+                bankName: "בנק דיסקונט",
+                statusText: "בקשה נשלחה",
+                statusClass: "awaiting_approval",
+                link: "/homebeforeapproval?bankId=4&status=sent"
+            },
+            {
+                bankLogo: internationalbankicon,
+                bankName: "בנק הבינלאומי",
+                statusText: "בקשה נשלחה",
+                statusClass: "awaiting_approval",
+                link: "/homebeforeapproval?bankId=8&status=sent"
+            },
+            {
+                bankLogo: mercantilebankicon,
+                bankName: "בנק מרכנתיל",
+                statusText: "בקשה נשלחה",
+                statusClass: "awaiting_approval",
+                link: "/homebeforeapproval?bankId=12&status=sent"
             }
         ]
     };
@@ -67,11 +92,11 @@ const HomeBeforeApproval2 = () => {
         <div className="wrapper">
             <h1>ברוכים הבאים, דני</h1>
             <div className="bank_title">
-                <span><img src={hapoalimbankicon} alt="" /></span>
-                <h3>בנק הפועלים</h3>
+                <span><img src={allbanksicon} alt="" /></span>
+                <h3>הבקשה נשלחה לכל הבנקים</h3>
             </div>
             <div className="awaiting_approval_box">
-                <div className="tag"> <img src={timeicon} alt="" />ממתין לאישור הבנק </div>
+                <div className="tag"> <img src={timeicon} alt="" />בקשה נשלחה לבנקים </div>
                 <img src={sandicon} className="sandicon" alt="" />
             </div>
             <div className="inner d_flex d_flex_jb">
@@ -90,8 +115,8 @@ const HomeBeforeApproval2 = () => {
             </div>
         </div>
         <div className="next_prev_box">
-            <a href="/" className="prev"><img src={nextprevarrow} alt="" /></a>
-            <a href="/" className="next"><img src={nextprevarrow} alt="" /></a>
+            <a href="/homebeforeapproval?bankId=12&status=sent" className="prev"><img src={nextprevarrow} alt="" /></a>
+            <a href="/homebeforeapproval?bankId=3&status=sent" className="next"><img src={nextprevarrow} alt="" /></a>
         </div>
     </div>  
   );

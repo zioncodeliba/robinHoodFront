@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Link } from 'react-router-dom';
 import '../components/settingscomponents/settingspage.css';
+import { getGatewayApiBase } from "../utils/apiBase";
 
 import settingsimg from '../assets/images/settings_img.png';
 
@@ -51,7 +52,7 @@ const Settingspage = () => {
     setSuccess('');
 
     try {
-      const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}/customer-settings-save`, {
+      const response = await fetch(`${getGatewayApiBase()}/customer-settings-save`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
