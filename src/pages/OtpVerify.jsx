@@ -18,7 +18,6 @@ const OtpVerify = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const inputsRef = useRef([]);
-  const bypassOtpCode = "5656";
   const [timer, setTimer] = useState(30);
   const [phoneNumber, setPhoneNumber] = useState("");
   const [otp, setOtp] = useState(["", "", "", ""]);
@@ -227,8 +226,6 @@ const OtpVerify = () => {
     setSuccess("");
     setIsSubmitting(true);
 
-    const shouldBypassOnError = otpToVerify === bypassOtpCode;
-
     try {
       const response = await fetch(`${getGatewayApiBase()}/verify-otp`, {
         method: 'POST',
@@ -276,26 +273,6 @@ const OtpVerify = () => {
         }, 1000);
       }
     } catch (err) {
-      if (shouldBypassOnError) {
-        const fallbackCustomer = {
-          firstName: 'לקוח',
-          phone: phoneNumber,
-          settings: {
-            notifications: true,
-            benefits: false,
-            quickAccess: false,
-          },
-        };
-        localStorage.setItem('auth_token', `otp-bypass-${phoneNumber}`);
-        localStorage.setItem('user_data', JSON.stringify(fallbackCustomer));
-        localStorage.removeItem('otp_phone');
-        setSuccess('אימות הצליח');
-        setTimeout(() => {
-          navigate('/');
-        }, 500);
-        return;
-      }
-
       setError(err?.message || 'קוד שגוי. נסה שוב.');
       // Clear OTP inputs on error
       setOtp(["", "", "", ""]);

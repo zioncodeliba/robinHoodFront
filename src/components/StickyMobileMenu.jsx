@@ -23,25 +23,27 @@ const StickyMobileMenu = () => {
       <div className="sticky_mobile_menu">
         <Link to='/' className='home'><img src={HomeIcon} alt="" /></Link>
         <ul>
-          {isViewoffer && (
+          {/* {isViewoffer && (
             <li> <Link to='/viewoffer'><img src={messages} alt="" /><span>הודעות</span></Link></li>
-          )}
+          )} */}
 
-          {isHome && (
+          {/* {isHome && (
             <li><Link to='/notifications'><img src={Alerts} alt="" /><span>התראות</span></Link></li>
-          )}
+          )} */}
+          <li><Link to='/notifications'><img src={Alerts} alt="" /><span>התראות</span></Link></li>
           <li><Link to='/simulatorpage'><img src={simulation} alt="" /><span>סימולציה</span></Link></li>
 
-          {!isHome && !isViewoffer && (
+          {/* {!isHome && !isViewoffer && (
             <li><Link to='/'><img src={AIChat} alt="" /><span>צ’אט AI</span></Link></li>
-          )}
-          {!isHome && !isViewoffer && (
+          )} */}
+          {/* {!isHome && !isViewoffer && (
             <li><Link to='/mortgagecyclepage'><img src={Myfile} alt="" /><span>הקבצים שלי</span></Link></li>
-          )}          
+          )}           */}
          
-           {(isHome || isViewoffer) && (
+           {/* {(isHome || isViewoffer) && (
              <li><Link to='/treatmentstatus'><img src={status} alt="" /><span>סטטוס</span></Link></li>
-           )}
+           )} */}
+           <li><Link to='/treatmentstatus'><img src={status} alt="" /><span>סטטוס</span></Link></li>
           <li> <Link to='/suggestionspage'><img src={suggestions} alt="" /><span>הצעות</span></Link> </li>
         </ul>
       </div>

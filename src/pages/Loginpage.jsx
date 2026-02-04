@@ -111,7 +111,7 @@ const Loginpage = () => {
         disabled={isLoading || !isLoaded}
       >
         <img src={googleIcon} alt="" />
-        {isLoading ? 'מתחבר...' : 'הרשמה באמצעות גוגל'}
+        {isLoading ? 'מתחבר...' : 'כניסה באמצעות גוגל'}
       </button>
 
       <button
@@ -120,7 +120,7 @@ const Loginpage = () => {
         disabled={isAppleLoading}
       >
         <img src={appleIcon} alt="" />
-        {isAppleLoading ? 'מתחבר...' : 'הרשמה באמצעות אפל'}
+        {isAppleLoading ? 'מתחבר...' : 'כניסה באמצעות אפל'}
       </button>
 
       {/* <div className='forgot_box'>

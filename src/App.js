@@ -87,15 +87,21 @@ function AppWrapper() {
     "/otp-verify",
     "/registration",
   ];
-  const hideHeader = hideHeaderPaths.includes(path);
+  const isLandingPromo = path === "/" && !localStorage.getItem('auth_token');
+  const hideHeader = hideHeaderPaths.includes(path) || isLandingPromo;
 
   // screen check
   const isDesktop = window.innerWidth >= 1024;
 
-  const hidepan = ["/simulatorpage", "/brokerhomepage", "/login"].includes(path);
+  const hidepan = ["/simulatorpage", "/brokerhomepage", "/login"].includes(path) || isLandingPromo;
   const appointmentBg = ["/appointment"].includes(path);
-  const exscreenBg = ["/explanation-screen", "/explanation-screen2", "/login-with-otp", "/otp-verify", "/registration", "/login"].includes(path);
-  const HidestickyMenu = ["/registration", "/login", "/login-with-otp", "/otp-verify", "/aichat", "/aichat-static"].includes(path);
+  const exscreenBg = ["/explanation-screen", "/explanation-screen2", "/login-with-otp", "/otp-verify", "/registration", "/login"].includes(path) || isLandingPromo;
+  const HidestickyMenu = ["/registration", "/login", "/login-with-otp", "/otp-verify", "/aichat", "/aichat-static"].includes(path) || isLandingPromo;
+
+  const LandingRoute = () => {
+    const isAuthenticated = localStorage.getItem('auth_token');
+    return isAuthenticated ? <Homepage /> : <ExplanationScreen1 />;
+  };
 
 
   return (
@@ -113,7 +119,7 @@ function AppWrapper() {
 
         <Routes>
           {/* Public routes */}
-          <Route path="/" element={<ProtectedRoute><Homepage /></ProtectedRoute>} />
+          <Route path="/" element={<LandingRoute />} />
           <Route path="/registration" element={<Registration />} />
           <Route path="/login" element={<Loginpage />} />
           <Route path="/login-with-otp" element={<OtpScreen />} />
@@ -135,8 +141,8 @@ function AppWrapper() {
           <Route path="/homebeforeapproval" element={<ProtectedRoute><HomeBeforeApproval /></ProtectedRoute>} />
           <Route path="/homebeforeapproval2" element={<ProtectedRoute><HomeBeforeApproval2 /></ProtectedRoute>} />
           <Route path="/brokerhomepage" element={<ProtectedRoute><BrokerHomepage /></ProtectedRoute>} />
-          <Route path="/explanation-screen" element={<ProtectedRoute><ExplanationScreen1 /></ProtectedRoute>} />
-          <Route path="/explanation-screen2" element={<ProtectedRoute><ExplanationScreen2 /></ProtectedRoute>} />
+          <Route path="/explanation-screen" element={<ExplanationScreen1 />} />
+          <Route path="/explanation-screen2" element={<ExplanationScreen2 />} />
           <Route path="/aichat" element={<ProtectedRoute><AIChatpage /></ProtectedRoute>} />
           <Route path="/aichat-static" element={<ProtectedRoute><AIChatpageStatic /></ProtectedRoute>} />
         </Routes>

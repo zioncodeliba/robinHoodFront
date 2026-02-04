@@ -11,8 +11,8 @@ const ExplanationScreen2 = () => {
 
   return (
     <div className="explanation_screen explanation_screen2">
-      <a href="/" className="skip">דלג</a>
-      <Link to="/" className="brand"> 
+      <Link to="/login" className="skip">דלג</Link>
+      <Link to="/login" className="brand"> 
           <img src={brand} alt="brand" />
         </Link>
         <div className="inner">
@@ -26,7 +26,7 @@ const ExplanationScreen2 = () => {
                 <p>מתכוונים לקנות בקרוב נכס? רגע לפני אולי  כדאי שפשוט תשוו, תבדקו, תעשו סימולציה ובעיקר, תנו לרובין להשיג בשבילכם יותר.</p>
                 <div className="btn_col d_flex d_flex_ac d_flex_jb">
                   <Link to="/explanation-screen" className="prev">&lt; הקודם </Link>
-                  <Link to="/" className="next">הבא &gt; </Link>
+                  <Link to="/login" className="next">הבא &gt; </Link>
                 </div>
             </div>
         </div>

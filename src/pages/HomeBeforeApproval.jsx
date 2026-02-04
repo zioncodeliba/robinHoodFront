@@ -1,5 +1,5 @@
 // Homepage.jsx
-import React from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useLocation } from "react-router-dom";
 import '../components/beforeapprovalcomponents/HomeBeforeApproval.css'
 
@@ -14,25 +14,37 @@ import timeicon from "../assets/images/tt.png";
 import offericon from "../assets/images/offer_i.png";
 import previcon from '../assets/images/prev_icon.png';
 
+import { getGatewayBase } from "../utils/apiBase";
+
 // components
 import FrequentlyQuestions from '../components/beforeapprovalcomponents/FrequentlyQuestions';
 
+const BANK_MAP = {
+    1: { name: "בנק מזרחי טפחות", logo: mizrahitefahotbank },
+    2: { name: "בנק לאומי", logo: nationalbank },
+    3: { name: "בנק הפועלים", logo: hapoalimbankicon },
+    4: { name: "בנק דיסקונט", logo: discountbankicon },
+    8: { name: "בנק הבינלאומי", logo: internationalbankicon },
+    12: { name: "בנק מרכנתיל", logo: mercantilebankicon }
+};
+
+const DEFAULT_BANK_ORDER = [3, 2, 1, 4, 8, 12];
+
+const normalizeAllowedBankIds = (ids) => {
+    if (!Array.isArray(ids)) return DEFAULT_BANK_ORDER;
+    const allowed = new Set(ids.map((value) => Number(value)));
+    return DEFAULT_BANK_ORDER.filter((id) => allowed.has(id));
+};
 
 const HomeBeforeApproval = () => {
     const location = useLocation();
+    const apiBase = useMemo(() => getGatewayBase(), []);
+    const [allowedBankIds, setAllowedBankIds] = useState(DEFAULT_BANK_ORDER);
+    const [approvedBankIds, setApprovedBankIds] = useState([]);
     const params = new URLSearchParams(location.search);
     const bankIdParam = Number(params.get("bankId"));
     const statusKey = params.get("status");
     const statusTextParam = params.get("statusText");
-
-    const bankMap = {
-        1: { name: "בנק מזרחי טפחות", logo: mizrahitefahotbank },
-        2: { name: "בנק לאומי", logo: nationalbank },
-        3: { name: "בנק הפועלים", logo: hapoalimbankicon },
-        4: { name: "בנק דיסקונט", logo: discountbankicon },
-        8: { name: "בנק הבינלאומי", logo: internationalbankicon },
-        12: { name: "בנק מרכנתיל", logo: mercantilebankicon }
-    };
 
     const statusLabels = {
         sent: "בקשה נשלחה לבנק",
@@ -42,13 +54,79 @@ const HomeBeforeApproval = () => {
         in_review: "בבדיקה"
     };
 
-    const bankOrder = [3, 2, 1, 4, 8, 12];
-    const activeBankId = bankOrder.includes(bankIdParam) ? bankIdParam : bankOrder[0];
-    const selectedBank = bankMap[activeBankId] || bankMap[bankOrder[0]];
-    const statusLabel = statusTextParam || statusLabels[statusKey] || statusLabels.awaiting_approval;
-    const activeIndex = bankOrder.indexOf(activeBankId);
-    const prevBankId = bankOrder[(activeIndex - 1 + bankOrder.length) % bankOrder.length];
-    const nextBankId = bankOrder[(activeIndex + 1) % bankOrder.length];
+    useEffect(() => {
+        const token = localStorage.getItem("auth_token");
+        if (!token || !apiBase) return;
+        let isMounted = true;
+
+        const loadVisibility = async () => {
+            try {
+                const response = await fetch(`${apiBase}/auth/v1/customers/me/bank-visibility`, {
+                    headers: {
+                        Authorization: `Bearer ${token}`
+                    }
+                });
+                if (!response.ok) {
+                    throw new Error("Failed to load bank visibility");
+                }
+                const payload = await response.json().catch(() => null);
+                if (!isMounted) return;
+                setAllowedBankIds(normalizeAllowedBankIds(payload?.allowed_bank_ids));
+            } catch {
+                // Keep defaults on failure
+            }
+        };
+
+        loadVisibility();
+
+        return () => {
+            isMounted = false;
+        };
+    }, [apiBase]);
+
+    useEffect(() => {
+        const token = localStorage.getItem("auth_token");
+        if (!token || !apiBase) return;
+        let isMounted = true;
+
+        const loadBankResponses = async () => {
+            try {
+                const response = await fetch(`${apiBase}/auth/v1/bank-responses/me`, {
+                    headers: {
+                        Authorization: `Bearer ${token}`
+                    }
+                });
+                if (!response.ok) {
+                    throw new Error("Failed to load bank responses");
+                }
+                const payload = await response.json().catch(() => null);
+                if (!isMounted) return;
+                const ids = Array.isArray(payload)
+                    ? payload.map((item) => Number(item?.bank_id)).filter((id) => Number.isFinite(id))
+                    : [];
+                setApprovedBankIds(Array.from(new Set(ids)));
+            } catch {
+                // Keep defaults on failure
+            }
+        };
+
+        loadBankResponses();
+
+        return () => {
+            isMounted = false;
+        };
+    }, [apiBase]);
+
+    const bankOrder = allowedBankIds;
+    const hasBanks = bankOrder.length > 0;
+    const activeBankId = hasBanks && bankOrder.includes(bankIdParam) ? bankIdParam : bankOrder[0];
+    const selectedBank = activeBankId ? BANK_MAP[activeBankId] : null;
+    const isApproved = activeBankId ? approvedBankIds.includes(activeBankId) : false;
+    const statusLabel = statusTextParam
+        || (isApproved ? "אישור עקרוני" : (statusLabels[statusKey] || statusLabels.awaiting_approval));
+    const activeIndex = hasBanks ? bankOrder.indexOf(activeBankId) : -1;
+    const prevBankId = hasBanks ? bankOrder[(activeIndex - 1 + bankOrder.length) % bankOrder.length] : null;
+    const nextBankId = hasBanks ? bankOrder[(activeIndex + 1) % bankOrder.length] : null;
 
     const buildBankLink = (bankId) => {
         const nextParams = new URLSearchParams();
@@ -63,9 +141,9 @@ const HomeBeforeApproval = () => {
     };
 
     const prevLink =
-        activeIndex === 0 ? "/homebeforeapproval2" : buildBankLink(prevBankId);
+        !hasBanks || activeIndex === 0 ? "/homebeforeapproval2" : buildBankLink(prevBankId);
     const nextLink =
-        activeIndex === bankOrder.length - 1
+        !hasBanks || activeIndex === bankOrder.length - 1
             ? "/homebeforeapproval2"
             : buildBankLink(nextBankId);
 
@@ -91,8 +169,14 @@ const HomeBeforeApproval = () => {
         <div className="wrapper">
             <h1>ברוכים הבאים, דני</h1>
             <div className="bank_title">
-                <span><img src={selectedBank.logo} alt="" /></span>
-                <h3>{selectedBank.name}</h3>
+                {selectedBank ? (
+                    <>
+                        <span><img src={selectedBank.logo} alt="" /></span>
+                        <h3>{selectedBank.name}</h3>
+                    </>
+                ) : (
+                    <h3>לא נמצאו בנקים להצגה</h3>
+                )}
             </div>
             <div className="awaiting_approval_box">
                 <div className="tag"> <img src={timeicon} alt="" />{statusLabel} </div>

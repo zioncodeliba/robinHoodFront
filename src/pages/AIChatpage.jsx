@@ -188,8 +188,11 @@ const AIChatpage = () => {
     }
   }, [messages, isLoading]);
 
+  const signatureBlockId = 52;
+  const shouldShowSignature = currentBlock?.id === signatureBlockId;
+
   useEffect(() => {
-    if (!currentBlock?.is_terminal) return;
+    if (!shouldShowSignature) return;
     const canvas = signatureCanvasRef.current;
     if (!canvas) return;
 
@@ -210,11 +213,40 @@ const AIChatpage = () => {
     initCanvas();
     window.addEventListener('resize', initCanvas);
     return () => window.removeEventListener('resize', initCanvas);
-  }, [currentBlock?.is_terminal]);
+  }, [shouldShowSignature]);
 
   const inputOption = options.find((option) => option.option_type !== 'button');
   const buttonOptions = options.filter((option) => option.option_type === 'button');
   const isMortgageParameters = currentBlock?.type === 'mortgage_parameters';
+  const signatureConfirmOption = useMemo(
+    () => (shouldShowSignature ? buttonOptions.find((option) => option.label === 'מאשר') ?? null : null),
+    [buttonOptions, shouldShowSignature],
+  );
+  const visibleButtonOptions = useMemo(
+    () => (shouldShowSignature ? buttonOptions.filter((option) => option !== signatureConfirmOption) : buttonOptions),
+    [buttonOptions, shouldShowSignature, signatureConfirmOption],
+  );
+
+  useEffect(() => {
+    if (!shouldShowSignature) return;
+    setSignatureReady(false);
+    setSignatureSaved(false);
+  }, [shouldShowSignature]);
+
+  useEffect(() => {
+    if (inputOption?.option_type !== 'date') return;
+    setInputValue((prev) => {
+      if (prev) return prev;
+      if (currentBlock?.id === 40) {
+        const today = new Date();
+        return today.toISOString().slice(0, 10);
+      }
+      if (currentBlock?.id === 25) {
+        return '1990-01-01';
+      }
+      return '';
+    });
+  }, [inputOption?.option_type, currentBlock?.id]);
 
   const formatNumber = (value) =>
     new Intl.NumberFormat('he-IL').format(Number.isFinite(value) ? value : 0);
@@ -377,7 +409,7 @@ const AIChatpage = () => {
     setSignatureSaved(false);
   };
 
-  const handleSignatureSave = async () => {
+  const handleSignatureSave = async (confirmOption) => {
     if (!signatureCanvasRef.current || !authToken) return;
     if (!sessionId) {
       setError('לא ניתן לשמור חתימה ללא סשן פעיל');
@@ -411,6 +443,10 @@ const AIChatpage = () => {
         throw new Error(payload?.detail || payload?.message || 'שגיאה בשמירת החתימה');
       }
       setSignatureSaved(true);
+      if (confirmOption) {
+        await sendAnswer(confirmOption, null, confirmOption.label);
+        return;
+      }
       localStorage.setItem('new_mortgage_submitted', 'true');
       navigate('/homebeforeapproval2');
     } catch (err) {
@@ -437,9 +473,9 @@ const AIChatpage = () => {
   };
 
   const isFullWidthButtons =
-    buttonOptions.length === 1 ||
-    buttonOptions.length === 3 ||
-    buttonOptions.some((option) => option.label.length > 28);
+    visibleButtonOptions.length === 1 ||
+    visibleButtonOptions.length === 3 ||
+    visibleButtonOptions.some((option) => option.label.length > 28);
   const shouldShowInputBar =
     Boolean(inputOption) && !isMortgageParameters && !currentBlock?.is_terminal;
 
@@ -520,9 +556,9 @@ const AIChatpage = () => {
                         </div>
                       </div>
                     )}
-                    {isActiveBlock && !currentBlock?.is_terminal && !isMortgageParameters && buttonOptions.length > 0 && (
+                    {isActiveBlock && !currentBlock?.is_terminal && !isMortgageParameters && visibleButtonOptions.length > 0 && (
                       <div className={`btn_box d_flex d_flex_jb ${isFullWidthButtons ? 'btn_box_full' : ''}`}>
-                        {buttonOptions.map((option) => (
+                        {visibleButtonOptions.map((option) => (
                           <button
                             key={option.id}
                             onClick={() => sendAnswer(option, null, option.label)}
@@ -538,7 +574,7 @@ const AIChatpage = () => {
               );
             })}
 
-            {currentBlock?.is_terminal && (
+            {shouldShowSignature && (
               <div className="order_benefit">
                 <h4>על מנת להנות מהמשך טיפול נא <br /> לחתום לצורך ייפוי כוח</h4>
                 <form onSubmit={(event) => event.preventDefault()}>
@@ -566,7 +602,7 @@ const AIChatpage = () => {
                     <button
                       type="button"
                       className="confirmation"
-                      onClick={handleSignatureSave}
+                      onClick={() => handleSignatureSave(signatureConfirmOption)}
                       disabled={signatureSaving || signatureSaved}
                     >
                       {signatureSaved ? 'החתימה נשמרה' : signatureSaving ? 'שומר...' : 'אישור'}
@@ -580,7 +616,8 @@ const AIChatpage = () => {
             {!isLoading &&
               !currentBlock?.is_terminal &&
               !isMortgageParameters &&
-              buttonOptions.length === 0 &&
+              !shouldShowSignature &&
+              visibleButtonOptions.length === 0 &&
               !inputOption && <div className="ai_chat_status">אין אפשרויות זמינות.</div>}
           </div>
           {shouldShowInputBar && (

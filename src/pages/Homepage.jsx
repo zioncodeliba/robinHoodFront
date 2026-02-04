@@ -22,6 +22,23 @@ const Homepage = () => {
   const apiBase = useMemo(() => getGatewayBase(), []);
   const [checkingResults, setCheckingResults] = useState(true);
 
+  const updateMortgageType = async (mortgageType) => {
+    const token = localStorage.getItem("auth_token");
+    if (!token) return;
+    try {
+      await fetch(`${apiBase}/auth/v1/customers/me`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ mortgage_type: mortgageType }),
+      });
+    } catch {
+      // Silently ignore; selection isn't critical for navigation.
+    }
+  };
+
   useEffect(() => {
     let isActive = true;
     let didRedirect = false;
@@ -141,13 +158,13 @@ const Homepage = () => {
         <h3>מה נרצה לעשות היום?</h3>
         <ul className="d_flex">
           <li>
-            <Link to="/aichat">
+            <Link to="/aichat" onClick={() => void updateMortgageType("משכנתא חדשה")}>
               <img src={mortgageimg1} alt="" />
               <span>לקיחת <br /> משכנתא חדשה</span>
             </Link>
           </li>
           <li>
-            <Link to="/recycle-loan">
+            <Link to="/recycle-loan" onClick={() => void updateMortgageType("מחזור משכנתא")}>
               <img src={mortgageimg2} alt="" />
               <span>בדיקת מחזור <br />משכנתא</span>
             </Link>

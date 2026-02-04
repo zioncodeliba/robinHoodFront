@@ -10,8 +10,8 @@ const ExplanationScreen1 = () => {
 
   return (
     <div className="explanation_screen">
-      <a href="/explanation-screen2" className="skip">דלג</a>
-        <Link to="/" className="brand"> <img src={brand} alt="brand" /> </Link> 
+      <Link to="/login" className="skip">דלג</Link>
+        <Link to="/login" className="brand"> <img src={brand} alt="brand" /> </Link> 
         <div className="inner">
             <img src={screenImage} className="simage" alt="" />
             <div className="text">
