@@ -133,7 +133,7 @@ const Header = () => {
 
   return (
     <>
-    <header className={`d_flex d_flex_ac d_flex_jb ${isFixed ? "fixed" : ""}`}>
+    <header className={`d_flex d_flex_ac d_flex_jb test ${isFixed ? "fixed" : ""}`}>
       <div className="hamberger" onClick={hambergerhandle}><img src={hambergericon} alt="" /></div>
       <div className="hamberger" onClick={hambergerhandle}><img src={hambergericon} alt="" /></div>
       <nav className={`right_col ${isOpen ? 'open' : ''}`} >
