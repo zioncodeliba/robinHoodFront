@@ -13,6 +13,7 @@
 
 # misc
 .DS_Store
+.\\*-app.zip
 
 # local env files
 .env
