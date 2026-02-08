@@ -45,6 +45,7 @@
 .uniform_basket_sec .tab_wrap{}
 .uniform_basket_sec .tab_wrap ul{}
 .uniform_basket_sec .tab_wrap ul li{width:31.74%;background-color: var(--white);padding: 12.31px 14px 12.31px 18px;display: flex;align-items: center;justify-content: space-between;color: #1E1E1E;font-size: 20.46px;font-weight: 400;border-radius: 6px;margin-left: 2.391%;}
+.uniform_basket_sec .tab_wrap ul li span:first-child{white-space: nowrap;}
 /* .uniform_basket_sec .tab_wrap ul li:last-child span+span{direction: ltr !important;} */
 .uniform_basket_sec .tab_wrap ul li:nth-child(3n){margin-left: 0;}
 .uniform_basket_sec .tab_wrap ul li:nth-child(n + 4){margin-top: 12px;}

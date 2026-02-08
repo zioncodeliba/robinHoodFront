@@ -19,8 +19,9 @@
 .routes_mortgage_sec .routes_explanation ul li:last-child{width:35.8%;padding-left: 15px;text-align: left;}
 
 .routes_mortgage_sec .routes_explanation .list_routes ul:not(:first-child) li{border-color: #4e8ff7;}
-.routes_mortgage_sec .routes_explanation .list_routes ul span { line-height: 26px; width: 150px; display: flex; align-items: center; justify-content: flex-start; margin-right: 22px; }
-.routes_mortgage_sec .routes_explanation .list_routes ul span em{width: 55%;text-align: center;}
+.routes_mortgage_sec .routes_explanation .list_routes ul span { line-height: 26px; width: 150px; display: flex; align-items: center; justify-content: flex-start; margin-right: 22px; white-space: nowrap; }
+.routes_mortgage_sec .routes_explanation .list_routes ul span em{width: auto; text-align: center; flex: 0 0 auto; }
+.routes_mortgage_sec .routes_explanation .list_routes ul span .route_name{margin-inline-start: 8px;}
 .routes_mortgage_sec .routes_explanation .list_routes::after { width: 150px; background-color: #4e8ff7; height: 100%; top: 0; right: 22px; }
 .routes_mortgage_sec .routes_explanation .total { max-width: max-content; line-height: 24px; border-radius: 15px; left: -39px; right: auto; top: calc(100% + 32px); padding: 20px 23px 10px; }
 .routes_mortgage_sec .routes_explanation .total p{line-height: 24px;}

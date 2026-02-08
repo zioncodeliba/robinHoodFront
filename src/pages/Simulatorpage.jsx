@@ -1,4 +1,4 @@
-import React  from "react";
+import React, { useMemo, useState } from "react";
 // import { Link} from 'react-router-dom';
 import '../components/simulatorcomponents/Simulatorpage.css';
 
@@ -16,75 +16,135 @@ import YourRoutesMortgageDetails from '../components/commoncomponents/YourRoutes
 
 
 const Simulatorpage = () => {
+  const [uniformBaskets, setUniformBaskets] = useState(null);
+  const [periodYears, setPeriodYears] = useState(null);
+  const [activeUniformBasket, setActiveUniformBasket] = useState(null);
 
-  const simulatorchartdata = {
-      "1": [
-      { "name": "ינואר", "rivit": 2000, "keren": 2000 },
-      { "name": "פברואר", "rivit": 3000, "keren": 3200 },
-      { "name": "מרץ", "rivit": 3200, "keren": 3600 },
-      { "name": "אפריל", "rivit": 3100, "keren": 4650 },
-      { "name": "מאי", "rivit": 3300, "keren": 4200 },
-      { "name": "יוני", "rivit": 3500, "keren": 4400 },
-      { "name": "יולי", "rivit": 3400, "keren": 4100 }
-    ],
-    "2": [
-      { "name": "ינואר", "rivit": 2200, "keren": 6000 },
-      { "name": "פברואר", "rivit": 3000, "keren": 5000 },
-      { "name": "מרץ", "rivit": 3200, "keren": 4000 },
-      { "name": "אפריל", "rivit": 3100, "keren": 3000 },
-      { "name": "מאי", "rivit": 3300, "keren": 3500 },
-      { "name": "יוני", "rivit": 3500, "keren": 3000 },
-      { "name": "יולי", "rivit": 3400, "keren": 3100 }
-    ],
-    "3": [
-      { "name": "ינואר", "rivit": 6000, "keren": 2000 },
-      { "name": "פברואר", "rivit": 5000, "keren": 3200 },
-      { "name": "מרץ", "rivit": 4000, "keren": 3600 },
-      { "name": "אפריל", "rivit": 3000, "keren": 4650 },
-      { "name": "מאי", "rivit": 3500, "keren": 4200 },
-      { "name": "יוני", "rivit": 3000, "keren": 4400 },
-      { "name": "יולי", "rivit": 3100, "keren": 4100 }
-    ]
+  const handleUniformResult = (payload) => {
+    if (!payload || !payload.data) {
+      setUniformBaskets(null);
+      setPeriodYears(null);
+      setActiveUniformBasket(null);
+      return;
+    }
+    setUniformBaskets(payload.data);
+    setPeriodYears(payload.years || null);
   };
 
-  
-  const mortgageData14 = {
-    note: {
-      text: "הסבר על המסלולים",
-    },
-    routes: {
-      headers: ["מסלולים", "ריבית", "יתרה"],
-      list: [
-        { name: 'ק"צ', percentage: "40%", interest: "5%", balance: "₪640,000" },
-        { name: 'מ"צ', percentage: "40%", interest: "5%", balance: "₪368,000" },
-        { name: 'פריים', percentage: "40%", interest: "5%", balance: "₪592,000" },
-      ],
-      totals: {
-        indexLinked: "100,000 ש\"ח",
-        overall: "1,700,000 ש\"ח",
+  const formatMoney = (value) => {
+    if (value === null || value === undefined || Number.isNaN(Number(value))) return '-';
+    return `₪${Number(value).toLocaleString('he-IL', { maximumFractionDigits: 2 })}`;
+  };
+
+  const formatPercent = (value) => {
+    if (value === null || value === undefined || Number.isNaN(Number(value))) return '-';
+    return `% ${Number(value).toLocaleString('he-IL', { maximumFractionDigits: 2 })}`;
+  };
+
+  const getMaxMonthly = (basket) => {
+    const principal = basket?.graph_data?.principal_repayment || [];
+    const interest = basket?.graph_data?.interest_payment || [];
+    const indexation = basket?.graph_data?.indexation_component || [];
+    const length = Math.max(principal.length, interest.length, indexation.length);
+    let max = 0;
+    for (let i = 0; i < length; i += 1) {
+      const sum = (principal[i] || 0) + (interest[i] || 0) + (indexation[i] || 0);
+      if (sum > max) max = sum;
+    }
+    return max || null;
+  };
+
+  const buildRoutesData = () => {
+    const basket = activeUniformBasket?.raw;
+    if (!basket) return {};
+    const summary = basket?.summary || {};
+    const tracks = Array.isArray(basket?.tracks_detail) ? basket.tracks_detail : [];
+    const totalByTracks = tracks.reduce((sum, t) => sum + (Number(t?.['סכום']) || 0), 0);
+    const totalAmount = totalByTracks > 0 ? totalByTracks : Number(summary['סכום_הלוואה']) || 0;
+
+    const routesList = tracks.map((track) => {
+      const amount = Number(track?.['סכום']) || 0;
+      const percent = totalAmount > 0 ? `${((amount / totalAmount) * 100).toFixed(1)}%` : '-';
+      return {
+        name: track?.['שם'] || '-',
+        percentage: percent,
+        interest: formatPercent(track?.['ריבית']),
+        balance: formatMoney(amount),
+      };
+    });
+
+    return {
+      title: activeUniformBasket?.title || "המשכנתא שלך:",
+      details: {
+        bank: "סל אחיד",
+        amount: formatMoney(summary['סכום_הלוואה']),
+        years: periodYears ? `${periodYears}` : '-',
+        firstMonthlyPayment: formatMoney(summary['החזר_חודשי_ראשון']),
+        maxMonthlyPayment: formatMoney(getMaxMonthly(basket)),
       },
-    },
+      totalPayments: formatMoney(summary['סהכ_החזר_משוער']),
+      note: {
+        text: "הסבר על המסלולים",
+      },
+      routes: {
+        headers: ["מסלולים", "ריבית", "יתרה"],
+        list: routesList,
+      },
+    };
   };
 
+  const chartData = useMemo(() => {
+    const basket = activeUniformBasket?.raw;
+    const graph = basket?.graph_data;
+    if (!graph) return [];
+    const months = Array.isArray(graph.months) ? graph.months : [];
+    const interest = Array.isArray(graph.interest_payment) ? graph.interest_payment : [];
+    const principal = Array.isArray(graph.principal_repayment) ? graph.principal_repayment : [];
+    const length = Math.min(months.length || 0, interest.length || 0, principal.length || 0);
+    if (length === 0) return [];
+
+    const byYear = {};
+    for (let i = 0; i < length; i += 1) {
+      const monthValue = Number(months[i]) || i + 1;
+      const yearIndex = Math.floor((monthValue - 1) / 12) + 1;
+      const monthInYear = ((monthValue - 1) % 12) + 1;
+      if (!byYear[yearIndex]) {
+        byYear[yearIndex] = [];
+      }
+      byYear[yearIndex].push({
+        name: `${monthInYear}`,
+        rivit: interest[i] || 0,
+        keren: principal[i] || 0,
+      });
+    }
+    return byYear;
+  }, [activeUniformBasket]);
 
   return (
     <div className="simulator_page">
       <a href="/" className="prev_page_link"><img src={previcon} alt="" /></a>
        <div className="wrapper">
-            <MortgageCalculator />
+            <MortgageCalculator onResult={handleUniformResult} />
             <div className="contents">
-              <UniformBasket />   
-              <div className="simulator_data_box d_flex">
-                <ReturnsChart 
-                    charttitle={'החזרים'} 
-                    interest={'ריבית'} 
-                    fund={'קרן'} 
-                    dataSets={simulatorchartdata} 
-                    kerenColor={"#27450E"}
-                    rivitColor={"#E27600"}
-                  />
-                <YourRoutesMortgageDetails data={mortgageData14} themeColor="#E27600" />
-              </div>
+              <UniformBasket
+                baskets={uniformBaskets}
+                periodYears={periodYears}
+                onActiveChange={setActiveUniformBasket}
+              />
+              {chartData && Object.keys(chartData).length > 0 && (
+                <div className="simulator_data_box d_flex">
+                  <ReturnsChart 
+                      charttitle={'החזרים'} 
+                      interest={'ריבית'} 
+                      fund={'קרן'} 
+                      dataSets={chartData} 
+                      key={activeUniformBasket?.title || 'returns-chart'}
+                      kerenColor={"#27450E"}
+                      rivitColor={"#E27600"}
+                    />
+                  <YourRoutesMortgageDetails data={buildRoutesData()} themeColor="#E27600" />
+                </div>
+              )}
               <button className="btn approval_btn">מעבר להגשת בקשה לאישור עקרוני</button>
             </div>
             <img src={simulatorImage} className="img1 desktop_img" alt="" />

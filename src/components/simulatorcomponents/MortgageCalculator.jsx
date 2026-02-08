@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-
+import { getCalcApiBase } from '../../utils/apiBase';
 
 import CustomRangeInput from './CustomRangeInput';
 
@@ -14,9 +14,36 @@ const STEP_TERM = 1;
 
 
 
-const MortgageCalculator = () => {
-  const [mortgageAmount, setMortgageAmount] = useState(750000);
-  const [termInYears, setTermInYears] = useState(14);
+const MortgageCalculator = ({ onResult }) => {
+  const [mortgageAmount, setMortgageAmount] = useState(MIN_AMOUNT);
+  const [termInYears, setTermInYears] = useState(MIN_TERM);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
+
+  const handleCalculate = async () => {
+    setIsLoading(true);
+    setError('');
+    try {
+      const baseUrl = getCalcApiBase();
+      const url = `${baseUrl}/uniform-baskets?principal=${mortgageAmount}&years=${termInYears}`;
+      const response = await fetch(url);
+      if (!response.ok) {
+        const text = await response.text();
+        throw new Error(text || 'שגיאה בבקשה לשרת המחשבון');
+      }
+      const data = await response.json();
+      if (onResult) {
+        onResult({ data, years: termInYears, principal: mortgageAmount });
+      }
+    } catch (err) {
+      if (onResult) {
+        onResult(null);
+      }
+      setError(err?.message || 'שגיאה בבקשה לשרת המחשבון');
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
 
   return (
@@ -52,7 +79,11 @@ const MortgageCalculator = () => {
               />
             </div>
           </div>
-          <a href="/" className='btn'>חשב</a>
+          <button type="button" className="btn" onClick={handleCalculate} disabled={isLoading}>
+            {isLoading ? 'מחשב...' : 'חשב'}
+          </button>
+
+          {error && <p className="error">{error}</p>}
         </div>
       </div>
 

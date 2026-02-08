@@ -39,7 +39,7 @@ const YourRoutesMortgageDetails = ({ data, themeColor }) => {
   return (
     <div className="routes_mortgage_sec" style={{ borderColor: themeColor , "--bgcolor": themeColor }}>
 
-      {expireoffertext &&(
+      {/* {expireoffertext &&(
         <div className="expire_offer"><strong>אישור עקרוני</strong> {expireoffertext}</div>
       )}
       <div className="routes_mobile">
@@ -64,7 +64,7 @@ const YourRoutesMortgageDetails = ({ data, themeColor }) => {
             <h4 style={{ color: themeColor }}>{totalPayments}</h4>
           </div>
         )}
-      </div>
+      </div> */}
       {note?.text && (
         <div className="routs_note">
           <img src={noteicon} alt="" />
@@ -80,15 +80,26 @@ const YourRoutesMortgageDetails = ({ data, themeColor }) => {
           <div className="list_routes" style={{ "--bgcolor": themeColor }}>
             {routes.list.map((route, index) => (
               <ul key={index}>
-                <li style={{ borderColor: themeColor }}><span><em>({route.percentage})</em> {route.name}</span></li>
+                <li style={{ borderColor: themeColor }}>
+                  <span>
+                    <em>({route.percentage})</em>
+                    <span className="route_name">{route.name}</span>
+                  </span>
+                </li>
                 <li style={{ borderColor: themeColor }}>{route.interest}</li>
                 <li style={{ borderColor: themeColor }}>{route.balance}</li>
               </ul>
             ))}
-            <div className="total" >
-              <p><strong>הצמדה למדד:</strong> {routes.totals.indexLinked}</p>
-              <p><strong>סה"כ: </strong>{routes.totals.overall}</p>
-            </div>
+            {routes.totals && (routes.totals.indexLinked || routes.totals.overall) && (
+              <div className="total" >
+                {routes.totals.indexLinked && (
+                  <p><strong>הצמדה למדד:</strong> {routes.totals.indexLinked}</p>
+                )}
+                {routes.totals.overall && (
+                  <p><strong>סה"כ: </strong>{routes.totals.overall}</p>
+                )}
+              </div>
+            )}
           </div>
         </div>
       )}
