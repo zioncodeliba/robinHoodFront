@@ -6,18 +6,24 @@ import { getGatewayApiBase } from '../utils/apiBase';
 import logoup from '../assets/images/logoup.svg';
 import appleIcon from '../assets/images/apple_i.svg';
 import googleIcon from '../assets/images/google_i.svg';
-import userIcon from '../assets/images/user.png';
-import emailIcon from '../assets/images/email.png';
+
+// import userIcon from '../assets/images/user.png';
+// import emailIcon from '../assets/images/email.png';
+// import phoneIcon from '../assets/images/phone.png';
+
+import userIcon from '../assets/images/user.svg';
+import emailIcon from '../assets/images/email.svg';
 import phoneIcon from '../assets/images/phone.png';
 
 const Registrationpage = () => {
   const navigate = useNavigate();
   const { isLoaded, handleGoogleLogin } = useGoogleAuth();
-  const [isChecked, setIsChecked] = useState(true);
+  const [isChecked, setIsChecked] = useState(false);
   const [firstName, setFirstName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errorcheck, setErrorcheck] = useState('');
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
@@ -26,10 +32,11 @@ const Registrationpage = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+    setErrorcheck('');
     setSuccess('');
 
     if (!isChecked) {
-      setError('אנא אשר את התקנון ותנאי השירות.');
+      setErrorcheck('אנא אשר את התקנון ותנאי השירות.');
       return;
     }
 
@@ -88,6 +95,7 @@ const Registrationpage = () => {
   const handleGoogleAuth = async (credential) => {
     setIsGoogleLoading(true);
     setError('');
+    setErrorcheck('');
     setSuccess('');
 
     try {
@@ -193,8 +201,7 @@ const Registrationpage = () => {
       </div>
 
       <form onSubmit={handleSubmit}>
-        {error ? <div className="col_form form_error">{error}</div> : null}
-        {success ? <div className="col_form form_success">{success}</div> : null}
+       
         <div className="col_form">
           <span><img src={userIcon} alt="" /></span>
           <input
@@ -228,13 +235,16 @@ const Registrationpage = () => {
             autoComplete="tel"
           />
         </div>
+        {error ? <div className="form_error_com col_form form_error ">{error}</div> : null}
         <label htmlFor="agree" className='agree_check'>
           <input type="checkbox" id='agree'
             checked={isChecked}
             onChange={() => setIsChecked(!isChecked)}
           />
           <span>אני מאשר את <Link to=""> התקנון ותנאי השירות</Link></span>
-        </label>
+        </label>       
+         {errorcheck ? <div className="form_error_com col_form form_error">{errorcheck}</div> : null}
+    
         <div className="btn_box">
           <div className="btn_col d_flex d_flex_jb d_flex_ac">
             <Link to="/login" className='Login_records btn'>כניסה לרשומים</Link>
@@ -246,6 +256,7 @@ const Registrationpage = () => {
             />
           </div>
         </div>
+            {success ? <div className="form_error_com col_form form_success">{success}</div> : null}
       </form>
 
     </div>

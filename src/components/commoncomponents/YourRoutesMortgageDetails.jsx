@@ -1,6 +1,6 @@
 import React from "react";
 import "./YourRoutesMortgageDetails.css";
-import noteicon from "../../assets/images/note_i.png";
+import noteicon from "../../assets/images/note_i.svg";
 
 
 const YourRoutesMortgageDetails = ({ data, themeColor }) => {

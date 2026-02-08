@@ -1,10 +1,10 @@
-.notifications_page{padding-top: 85px;min-height: 100vh;}
+.notifications_page{padding-top: 85px;}
 .notifications_page h1{text-align: center;font-size: 64px;line-height: 40px;margin-bottom: 85px;}
 .notifications_page .notifications_header{display: flex;flex-direction: column;align-items: center;gap: 12px;margin-bottom: 70px;}
 .notifications_page .notifications_header h1{margin-bottom: 0;}
 .notifications_page .mark_all_read{border: none;background: var(--green);color: var(--white);padding: 8px 18px;border-radius: 20px;font-size: 14px;line-height: 18px;cursor: pointer;}
 .notifications_page .mark_all_read:hover{background-color: var(--orange);}
-.notifications_page .inner{max-width: 1100px;margin: 0 auto;position: relative;min-height: calc(100vh - 85px);padding-bottom: 180px;}
+.notifications_page .inner{max-width: 1100px;margin: 0 auto;position: relative;padding-bottom: 285px;min-height: calc(100vh - 200px);}
 .notifications_page .notifi_list{}
 .notifications_page .no_notifications{width: 100%;text-align: center;color: var(--green);font-size: 18px;line-height: 24px;}
 .notifications_page .notification_title{background: none;border: none;padding: 0;color: #7B7B7B;font-size: 18px;line-height: 24px;font-weight: 400;text-align: right;cursor: pointer;}
@@ -62,7 +62,7 @@
     
 }
 @media (max-width:767px) {
-    .notifications_page{padding:22px 0 120px;}
+    .notifications_page{padding:22px 0 0px;}
     .notifications_page h1 { font-size: 22px; line-height: 24px; margin-bottom: 0; font-weight: 300; }
     .notifications_page .notifications_header{margin-bottom: 30px;}
     .notifications_page .notifi_col{width: 100%;font-size: 13px; line-height: 18px; padding: 10px 42px 10px 12px;}
@@ -71,9 +71,7 @@
     .notifications_page .approval_note { width: 100%; padding: 18px 23px 55px 39px; margin-top: 0;}
     .notifications_page .approval_note p { font-size: 14px; line-height: 20px; text-align: right; max-width: 220px; }
     .notifications_page .approval_note .btn { left: auto; right: 23px; bottom: -21px; font-size: 14px; line-height: 19px;}
-    .notifications_page .inner { max-width: calc(100% - 60px); padding-bottom: 140px; }
     .notifications_page .notificationsman { left: -15px; bottom: 0; max-width: 160px; }
-
-
+    .notifications_page .inner { max-width: calc(100% - 60px); padding-bottom: 250px; min-height: calc(100vh - 250px); }
 
 }

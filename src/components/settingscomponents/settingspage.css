@@ -62,3 +62,7 @@
     .settings_page .save_settings { margin: 35px auto 0; }
 
 }
+@supports (-webkit-touch-callout: none) and (max-width: 767px) {
+    .settings_page { padding: 30px 15px 250px; }
+
+}

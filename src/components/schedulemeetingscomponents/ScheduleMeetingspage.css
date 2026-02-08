@@ -1,7 +1,7 @@
 .schedule_meetings_page{padding: 85px 20px 100px;}
 .schedule_meetings_page h1{font-size: 65px; line-height: 40px; text-align: center;margin-bottom: 51px;}
 .schedule_meetings_page .manImage{position: absolute;left:40px;bottom: 0;pointer-events: none;}
-.schedule_meetings_popup{width: 730px;height: 691px;border-radius: 20px;background-color: #24242475;backdrop-filter: blur(5px);display: block;margin: 0 auto;position: relative;padding: 20px 36.5px 81px;text-align: center;}
+.schedule_meetings_popup{width: 730px;height:fit-content;border-radius: 20px;background-color: #24242475;backdrop-filter: blur(5px);display: block;margin: 0 auto;position: relative;padding: 20px 36.5px 81px;text-align: center;}
 .schedule_meetings_popup .close{position: absolute;left: 28px;top: 16px;cursor: pointer;}
 .schedule_meetings_popup>img{margin: 0 auto ;margin-bottom:34px;}
 .schedule_meetings_popup h2{color: var(--white);font-size: 20px;line-height: 24px;}
@@ -29,15 +29,18 @@
     .schedule_meetings_page .manImage { max-width: 230px; left: 0px; }
 }
 @media (max-width:767px) {
-    .schedule_meetings_page { padding: 20px 20px 100px; }
+    .schedule_meetings_page { padding: 20px 20px 160px; }
     .schedule_meetings_page h1 { font-size: 22px; margin-bottom: 10px; font-weight: 300; }
     .schedule_meetings_popup { width: 100%; height: auto; padding:57px 20px 95px; }
+    /* .schedule_meetings_popup label{margin: 0 0 20px;margin-left:14px;}
+    .schedule_meetings_popup label:nth-child(3n){margin-left: 0;} */
 }
-@media (max-width:413px) {
-    .schedule_meetings_page { padding: 20px 10px 100px; }
+@media (max-width:374px) {
+    .schedule_meetings_page { padding: 20px 10px 160px;}
     .schedule_meetings_popup label { padding: 8px 9px; font-size: 16px; margin: 0 5px 10px; min-width: 90px; }
-
-
+}
+@supports (-webkit-touch-callout: none) and (max-width: 767px) {
+    .schedule_meetings_page { padding: 20px 10px 250px;}
     
 
 }

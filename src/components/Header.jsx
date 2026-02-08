@@ -49,7 +49,7 @@ const Header = () => {
     const scrollElement = document.querySelector(".main");
 
     const handleScroll = () => {
-      setIsFixed(scrollElement.scrollTop > 50);
+      setIsFixed(scrollElement.scrollTop > 20);
     };
 
     if (scrollElement) {
@@ -134,7 +134,7 @@ const Header = () => {
   return (
     <>
     <header className={`d_flex d_flex_ac d_flex_jb ${isFixed ? "fixed" : ""}`}>
-      <div className="hamberger" onClick={hambergerhandle}><img src={hambergericon} alt="" /></div>
+      {/* <div className="hamberger" onClick={hambergerhandle}><img src={hambergericon} alt="" /></div> */}
       <div className="hamberger" onClick={hambergerhandle}><img src={hambergericon} alt="" /></div>
       <nav className={`right_col ${isOpen ? 'open' : ''}`} >
         {/* for desktop menu  */}
@@ -199,7 +199,7 @@ const Header = () => {
                   </Link>
                 </li>
                 <li><Link to="/settings" onClick={() => setIsOpen(false)}><img src={SettingIcon} alt="" />הגדרות</Link></li>
-                <li><Link to="/appointment" onClick={() => setIsOpen(false)}><img src={whatsapp} alt="" />תמיכה בווצאפ</Link></li>
+                <li><Link to="/appointment" onClick={() => setIsOpen(false)}><img src={whatsapp} alt="" />תמיכה ב WhatsApp </Link></li>
                 <li><Link to="#" onClick={(e) => {e.preventDefault(); handleLogout(); setIsOpen(false);}}><img src={logoutIcon} alt="" />התנתק</Link></li>
             </ul>
            <img src={panmemuImage} className='pan_menu' alt="" />

@@ -3,9 +3,9 @@ import React ,{useState} from "react";
 import '../components/suggestionscomponents/Suggestionspage.css';
 
 // images 
-import notei from '../assets/images/note_i.png';
+import notei from '../assets/images/note_i.svg';
 import nextprevarrow from "../assets/images/np_arrow.svg";
-import previcon from '../assets/images/prev_icon.png';
+import previcon from '../assets/images/prev_icon.svg';
 
 // components 
 import BankMortgageCard from '../components/suggestionscomponents/BankMortgageCard';

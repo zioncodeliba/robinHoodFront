@@ -128,7 +128,7 @@ background: linear-gradient(180deg, rgba(255, 255, 255, 1) 0%, rgba(225, 240, 22
     .barchart_sec { max-width: 100%;}
 }
 
-@media (max-width:413px) {
+@media (max-width:374px) {
     .bank_mortgage_sec { padding: 28px 15px 9px; max-width: calc(100% - 30px); }
     .mortgage_cycle_page .left_col { max-width: calc(100% - 30px); }
     .total_savings_box .btn { padding: 5px 20px; font-size: 16px; }

@@ -73,7 +73,7 @@
 .calculator_box .range_box { margin-top: 50px; }
 .calculator_box .range_box  .minmax_text {position: relative;}
 .calculator_box .range_box .minmax_text span { width: auto;pointer-events: none !important; }
-.calculator_box .range_box .arrow:after { z-index: 1; border: 1px solid #ad6503; }
+.calculator_box .range_box .arrow:after { border: 1px solid #ad6503; }
 .calculator_box .monthly_repayment{line-height: 28px;display: flex;align-items: center;margin-top: 11px;color: #1E1E1E;font-size: 15px;font-weight: 400;}
 .calculator_box .monthly_repayment span{font-size: 20px;margin-right: 5px;}
 .calculator_box .btn_box{width: 100%;}
@@ -249,11 +249,17 @@ body{background-repeat: no-repeat;background-size: cover;overflow: hidden;}
 .main.hidepan .l_right{display: none !important;}
 
 
-.btn{font-size: 22px;font-weight: 300;background-color: var(--orange);padding:14px 37px 16px;color: var(--white);border-radius: 50px;box-shadow: 0 4px 40px #00000040;cursor: pointer;transition: 0.4s ease all;}
+.btn{font-size: 22px;font-weight: 300;background-color: var(--orange);padding:14px 37px 16px;color: var(--white);border-radius: 50px;box-shadow: 0 4px 40px #00000040;cursor: pointer;transition: 0.4s ease all;    outline: none; border: none;}
 .btn:hover{background-color: var(--green);color: var(--white);}
 
 
-header{position: fixed;top: 0;left: 0;width: 100%;z-index: 99;border-top: 13px solid var(--orange); background: #C1E9B9; background: linear-gradient(0deg, #C1E9B9 100%, rgba(255, 255, 255, 1) 0%);border-bottom: 1px solid #27450E96;padding: 9px 135px 18px;}
+header{position: fixed;top: 0;left: 0;width: 100%;z-index: 99;border-top: 13px solid var(--orange); 
+  /* background: #C1E9B9; 
+  background: linear-gradient(0deg, #C1E9B9 100%, rgba(255, 255, 255, 1) 0%); */
+  border-bottom: 1px solid #27450E96;
+  padding: 9px 135px 18px;
+  backdrop-filter: blur(10px);
+}
 header ul{position: relative;top: 5px;}
 header ul li:not(:last-child){margin-left: 40px;}
 header ul li a{font-weight: 300;display: flex;align-items: center;}
@@ -304,6 +310,13 @@ header .left_col>div>.btn.registration:hover{background-color: var(--orange);}
 .comman_loginpopup .forgot_password:hover{color: var(--orange);}
 .comman_loginpopup .btn_login{width:fit-content;margin: 0 auto;margin-left: 0;text-align: center;min-width: 206px;}
 
+.comman_loginpopup .form_error_com{    color: #FF0000; font-size: 12px; line-height: 16px; width: 100%; text-align: right; background-color: transparent; padding: 0; margin: 0; font-weight: 400;}
+.comman_loginpopup .form_error_com.form_success{color: green !important;text-align: center;  margin-top: 5px;}
+
+
+
+
+
 /* check_nav */
 .check_nav{}
 .check_nav .number{width: 42px;height: 42px;background-color: var(--white);box-shadow: 0 4px 30px #00000040;color: var(--green);font-size: 14px;font-weight: 900;border-radius: 50%;margin-right:21px;display: flex;align-items: center;justify-content: center;    line-height: 1;position: relative;z-index: 2;}
@@ -330,7 +343,7 @@ header .left_col>div>.btn.registration:hover{background-color: var(--orange);}
 .appointment_page .appointment_man { position: absolute; bottom: 60px; left: -42%; right: 0; width: fit-content; margin: 0 auto; max-width: 550px;}
 
 /* next_prev_box */
-.next_prev_box{    position: fixed; top: 0; bottom: 0; height: fit-content; margin: auto; right: 0; width: 100vw; pointer-events: none; z-index: 9; display: flex; align-items: center; justify-content: space-between; min-width: 100%;}
+.next_prev_box{    position: fixed; top: 0; bottom: 0; height: fit-content; margin: auto; right: 0; width: 100vw; pointer-events: none; z-index: 1; display: flex; align-items: center; justify-content: space-between; min-width: 100%;}
 .next_prev_box a{position: relative; pointer-events: all; background-color: #A1AE96; height: 70px; width: 113px; border-radius: 50px 0 0 50px; display: flex; align-items: center; justify-content: flex-end;padding: 0 9.26px;}
 .next_prev_box a.next{transform: scale(-1);}
 .next_prev_box a:hover{background-color: var(--orange);}
@@ -361,7 +374,7 @@ header .left_col>div>.btn.registration:hover{background-color: var(--orange);}
 .explanation_screen .dots li{width: 27px;height: 27px;border-radius: 50%;border: 1px solid var(--white);background-color: #D7F1D1;z-index: 2;position: relative;}
 .explanation_screen .dots li.active{background-color: var(--orange);}
 .explanation_screen .dots li:not(:last-child){margin-left: 21px;}
-.explanation_screen .dots li:not(:last-child)::after{content:'';position: absolute;top: 0;bottom: 0;right:100%;height: 5px;background-color: var(--orange);width: 100%;z-index: 0;margin: auto;}
+.explanation_screen .dots li:not(:last-child)::after{content:'';position: absolute;top: 0;bottom: 0;right:calc(100% + 1px);height: 5px;background-color: var(--orange);width: 100%;z-index: 0;margin: auto;}
 .explanation_screen2 .simage{bottom: calc(100% - 1px);}
 
 /* otp_screen */
@@ -377,6 +390,8 @@ header .left_col>div>.btn.registration:hover{background-color: var(--orange);}
 .otp_screen .form_input .phone{width: 100%;height: 42px;background-color: var(--white);border-radius: 50px;border: 1px solid var(--white);padding: 0 25px;color:var(--green);font-size: 14px;font-weight: 500;letter-spacing: 0.5px;}
 .otp_screen .form_input .error_text{display: block;color:#ff0000;line-height: 18px;font-size: 14px;font-weight: 400;margin-top: 2px;}
 .otp_screen .btn{ font-size: 20px; font-weight: 500; padding: 16px 60px 18px;border: none;}
+ .otp_screen .form_input .form_error_com{color: #FF0000; font-size: 12px; line-height: 16px; width: 100%; text-align: center; background-color: transparent; padding: 0; margin: 0; margin-top: 5px;font-weight: 400;}
+ .otp_screen .form_input .form_error_com.form_success{color: green !important;}
 
 /* otp_verify */
 .otp_verify.otp_screen p{margin-bottom: 8px;}
@@ -387,6 +402,11 @@ header .left_col>div>.btn.registration:hover{background-color: var(--orange);}
 .otp_verify .send_again{color: var(--green);font-size:22px;font-weight:400;margin-top: 18px;display: flex;align-items: center;justify-content: center;}
 .otp_verify .send_again a,.otp_verify .send_again .resend_link{color: var(--orange);margin-right: 5px;}
 .otp_verify .send_again a:hover,.otp_verify .send_again .resend_link:hover{text-decoration: underline;}
+.otp_verify .send_again span{color: var(--orange);margin-right: 5px;}
+
+ .otp_verify .form_error_com{color: #FF0000; font-size: 12px; line-height: 16px; width: 100%; text-align: center; background-color: transparent; padding: 0; margin: 0; margin-top: 5px;font-weight: 400;}
+ .otp_verify .form_error_com.form_success{color: green !important;}
+
 
 /* sticky_mobile_menu */
 .sticky_mobile_menu{display: none;}
@@ -447,6 +467,9 @@ header .left_col>div>.btn.registration:hover{background-color: var(--orange);}
 .form_error,.form_success{background:red;color:#fff;border-radius:5px;text-align:center;margin-bottom:10px;padding:10px}
 .form_success{background:#27450e}
 .form_error:empty,.form_success:empty{display: none;}
+
+/* new */
+.exscreenhideheader  .sticky_mobile_menu{display: none !important;}
 
 
 /* responsive */
@@ -510,6 +533,25 @@ header .left_col>div>.btn.registration:hover{background-color: var(--orange);}
   .ai_chat_panel{padding: 18px;}
   .ai_chat_messages{max-height: 48vh;}
   .ai_chat_bubble{font-size: 16px;line-height: 24px;}
+
+  /* explanation_screen */
+  .explanation_screen { height: calc(100vh - 13px); }
+  .explanation_screen .brand { max-width: 130px; margin-top: -10px; }
+  .explanation_screen .inner .btn_col a { font-size: 20px; padding: 12px 16px; }
+  .explanation_screen .inner .btn_col { margin-top: 12px;}
+  .explanation_screen .simage { max-width: 260px; }
+
+   /* new */
+  .registration_page.comman_loginpopup .link { line-height: 42px; }
+  .registration_page.comman_loginpopup .col_form .in { height: 42px; }
+  .registration_page.comman_loginpopup .col_form span { width: 34px; height: 34px; top: 4px; right: 4px; }
+  .comman_loginpopup .link img { max-width: 34px;}
+  .registration_page .reglogo { max-width: 120px;margin: 0 auto 22px;}
+  .registration_page h1 { margin-bottom: 2px; }
+  .comman_loginpopup .agree_check { margin-top: 0;}
+  .registration_page .btn_col { margin-top: 16px; }
+  .login_page .loginman { max-width: 200px; }
+  .comman_loginpopup .or { margin: 8px 0; }
 
 
 
@@ -577,7 +619,9 @@ header .left_col>div>.btn.registration:hover{background-color: var(--orange);}
 /* 414 */
 
 @media (max-width:767px) {
-  .hamberger { position: absolute; top: 24px; right: 44px; }
+  header { backdrop-filter: none; }
+  header.fixed{backdrop-filter: blur(10px);}
+  .hamberger { position: absolute; top: 24px; right:36px; }
   header .left_col .exit_btn{display: none;}
   header .left_col .username{display: none;}
   header .left_col .registration_had{display: none;}
@@ -587,10 +631,10 @@ header .left_col>div>.btn.registration:hover{background-color: var(--orange);}
   header .notification{position: absolute;left:34px;top: 24px;background-color: transparent;border: none;padding: 0;}
 
   header{background: none;}
-  header::after{content:'';position: absolute;left: 0;top: 0;width: 100%;height: 100%;background: #C1E9B9; background: linear-gradient(0deg, #C1E9B9 100%, rgba(255, 255, 255, 1) 0%); border-bottom: 1px solid #27450E96;opacity: 0;transition: 0.5s ease all;z-index: -1;}
-  header.fixed::after{opacity: 1;}
+  /* header::after{content:'';position: absolute;left: 0;top: 0;width: 100%;height: 100%;background: #C1E9B9; background: linear-gradient(0deg, #C1E9B9 100%, rgba(255, 255, 255, 1) 0%); border-bottom: 1px solid #27450E96;opacity: 0;transition: 0.2s ease all;z-index: -1;}
+  header.fixed::after{opacity: 1;} */
   .mobile_menu ul li a { font-size: 16px; }
-
+  .mobile_menu { padding: 52px 50px 50px 0px; }
   .desktop_img{display: none;}
   .mobile_img{display:block;}
   .main .l_left, .main .l_right{display: none;}
@@ -612,21 +656,14 @@ header .left_col>div>.btn.registration:hover{background-color: var(--orange);}
   .login_page .login_btn:hover{background-color: var(--orange);}
   .login_page.registration_page .reglogo { margin: 0 auto 5px;}
 
-  /* appointment */
-  .appointment_page { padding:20px 20px 139px; }
-  .appointment_page .prev_page_link { top: 47px !important; right: auto; position: fixed !important; left: 25px !important; z-index: 999; font-size: 0;}
-  .appointment_page .prev_page_link img{margin: 0;}
-  .appointment_page .colin { margin: 100px auto 0; width: 100%;         padding: 0; background-color: transparent;}
-  .appointment_page .colin h4 { margin-top: 0px; }
-  .appointment_page .colin p { font-size: 26px; line-height: 26px; margin-top: 24px; }
-  .appointment_page .colin .confirmation{display: none;}
-  .appointment_page .appointment_man { left: 0; max-width: 350px; position: relative; bottom: 0; right: -80px; margin:60px auto 0; }
 
   /* explanation_screen */
+  .explanation_screen .brand { width: fit-content; margin: 0 auto; position: absolute; z-index: 2; top: 10px; left: 0; right: 0; margin: 0 auto; max-width: 120px; }
   .explanation_screen .inner { padding: 13px 43px 40px; }
   .explanation_screen .inner h3 { max-width: 250px; margin: 0 auto 9px; }
-  .explanation_screen .simage { max-width: 350px; bottom: calc(100% - 60px); }
+  .explanation_screen .simage { max-width: 280px; bottom: calc(100% - 60px); }
   .explanation_screen .inner::after { height: 100%; }
+  .explanation_screen .inner .btn_col a { font-size: 20px; line-height: 24px; padding: 10px 14px; }
 
   /* otp_screen */
   .otp_screen{height: auto;padding: 15px 20px 85px;}
@@ -649,10 +686,12 @@ header .left_col>div>.btn.registration:hover{background-color: var(--orange);}
   .sticky_mobile_menu ul{display: flex;align-items: flex-end;justify-content:center;margin-top: 20px;}
   .sticky_mobile_menu ul li{}
   .sticky_mobile_menu ul li:nth-child(2){margin-left: 151px;}
-  .sticky_mobile_menu ul li a{text-align: center;font-size: 12px;line-height: 24px;color: var(--green);font-weight: 400;margin: 0 9px;}
+  .sticky_mobile_menu ul li a{text-align: center;font-size: 12px;line-height: 24px;color: var(--green);font-weight: 400;margin: 0 9px;position: relative;}
+  .sticky_mobile_menu ul li a::after{content:'';position: absolute;bottom: -10px;left: 0;width: 100%;height: 7px;background-color: #E27600;opacity: 0;}
+  .sticky_mobile_menu ul li a.active::after{opacity: 1;}
   .sticky_mobile_menu ul li a img{display: block;margin: 0 auto;}
   .sticky_mobile_menu ul li a span{display: block;width:max-content;}
-  .main:after { content: ''; position: fixed; top: auto; height: 24px; width: 100%; left: 0; z-index: 0; bottom: 0; box-shadow: 0 0 150px #e2760040; }
+  .main:after { content: ''; position: fixed; top: auto; height: 24px; width: 100%; left: 0; z-index: 0; bottom: 0; box-shadow: 0 0 150px #e2760040; display: none;}
 
   /* aichat */
   .ai_charpage { padding: 22px 10px 0; }
@@ -661,10 +700,39 @@ header .left_col>div>.btn.registration:hover{background-color: var(--orange);}
   .ai_charpage .title p { font-size: 14px; line-height: 20px; margin-bottom: 20px; }
 
 
+   /* new */
+   .main { padding-top: 78px;display: block; position: fixed;top: 0;left: 0;}
+  .registration_page .reglogo { margin: 0 auto 22px; max-width: 180px;}
+  .registration_page .agree_check { margin-top: 20px; }
+  .registration_page .btn_col { max-width: 352px; margin: 20px auto 0; }
+  .registration_page.comman_loginpopup .link { line-height: 42px; }
+  .registration_page.comman_loginpopup .col_form .in { height: 42px; }
+  .registration_page.comman_loginpopup .col_form span { width: 34px; height: 34px; top: 4px; right: 4px; }
+  .login_page .loginman { max-width: 180px;}
+  .comman_loginpopup .link img { max-width: 34px;}
+  .comman_loginpopup .forgot_password { margin: 20px auto 20px; margin-left: 0; }
+  .explanation_screen .inner{padding: 13px 43px 120px;}
+  .explanation_screen { padding-top: calc(100vh - 13px); }
+  .explanation_screen .inner .btn_col a{    padding: 8px 14px 12px;}
+  .otp_screen .form_input .phone{max-width: 210px;margin: 0 auto;}
+ 
+  
+  /* appointment */
+  .appointment_page { padding:20px 20px 140px; min-height: 90vh; }
+  .appointment_page .prev_page_link { top: 47px !important; right: auto; position: fixed !important; left: 25px !important; z-index: 999; font-size: 0;}
+  .appointment_page .prev_page_link img{margin: 0;}
+  .appointment_page .colin { margin:70px auto 0; width: 100%;         padding: 0; background-color: transparent;}
+  .appointment_page .colin h4 { margin-top: 0px;font-weight: 900;}
+  .appointment_page .colin p { font-size: 26px; line-height: 26px; margin-top: 24px;        font-weight: 300; }
+  .appointment_page .colin .confirmation{display: none;}
+  .appointment_page .appointment_man { left: 0; max-width: 350px; bottom: 10px; right: -80px; margin: 60px auto 0;position: relative;}
+
+
+
 }
 /* 360 */
-@media (max-width:413px) {
-  .main { padding-top: 78px; }
+@media (max-width:374px) {
+  
   header { border-top: 10px solid var(--orange); }
   .hamberger { top: 21px; right: 20px; max-width: 40px; }
   header .brand { max-width: 140px; right: 10px; }
@@ -676,16 +744,15 @@ header .left_col>div>.btn.registration:hover{background-color: var(--orange);}
 
   .appointment_page .prev_page_link { top: 32px !important; }
   .appointment_page .colin { margin: 80px auto 0; }
-  .appointment_page .colin p { font-size: 22px; }
+  .appointment_page .colin p { font-size: 22px;}
   .appointment_page .colin img { max-width: 60px; }
-  .appointment_page .appointment_man { right: -60px; margin: 30px auto 0; max-width: 190px; }
 
   /* explanation_screen */
-  .explanation_screen { height: auto; padding-top: calc(100vh - 10px); }
   .explanation_screen .skip { left: 22px; top: 26px; }
-  .explanation_screen .inner { padding: 13px 20px 40px; }
-  .explanation_screen .simage { max-width: 250px; bottom: calc(100% - 40px); }
-  .explanation_screen .brand { width: fit-content; margin: 0 auto; position: absolute; z-index: 2; top: 10px; left: 0; right: 0; margin: 0 auto; max-width: 120px; }
+  .explanation_screen .inner { padding: 13px 20px 120px; }
+  .explanation_screen .simage { max-width: 280px; bottom: calc(100% - 40px); }  
+  .explanation_screen .inner h3 { max-width: 220px; margin: 0 auto 9px; }
+
 
   /* otp_screen */
   .otp_screen .brand { margin-bottom: 20px; max-width: 120px;}
@@ -707,5 +774,11 @@ header .left_col>div>.btn.registration:hover{background-color: var(--orange);}
 
 
 
+
+}
+
+@supports (-webkit-touch-callout: none) and (max-width: 767px) {
+    .appointment_page { padding:20px 20px 250px; }
+    
 
 }

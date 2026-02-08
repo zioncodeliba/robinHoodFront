@@ -2,7 +2,7 @@ import React, { useRef, useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { getGatewayApiBase } from "../utils/apiBase";
 
-import nextI from '../assets/images/next_icon.png';
+import nextI from '../assets/images/next_icon.svg';
 import brand from '../assets/images/logoup_m.svg';
 import otpverifiy from '../assets/images/otp_verify.svg';
 
@@ -292,21 +292,14 @@ const OtpVerify = () => {
         <div className="col">
           <img src={otpverifiy} className="img" alt="" />
           <h1>קוד חד פעמי</h1>
-
-          <p>נשלח לך סיסמה חד־פעמית (0O0OTPPPP) למספר הנייד הזה:</p>
+         
+          {/* <p>נשלח לך סיסמה חד־פעמית (0O0OTPPPP) למספר הנייד הזה:</p> */}
+          <p>נשלח לך סיסמה חד־פעמית (OTP) למספר הנייד הזה:</p>
           <p className="phone_text">{phoneNumber ? formatPhoneNumber(phoneNumber) : '---'}</p>
 
           <div className="form_input">
 
-            {error && (
-              <div className="form_error">{error}</div>
-            )}
-            {resendSuccess && (
-              <div className="form_success">{resendSuccess}</div>
-            )}
-            {success && (
-              <div className="form_success">{success}</div>
-            )}
+            
 
             {/* OTP BOXES */}
             <div className="otp_boxes">
@@ -327,6 +320,15 @@ const OtpVerify = () => {
                 />
               ))}
             </div>
+            {error && (
+              <div className="form_error_com form_error">{error}</div>
+            )}
+            {resendSuccess && (
+              <div className="form_error_com form_success">{resendSuccess}</div>
+            )}
+            {success && (
+              <div className="form_error_com form_success">{success}</div>
+            )}
 
             {/* TIMER */}
             <div className="timer">{formatTime(timer)}</div>

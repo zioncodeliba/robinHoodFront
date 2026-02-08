@@ -1,6 +1,8 @@
 import React, { useRef } from "react";
-import notificationIcon from "../../assets/images/note_i.png";
-import uploadIcon from "../../assets/images/upload_icon.png";
+// import notificationIcon from "../../assets/images/note_i.png";
+import notificationIcon from "../../assets/images/note_i.svg";
+// import uploadIcon from "../../assets/images/upload_icon.png";
+import uploadIcon from "../../assets/images/upload_icon.svg";
 import eyeIcon from "../../assets/images/eye.png";
 import closeIcon from "../../assets/images/up_close.png";
 import cameraIcon from "../../assets/images/camera.png";

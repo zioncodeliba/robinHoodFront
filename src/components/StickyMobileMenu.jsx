@@ -30,8 +30,8 @@ const StickyMobileMenu = () => {
           {/* {isHome && (
             <li><Link to='/notifications'><img src={Alerts} alt="" /><span>התראות</span></Link></li>
           )} */}
-          <li><Link to='/notifications'><img src={Alerts} alt="" /><span>התראות</span></Link></li>
-          <li><Link to='/simulatorpage'><img src={simulation} alt="" /><span>סימולציה</span></Link></li>
+          <li><Link to='/notifications' className={location.pathname === "/notifications" ? "active" : ""}><img src={Alerts} alt="" /><span>התראות</span></Link></li>
+          <li><Link to='/simulatorpage' className={location.pathname === "/simulatorpage" ? "active" : ""}><img src={simulation} alt="" /><span>סימולציה</span></Link></li>
 
           {/* {!isHome && !isViewoffer && (
             <li><Link to='/'><img src={AIChat} alt="" /><span>צ’אט AI</span></Link></li>
@@ -43,8 +43,8 @@ const StickyMobileMenu = () => {
            {/* {(isHome || isViewoffer) && (
              <li><Link to='/treatmentstatus'><img src={status} alt="" /><span>סטטוס</span></Link></li>
            )} */}
-           <li><Link to='/treatmentstatus'><img src={status} alt="" /><span>סטטוס</span></Link></li>
-          <li> <Link to='/suggestionspage'><img src={suggestions} alt="" /><span>הצעות</span></Link> </li>
+           <li><Link to='/treatmentstatus' className={location.pathname === "/treatmentstatus" ? "active" : ""}><img src={status} alt="" /><span>סטטוס</span></Link></li>
+          <li> <Link to='/suggestionspage' className={location.pathname === "/suggestionspage" ? "active" : ""}><img src={suggestions} alt="" /><span>הצעות</span></Link> </li>
         </ul>
       </div>
     </>

@@ -164,7 +164,7 @@ const HomeBeforeApproval = () => {
 
  
   return (
-    <div className="homebefore_approval_page">
+    <div className="homebefore_approval_page ">
         <a href="/" className="prev_page_link"><img src={previcon} alt="" /></a>
         <div className="wrapper">
             <h1>ברוכים הבאים, דני</h1>
@@ -190,6 +190,10 @@ const HomeBeforeApproval = () => {
                         <h3>אישור עקרוני</h3>
                     </li>
                 </ul>
+                <div className="next_prev_box">
+                    <a href={prevLink} className="prev"><img src={nextprevarrow} alt="" /></a>
+                    <a href={nextLink} className="next"><img src={nextprevarrow} alt="" /></a>
+                </div>
             </div>
             <div className="inner d_flex d_flex_jb">
                 <div className="right_col">
@@ -205,10 +209,7 @@ const HomeBeforeApproval = () => {
                 </div>
             </div>
         </div>
-        <div className="next_prev_box">
-            <a href={prevLink} className="prev"><img src={nextprevarrow} alt="" /></a>
-            <a href={nextLink} className="next"><img src={nextprevarrow} alt="" /></a>
-        </div>
+       
     </div>  
   );
 };

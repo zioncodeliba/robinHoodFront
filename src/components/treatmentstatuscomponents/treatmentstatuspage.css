@@ -65,16 +65,17 @@
     .treatment_status_page .step_box ul li.open::before {height: 115%;opacity: 1;}
     .treatment_status_page .step_box ul li .yes { position: absolute; left: 30px; top: 0; } 
     .treatment_status_page .step_box ul li .number { width: 42px; height: 42px; font-size: 14px; }
-    .treatment_status_page .img { margin: 0; margin-left: 0; display: block; width: fit-content; position: absolute; left: 0; bottom: 130px; }
+    .treatment_status_page .img { margin: 0; margin-left: 0; display: block; width: fit-content; position: absolute; left: 0; bottom: 190px; }
+    .treatment_status_page { padding: 40px 0 180px; }
 }
-@media (max-width:413px) {
+@media (max-width:390px) {
     .treatment_status_page .status_box .progress { width: 300px;}
     .treatment_status_page .step_box ul { max-width: calc(100% - 30px); }
     .treatment_status_page .step_box::after { width: 36px; border-radius: 25px 0 0 25px; }
-    .treatment_status_page .img { bottom: 200px; max-width: 160px; }
+    .treatment_status_page .img {    bottom: 250px; max-width: 280px;}
     .treatment_status_page .step_box ul li .yes { left: 20px; top: 0; max-width: 40px; bottom: 0; margin: auto; }
-
-
-
+}
+@supports (-webkit-touch-callout: none) and (max-width: 767px) {
+    .treatment_status_page { padding: 40px 0 250px; }
 
 }

@@ -3,11 +3,14 @@ import React, { useEffect, useMemo, useState } from "react";
 import '../components/beforeapprovalcomponents/HomeBeforeApproval.css'
 
 import nextprevarrow from "../assets/images/np_arrow.svg";
-import timeicon from "../assets/images/tt.png";
-import offericon from "../assets/images/offer_i.png";
+import timeicon from "../assets/images/tt.svg";
+import offericon from "../assets/images/offer_i.svg";
+// import offericon from "../assets/images/offer_i.png";
 import sandicon from "../assets/images/sandicon.png";
+import noteIcon from "../assets/images/note_i_o.svg";
 
-import hapoalimbankicon from "../assets/images/bank_hapoalim.png";
+// import hapoalimbankicon from "../assets/images/bank_hapoalim.png";
+import hapoalimbankicon from "../assets/images/hapoalimbank-icon.svg";
 import nationalbank from "../assets/images/national_bank.png";
 import mizrahitefahotbank from "../assets/images/mfahot_bank.png";
 import discountbankicon from "../assets/images/bank_discount.svg";
@@ -198,16 +201,27 @@ const HomeBeforeApproval2 = () => {
         : "הבקשה נשלחה לבנקים שנבחרו";
 
   return (
-    <div className="homebefore_approval_page">
+    <div className="homebefore_approval_page ">
         <div className="wrapper">
             <h1>ברוכים הבאים, דני</h1>
             <div className="bank_title">
                 <span><img src={allbanksicon} alt="" /></span>
                 <h3>{summaryText}</h3>
             </div>
-            <div className="awaiting_approval_box">
+            <div className="awaiting_approval_box awaiting_approval_box_mobile">
                 <div className="tag"> <img src={timeicon} alt="" />בקשה נשלחה לבנקים </div>
+
+                <span className="notification"><img src={noteIcon} alt="" /></span>
+                <div className="bank_title1">
+                    <span><img src={hapoalimbankicon} alt="" /></span>
+                    <h3>בנק הפועלים</h3>
+                </div>
+
                 <img src={sandicon} className="sandicon" alt="" />
+                 <div className="next_prev_box">
+                    <a href={prevLink} className="prev"><img src={nextprevarrow} alt="" /></a>
+                    <a href={nextLink} className="next"><img src={nextprevarrow} alt="" /></a>
+                </div>
             </div>
             <div className="inner d_flex d_flex_jb">
                 <div className="right_col">
@@ -224,10 +238,7 @@ const HomeBeforeApproval2 = () => {
                 </div>
             </div>
         </div>
-        <div className="next_prev_box">
-            <a href={prevLink} className="prev"><img src={nextprevarrow} alt="" /></a>
-            <a href={nextLink} className="next"><img src={nextprevarrow} alt="" /></a>
-        </div>
+       
     </div>  
   );
 };

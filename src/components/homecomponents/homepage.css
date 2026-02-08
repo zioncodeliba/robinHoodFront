@@ -63,6 +63,14 @@
     .homepage ul li a img{display: none;}
     .homepage ul li a span br{display: none;}
 
+    /* new */
+    .homepage { padding: 10px 20px 160px; }
+    .homepage .left_col img {max-width: 200px; }
+    .homepage label { font-size: 18px; line-height: 18px; margin: 10px 0 10px; }
+    .homepage ul { margin-top: 20px; }
+    .homepage ul li:last-child { margin-top: 10px; }
+    .homepage ul li a { line-height: 40px;font-size: 18px;}
+
 
 }
 /* 360 */

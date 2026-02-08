@@ -6,7 +6,8 @@ import '../components/mortgagecyclecheckcomponents/mortgagecyclecheck.css';
 import MortgageUploadfiles from '../components/mortgagecyclecheckcomponents/MortgageUploadfiles';
 import MortgageFinaldetails from '../components/mortgagecyclecheckcomponents/MortgageFinaldetails';
 
-import prevIcon from '../assets/images/prev_icon.png';
+import prevIcon from '../assets/images/prev_icon.svg';
+
 import {
   getCalculatorResult,
   hasCalculatorOffer,

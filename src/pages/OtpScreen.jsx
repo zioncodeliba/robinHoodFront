@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { getGatewayApiBase } from "../utils/apiBase";
 
 import brand from '../assets/images/logoup_m.svg';
-import nextI from '../assets/images/next_icon.png';
+import nextI from '../assets/images/next_icon.svg';
 import phoneotp from '../assets/images/phone_otp_i.svg';
 
 const OtpScreen = () => {
@@ -82,19 +82,10 @@ const OtpScreen = () => {
 
         <div className="col">
           <img src={phoneotp} className="img" alt="" />
-          <h1>קוד חד פעמי</h1>
-
+           <h1>מספר טלפון</h1>
           <p>אנא הזן את מספר הטלפון לצורך הזדהות ושליחת קוד</p>
 
-          <div className="form_input">
-
-            {error && (
-              <div className="form_error">{error}</div>
-            )}
-            {success && (
-              <div className="form_success">{success}</div>
-            )}
-
+          <div className="form_input">           
             <input
               type="text"
               placeholder="הקלד.."
@@ -110,6 +101,12 @@ const OtpScreen = () => {
                 }
               }}
             />
+            {error && (
+              <div className="form_error_com form_error">{error}</div>
+            )}
+            {success && (
+              <div className="form_error_com form_success">{success}</div>
+            )}
 
           </div>
 

@@ -6,7 +6,8 @@ import { getGatewayApiBase } from '../utils/apiBase';
 import logoup from '../assets/images/logoup.svg';
 import appleIcon from '../assets/images/apple_i.svg';
 import googleIcon from '../assets/images/google_i.svg';
-import otpIcon from '../assets/images/otp.png';
+// import otpIcon from '../assets/images/otp.png';
+import otpIcon from '../assets/images/otp.svg';
 import loginman from '../assets/images/login_img.png';
 
 

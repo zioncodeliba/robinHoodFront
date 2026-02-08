@@ -41,11 +41,18 @@
     .no_offer_found_page .mirror_col { padding: 0 0 0px; }
     .no_offer_found_page .left_col{margin-top: 109.5px;}
     .no_offer_found_page .routes_mortgage_sec h2 { font-size: 20px; font-weight: 700; position: absolute; top: -71px; left: 0; right: 0; }
+    .no_offer_found_page .routes_mobile{border:2px solid var(--bgcolor);}
+    .no_offer_found_page .routes_mobile::after{bottom: -1px;}
+
+
 }
-@media (max-width:413px) {
+@media (max-width:374px) {
     .no_offer_found_page .mirror_col h2 { word-wrap: break-word; }
     .no_offer_found_page .mirror_col h2 br{display: none;}
     .no_offer_found_page .mirror_col p{padding: 0 16px;}
 
+}
+@supports (-webkit-touch-callout: none) and (max-width: 767px) {
+    .no_offer_found_page { padding: 40px 0 250px; }
 
 }

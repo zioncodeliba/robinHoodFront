@@ -1,6 +1,7 @@
 import React from "react";
 import './StatusSummary.css';
-import oarrow from '../../assets/images/o_arrow.png';
+// import oarrow from '../../assets/images/o_arrow.png';
+import oarrow from '../../assets/images/o_arrow.svg';
 
 const StatusSummary = ({ statusData }) => {
 

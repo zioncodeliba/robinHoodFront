@@ -3,8 +3,8 @@ import React, { useMemo } from "react";
 import { useLocation } from "react-router-dom";
 import '../components/nooffercompomponents/NoofferFoundpage.css';
 
-import mirroricon from "../assets/images/mirror.png";
-import prevIcon from '../assets/images/prev_icon.png';
+import mirroricon from "../assets/images/mirror.svg";
+import prevIcon from '../assets/images/prev_icon.svg';
 
 import YourRoutesMortgageDetails from '../components/commoncomponents/YourRoutesMortgageDetails';
 import {

@@ -15,8 +15,8 @@ const STEP_TERM = 1;
 
 
 const MortgageCalculator = () => {
-  const [mortgageAmount, setMortgageAmount] = useState(MIN_AMOUNT);
-  const [termInYears, setTermInYears] = useState(MIN_TERM);
+  const [mortgageAmount, setMortgageAmount] = useState(750000);
+  const [termInYears, setTermInYears] = useState(14);
 
 
   return (
@@ -36,7 +36,7 @@ const MortgageCalculator = () => {
                 min={MIN_AMOUNT}
                 max={MAX_AMOUNT}
                 step={STEP_AMOUNT}
-                unit="ש״ח"
+                unit="₪"
                 onChange={(e) => setMortgageAmount(Number(e.target.value))}
               />
             </div>

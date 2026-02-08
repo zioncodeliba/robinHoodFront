@@ -38,7 +38,8 @@
 
 @media (max-width:767px) {
     .routes_explanation .title_routes,
-    .routes_explanation .list_routes ul{ padding-right: 30px; }
+    .routes_explanation .list_routes ul{ padding-right: 0px; }
+    .simulator_data_box .routes_explanation .list_routes ul li{padding-right: 30px !important;}
     .routes_explanation .list_routes::after { right: 30px; }
     .routes_explanation ul li { width: 96px; }
     .routes_explanation ul li:nth-child(2) { width: 111px; padding-left: 0; }
@@ -77,12 +78,13 @@
     .routes_mortgage_sec .routes_explanation ul li:last-child { width:calc(50% - 55px); padding-left: 0; text-align: right; }
     .routes_mortgage_sec .routes_explanation .total p{font-size: 18px;color: var(--green);}
     .routes_mortgage_sec .routes_explanation .total { border-radius: 0 0 15px 15px; left: 0; right: 0; top: 100%; padding: 11px 45px; }
-
+    .routes_mortgage_sec .routs_note img { margin-left: 13px; }
+    .routes_mortgage_sec .routes_explanation ul li { padding-right: 30px; }
 
 
 
 }
-@media (max-width:413px) {
+@media (max-width:374px) {
     .routes_explanation .title_routes,
     .routes_explanation .list_routes ul{ padding-right: 10px; }
     .routes_explanation .list_routes::after { right: 10px; }
