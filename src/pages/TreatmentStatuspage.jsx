@@ -1,8 +1,8 @@
 import React, { useState } from "react";
 import "../components/treatmentstatuscomponents/treatmentstatuspage.css";
 
-import noteicon from "../assets/images/note_i.png";
-import yesicon from "../assets/images/yes.png";
+import noteicon from "../assets/images/note_i.svg";
+import yesicon from "../assets/images/yes.svg";
 import treatmentstatusImage from "../assets/images/treatmentstatus_img.png";
 import treatmentstatusImagemob from "../assets/images/treatmentstatus_img_mobile.png";
 

@@ -106,7 +106,7 @@
   .aichat_page .title{display: none;}
   .aichat_page .title h1 { font-size: 22px; margin-bottom: 24px; font-weight: 300;margin-bottom: 10px;}
   .aichat_page .title p { font-size: 14px; line-height: 20px; margin-bottom: 20px; }
-  .ai_chat_box { height: calc(100vh - 99px); width: 100%; border-radius: 0; background-color: transparent; border: none; box-shadow: none; }
+  .ai_chat_box { height: calc(100vh - 140px); width: 100%; border-radius: 0; background-color: transparent; border: none; box-shadow: none; }
   .ai_chat_box .had{display: none;}
   .ai_chat_box .inner { padding: 0px 30px 40px; }
   .ai_chat_box .colin { margin-top: 15px !important; margin-bottom: 15px !important;max-width: 100% !important;}
@@ -124,9 +124,8 @@
   .ai_chat_box .order_benefit { max-width: 325px; margin: 44px auto 0; }
 }
 
-@media (max-width:413px) {
-  .aichat_page { padding:0;}
-  .ai_chat_box { height: calc(100vh - 70px); }
+@media (max-width:370px) {
+  .aichat_page { padding:0;}  
   .ai_chat_box .inner { padding: 0px 20px 20px; }
   .ai_chat_box .colin .icon { max-width: 42px; margin-left: 5px; }
   .ai_chat_box .colin .text { width: calc(100% - 47px); padding-top: 12px; }
@@ -437,7 +436,7 @@ header .left_col>div>.btn.registration:hover{background-color: var(--orange);}
 .ai_charpage .title h1{font-size: 65px;line-height: 40px;margin-bottom: 39px;}
 .ai_charpage .title p{font-size: 22px;line-height: 24px;color: var(--green);font-weight: 700;margin-bottom: 39px;}
 .ai_chat_panel{background: var(--white);border-radius: 28px;box-shadow: 0 10px 45px rgba(0,0,0,0.12);padding: 22px;text-align: right;}
-.ai_chat_toolbar{display:flex;justify-content:flex-end;margin-bottom: 12px;}
+.ai_chat_toolbar{display:flex;justify-content:center;margin-bottom: 12px;}
 .ai_chat_debug{background: #fff;border: 1px dashed var(--orange);color: var(--orange);border-radius: 999px;padding: 8px 14px;font-size: 13px;cursor: pointer;transition: all 0.2s ease;}
 .ai_chat_debug:hover{background: var(--orange);color: var(--white);}
 .ai_chat_debug:disabled{opacity: 0.6;cursor: not-allowed;}
@@ -715,6 +714,11 @@ header .left_col>div>.btn.registration:hover{background-color: var(--orange);}
   .explanation_screen { padding-top: calc(100vh - 13px); }
   .explanation_screen .inner .btn_col a{    padding: 8px 14px 12px;}
   .otp_screen .form_input .phone{max-width: 210px;margin: 0 auto;}
+  .otp_screen .brand, .otp_screen .img{    max-width: 180px;}
+  .otp_screen .brand { margin: 0 auto 30px;}
+  .otp_screen .img{ margin: 0 auto 10px; }
+
+
  
   
   /* appointment */
