@@ -471,6 +471,17 @@ header .left_col>div>.btn.registration:hover{background-color: var(--orange);}
 .exscreenhideheader  .sticky_mobile_menu{display: none !important;}
 
 
+.terms_conditions_note { position: absolute; top: -15px; width: 100%; padding: 26px 28px 15px 37px; background-color: #24242475; border-radius: 20px; backdrop-filter: blur(70px); z-index: 2; right: 0; max-height: 50vh; transition: 0.4s ease all; visibility: hidden; opacity: 0; max-width: 350px; margin: auto; left: 0; bottom: 0; }
+.terms_conditions_note.open{visibility: visible;opacity: 1;}
+.terms_conditions_note .close{position: absolute; left:10px; top:10px;cursor: pointer;}
+.terms_conditions_note .inner{overflow-y: scroll;height: 100%;}
+.terms_conditions_note .col{margin-bottom: 24px;}
+.terms_conditions_note h2{color: var(--white);font-size: 20px;line-height: 24px;margin-bottom: 10px;}
+.terms_conditions_note h3{color: var(--white);font-size: 16px;line-height: 24px;font-weight: 500;margin-bottom: 10px;}
+.terms_conditions_note p{color: var(--white);font-size: 14px;line-height: 24px;font-weight: 400;letter-spacing: 0.5px;margin-bottom: 10px;}
+
+
+
 /* responsive */
 @media (max-width:1850px) {
   .main { padding-top: 113px; }

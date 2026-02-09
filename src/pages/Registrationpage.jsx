@@ -8,6 +8,8 @@ import logoup from '../assets/images/logoup.svg';
 import appleIcon from '../assets/images/apple_i.svg';
 import googleIcon from '../assets/images/google_i.svg';
 
+import closeimg from '../assets/images/close_popup.png';
+
 // import userIcon from '../assets/images/user.png';
 // import emailIcon from '../assets/images/email.png';
 // import phoneIcon from '../assets/images/phone.png';
@@ -187,7 +189,18 @@ const Registrationpage = () => {
     window.location.href = `${getGatewayApiBase()}/apple-login?redirect_uri=${encodeURIComponent(returnTo)}${affiliateParam}`;
   };
 
+   const [openPopupId, setOpenPopupId] = useState(null);
+  
+    const openPopup = (id) => {
+      setOpenPopupId(id);
+    };
+  
+    const closePopup = () => {
+      setOpenPopupId(null);
+    };
+
   return (
+    <>
     <div className="registration_page comman_loginpopup">
       <Link to="/" className="reglogo"> <img src={logoup} alt="" /> </Link>
       <h1>הרשמה</h1>
@@ -252,7 +265,12 @@ const Registrationpage = () => {
             checked={isChecked}
             onChange={() => setIsChecked(!isChecked)}
           />
-          <span>אני מאשר את <Link to=""> התקנון ותנאי השירות</Link></span>
+          <span>אני מאשר את <Link to=""
+           onClick={(e) => {
+            e.preventDefault();
+            openPopup("terms");
+          }}
+          > התקנון ותנאי השירות </Link></span>
         </label>       
          {errorcheck ? <div className="form_error_com col_form form_error">{errorcheck}</div> : null}
     
@@ -271,6 +289,19 @@ const Registrationpage = () => {
       </form>
 
     </div>
+    {/* popup terms conditions */}
+    <div className={`terms_conditions_note  ${openPopupId === "terms" ? "open" : ""}`}> 
+      <span className="close"  onClick={closePopup}><img src={closeimg} alt="" /></span>
+      <div className="inner">
+          <h2>terms conditions note</h2>
+          <div className="col">
+            <h3>What is Lorem Ipsum?</h3>
+            <p>Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book.</p>
+          </div>
+
+      </div>
+    </div>
+    </>
   );
 };
 
