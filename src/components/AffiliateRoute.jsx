@@ -1,14 +1,14 @@
-import React from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { getGatewayBase } from '../utils/apiBase';
 
-const ProtectedRoute = ({ children }) => {
+const AffiliateRoute = ({ children }) => {
   const location = useLocation();
-  const apiBase = React.useMemo(() => getGatewayBase(), []);
-  const token = localStorage.getItem('auth_token');
-  const [status, setStatus] = React.useState(() => (token ? 'checking' : 'unauthenticated'));
+  const apiBase = useMemo(() => getGatewayBase(), []);
+  const token = localStorage.getItem('affiliate_token');
+  const [status, setStatus] = useState(() => (token ? 'checking' : 'unauthenticated'));
 
-  React.useEffect(() => {
+  useEffect(() => {
     let isMounted = true;
     if (!token) {
       setStatus('unauthenticated');
@@ -19,7 +19,7 @@ const ProtectedRoute = ({ children }) => {
 
     const verifySession = async () => {
       try {
-        const response = await fetch(`${apiBase}/auth/v1/is-authenticated`, {
+        const response = await fetch(`${apiBase}/auth/v1/affiliate-is-authenticated`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -29,8 +29,8 @@ const ProtectedRoute = ({ children }) => {
         if (!isMounted) return;
 
         if (response.status === 401 || response.status === 403) {
-          localStorage.removeItem('auth_token');
-          localStorage.removeItem('user_data');
+          localStorage.removeItem('affiliate_token');
+          localStorage.removeItem('affiliate_data');
           setStatus('unauthenticated');
           return;
         }
@@ -38,7 +38,7 @@ const ProtectedRoute = ({ children }) => {
         setStatus('authenticated');
       } catch {
         if (!isMounted) return;
-        // On network errors, keep the user on the page.
+        // On network errors, keep the affiliate on the page.
         setStatus('authenticated');
       }
     };
@@ -56,11 +56,10 @@ const ProtectedRoute = ({ children }) => {
   }
 
   if (status !== 'authenticated') {
-    // Redirect to login page, saving the attempted location
-    return <Navigate to="/login" state={{ from: location }} replace />;
+    return <Navigate to="/affiliate-login" state={{ from: location }} replace />;
   }
 
   return children;
 };
 
-export default ProtectedRoute;
+export default AffiliateRoute;

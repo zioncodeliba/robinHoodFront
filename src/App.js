@@ -5,12 +5,14 @@ import './App.css';
 import leavesleft from './assets/images/leaves_left.png';
 import leavesright from './assets/images/leaves_right.png';
 
-import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, useLocation, useNavigate } from 'react-router-dom';
+import { clearAffiliateCode, setAffiliateCode } from './utils/affiliate';
 
 // Component
 import Header from './components/Header';
 import StickyMobileMenu from './components/StickyMobileMenu';
 import ProtectedRoute from './components/ProtectedRoute';
+import AffiliateRoute from './components/AffiliateRoute';
 
 //pages
 import Registration from './pages/Registrationpage';
@@ -44,6 +46,7 @@ import AIChatpageStatic from './pages/AIChatpageStatic';
 
 function AppWrapper() {
   const location = useLocation();
+  const navigate = useNavigate();
 
   // If backend redirects back with token in querystring (Apple OAuth, etc.)
   useEffect(() => {
@@ -62,6 +65,9 @@ function AppWrapper() {
         const parsed = JSON.parse(decoded);
         localStorage.setItem('user_data', JSON.stringify(parsed));
       }
+      if (token || customerRaw) {
+        clearAffiliateCode();
+      }
 
       // Remove query params from URL (avoid leaking tokens via history/share)
       window.history.replaceState({}, document.title, location.pathname);
@@ -71,12 +77,33 @@ function AppWrapper() {
     }
   }, [location.pathname, location.search]);
 
+  useEffect(() => {
+    const match = location.pathname.match(/^\/r\/([^/]+)\/?$/i);
+    if (!match) return;
+    const code = decodeURIComponent(match[1] || '').trim().toUpperCase();
+    if (code) {
+      setAffiliateCode(code);
+    }
+    navigate('/', { replace: true });
+  }, [location.pathname, navigate]);
+
   // const hideHeader = location.pathname === "/appointment";
   // const hidepan = ["/simulatorpage"];
   // const hidepans = hidepan.includes(location.pathname);
 
   // const appointmentBg = ["/appointment"].includes(location.pathname);
   const path = location.pathname.toLowerCase();
+
+  useEffect(() => {
+    const affiliateToken = localStorage.getItem('affiliate_token');
+    if (!affiliateToken) return;
+    const allowedAffiliatePaths = [
+      '/brokerhomepage',
+    ];
+    if (!allowedAffiliatePaths.includes(path)) {
+      navigate('/brokerhomepage', { replace: true });
+    }
+  }, [path, navigate]);
 
   // const hideHeader = path === ["/appointment","/explanation-screen"];
   const hideHeaderPaths = [
@@ -140,7 +167,7 @@ function AppWrapper() {
           <Route path="/suggestionspage" element={<ProtectedRoute><Suggestionspage /></ProtectedRoute>} />
           <Route path="/homebeforeapproval" element={<ProtectedRoute><HomeBeforeApproval /></ProtectedRoute>} />
           <Route path="/homebeforeapproval2" element={<ProtectedRoute><HomeBeforeApproval2 /></ProtectedRoute>} />
-          <Route path="/brokerhomepage" element={<ProtectedRoute><BrokerHomepage /></ProtectedRoute>} />
+          <Route path="/brokerhomepage" element={<AffiliateRoute><BrokerHomepage /></AffiliateRoute>} />
           <Route path="/explanation-screen" element={<ExplanationScreen1 />} />
           <Route path="/explanation-screen2" element={<ExplanationScreen2 />} />
           <Route path="/aichat" element={<ProtectedRoute><AIChatpage /></ProtectedRoute>} />

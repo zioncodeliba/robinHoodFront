@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import useGoogleAuth from '../utils/useGoogleAuth';
 import { getGatewayApiBase } from '../utils/apiBase';
+import { clearAffiliateCode, getAffiliateCode } from '../utils/affiliate';
 
 import logoup from '../assets/images/logoup.svg';
 import appleIcon from '../assets/images/apple_i.svg';
@@ -47,6 +48,7 @@ const Registrationpage = () => {
 
     setIsSubmitting(true);
     try {
+      const affiliateCode = getAffiliateCode();
       const res = await fetch(`${getGatewayApiBase()}/register`, {
         method: 'POST',
         headers: {
@@ -57,6 +59,7 @@ const Registrationpage = () => {
           first_name: firstName.trim(),
           email: email.trim(),
           phone: phone.trim(),
+          ...(affiliateCode ? { affiliate_code: affiliateCode } : {}),
         }),
       });
 
@@ -99,6 +102,7 @@ const Registrationpage = () => {
     setSuccess('');
 
     try {
+      const affiliateCode = getAffiliateCode();
       const response = await fetch(`${getGatewayApiBase()}/google-login`, {
         method: 'POST',
         headers: {
@@ -107,6 +111,8 @@ const Registrationpage = () => {
         },
         body: JSON.stringify({
           credential: credential,
+          ...(affiliateCode ? { affiliate_code: affiliateCode } : {}),
+          intent: 'register',
         }),
       });
 
@@ -133,6 +139,9 @@ const Registrationpage = () => {
             localStorage.setItem('user_data', JSON.stringify(data.data.customer));
           }
         }
+        localStorage.removeItem('affiliate_token');
+        localStorage.removeItem('affiliate_data');
+        clearAffiliateCode();
 
         setSuccess(data?.message || 'נרשמת בהצלחה עם גוגל');
 
@@ -173,7 +182,9 @@ const Registrationpage = () => {
 
     // Backend should start Apple OAuth and then redirect back with token in query (?token=...)
     const returnTo = window.location.origin + '/';
-    window.location.href = `${getGatewayApiBase()}/apple-login?redirect_uri=${encodeURIComponent(returnTo)}`;
+    const affiliateCode = getAffiliateCode();
+    const affiliateParam = affiliateCode ? `&affiliate_code=${encodeURIComponent(affiliateCode)}` : '';
+    window.location.href = `${getGatewayApiBase()}/apple-login?redirect_uri=${encodeURIComponent(returnTo)}${affiliateParam}`;
   };
 
   return (

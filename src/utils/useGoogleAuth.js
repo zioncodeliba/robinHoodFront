@@ -38,7 +38,53 @@ const useGoogleAuth = () => {
       return;
     }
 
+    const getHiddenButtonContainer = () => {
+      let buttonContainer = document.getElementById('google-signin-hidden');
+      if (!buttonContainer) {
+        buttonContainer = document.createElement('div');
+        buttonContainer.id = 'google-signin-hidden';
+        document.body.appendChild(buttonContainer);
+      }
+      buttonContainer.style.position = 'fixed';
+      buttonContainer.style.left = '0';
+      buttonContainer.style.bottom = '0';
+      buttonContainer.style.width = '1px';
+      buttonContainer.style.height = '1px';
+      buttonContainer.style.overflow = 'hidden';
+      buttonContainer.style.opacity = '0';
+      buttonContainer.style.pointerEvents = 'none';
+      buttonContainer.style.zIndex = '-1';
+      return buttonContainer;
+    };
+
+    const openPopup = () => {
+      const buttonContainer = getHiddenButtonContainer();
+
+      // Render Google button
+      window.google.accounts.id.renderButton(buttonContainer, {
+        theme: 'outline',
+        size: 'large',
+        text: 'signin_with',
+        locale: 'he',
+      });
+
+      // Try to click the button
+      setTimeout(() => {
+        const googleButton = buttonContainer.querySelector('div[role="button"]');
+        if (googleButton) {
+          googleButton.click();
+        } else {
+          // If button click doesn't work, show error
+          if (buttonContainer.parentNode) {
+            buttonContainer.parentNode.removeChild(buttonContainer);
+          }
+          if (onError) onError('Unable to initiate Google sign-in. Please try again.');
+        }
+      }, 200);
+    };
+
     try {
+      window.google.accounts.id.cancel?.();
       // Initialize Google Identity Services with callback
       window.google.accounts.id.initialize({
         client_id: clientId,
@@ -50,6 +96,12 @@ const useGoogleAuth = () => {
           }
         },
       });
+
+      const isMobile = window.matchMedia('(max-width: 768px)').matches;
+      if (isMobile) {
+        openPopup();
+        return;
+      }
 
       // Use One Tap prompt first
       window.google.accounts.id.prompt((notification) => {
@@ -72,33 +124,7 @@ const useGoogleAuth = () => {
         // If One Tap is not displayed or was dismissed, use popup flow
         if (notification.isNotDisplayed() || notification.isSkippedMoment() || notification.isDismissedMoment()) {
           logPromptState('fallback_to_popup');
-          // Create a hidden button and trigger it
-          const buttonContainer = document.createElement('div');
-          buttonContainer.id = 'google-signin-hidden';
-          buttonContainer.style.position = 'absolute';
-          buttonContainer.style.left = '-9999px';
-          buttonContainer.style.top = '-9999px';
-          document.body.appendChild(buttonContainer);
-
-          // Render Google button
-          window.google.accounts.id.renderButton(buttonContainer, {
-            theme: 'outline',
-            size: 'large',
-            text: 'signin_with',
-            locale: 'he',
-          });
-
-          // Try to click the button
-          setTimeout(() => {
-            const googleButton = buttonContainer.querySelector('div[role="button"]');
-            if (googleButton) {
-              googleButton.click();
-            } else {
-              // If button click doesn't work, show error
-              document.body.removeChild(buttonContainer);
-              if (onError) onError('Unable to initiate Google sign-in. Please try again.');
-            }
-          }, 200);
+          openPopup();
         } else {
           logPromptState('one_tap_displayed');
         }

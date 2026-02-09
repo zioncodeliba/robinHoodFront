@@ -1,6 +1,7 @@
 import React, { useRef, useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { getGatewayApiBase } from "../utils/apiBase";
+import { clearAffiliateCode, getAffiliateCode } from "../utils/affiliate";
 
 import nextI from '../assets/images/next_icon.svg';
 import brand from '../assets/images/logoup_m.svg';
@@ -27,6 +28,27 @@ const OtpVerify = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isResending, setIsResending] = useState(false);
   const canResend = timer <= 0;
+
+  const getOtpErrorMessage = (response, payload, fallback) => {
+    const detail = payload?.detail || payload?.message || (typeof payload === 'string' ? payload : '');
+    if (response?.status === 404 || detail === 'Customer not found' || detail === 'Affiliate not found' || detail === 'User not found') {
+      return 'לא נמצא משתמש עם המספר הזה. יש לבצע הרשמה לפני התחברות עם OTP.';
+    }
+    if (detail === 'OTP expired') {
+      return 'הקוד פג תוקף. שלח שוב.';
+    }
+    if (detail === 'OTP invalid') {
+      return 'קוד שגוי. נסה שוב.';
+    }
+    if (detail === 'OTP not found') {
+      return 'קוד לא נמצא. שלח שוב.';
+    }
+    if (detail === 'Phone is required') {
+      return 'נא להזין מספר טלפון תקין.';
+    }
+    if (detail) return detail;
+    return fallback;
+  };
 
   // Get phone number from location state or localStorage
   useEffect(() => {
@@ -166,7 +188,7 @@ const OtpVerify = () => {
     setIsResending(true);
 
     try {
-      const response = await fetch(`${getGatewayApiBase()}/generate-otp`, {
+      const response = await fetch(`${getGatewayApiBase()}/unified-generate-otp`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -186,9 +208,7 @@ const OtpVerify = () => {
 
       if (!response.ok) {
         const errorMessage =
-          data?.message ||
-          (typeof data === 'string' ? data : null) ||
-          'שגיאה בשליחת הקוד. נסה שוב.';
+          getOtpErrorMessage(response, data, 'שגיאה בשליחת הקוד. נסה שוב.');
         throw new Error(errorMessage);
       }
 
@@ -227,7 +247,8 @@ const OtpVerify = () => {
     setIsSubmitting(true);
 
     try {
-      const response = await fetch(`${getGatewayApiBase()}/verify-otp`, {
+      const affiliateCode = getAffiliateCode();
+      const response = await fetch(`${getGatewayApiBase()}/unified-verify-otp`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -236,6 +257,7 @@ const OtpVerify = () => {
         body: JSON.stringify({
           phone: phoneNumber,
           otp: otpToVerify,
+          ...(affiliateCode ? { affiliate_code: affiliateCode } : {}),
         }),
       });
 
@@ -248,9 +270,7 @@ const OtpVerify = () => {
 
       if (!response.ok) {
         const errorMessage =
-          data?.message ||
-          (typeof data === 'string' ? data : null) ||
-          'קוד שגוי. נסה שוב.';
+          getOtpErrorMessage(response, data, 'קוד שגוי. נסה שוב.');
         throw new Error(errorMessage);
       }
 
@@ -258,14 +278,33 @@ const OtpVerify = () => {
 
       // Navigate on successful verification
       if (data?.success || response.ok) {
-
-        // Store auth token if provided
-        if (data.data?.token) {
-          localStorage.setItem('auth_token', data.data.token);
-          localStorage.setItem('user_data', JSON.stringify(data.data.customer));
+        const role = data?.data?.role;
+        const token = data?.data?.token;
+        if (role === 'affiliate' || data?.data?.affiliate) {
+          if (token) {
+            localStorage.removeItem('auth_token');
+            localStorage.removeItem('user_data');
+            localStorage.setItem('affiliate_token', token);
+            if (data.data?.affiliate) {
+              localStorage.setItem('affiliate_data', JSON.stringify(data.data.affiliate));
+            }
+          }
+          clearAffiliateCode();
+          localStorage.removeItem('otp_phone');
+          setTimeout(() => {
+            navigate('/brokerhomepage');
+          }, 1000);
+          return;
         }
 
-        // Clear OTP phone from localStorage
+        if (token) {
+          localStorage.setItem('auth_token', token);
+          localStorage.setItem('user_data', JSON.stringify(data.data?.customer));
+        }
+        localStorage.removeItem('affiliate_token');
+        localStorage.removeItem('affiliate_data');
+        clearAffiliateCode();
+
         localStorage.removeItem('otp_phone');
 
         setTimeout(() => {

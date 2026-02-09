@@ -1,6 +1,6 @@
 // Homepage.jsx
 import React, { useEffect, useMemo, useState } from "react";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import '../components/beforeapprovalcomponents/HomeBeforeApproval.css'
 
 import nextprevarrow from "../assets/images/np_arrow.svg";
@@ -38,6 +38,7 @@ const normalizeAllowedBankIds = (ids) => {
 
 const HomeBeforeApproval = () => {
     const location = useLocation();
+    const navigate = useNavigate();
     const apiBase = useMemo(() => getGatewayBase(), []);
     const [allowedBankIds, setAllowedBankIds] = useState(DEFAULT_BANK_ORDER);
     const [approvedBankIds, setApprovedBankIds] = useState([]);
@@ -53,6 +54,13 @@ const HomeBeforeApproval = () => {
         declined: "הבקשה נדחתה",
         in_review: "בבדיקה"
     };
+    const handleAuthFailure = () => {
+        localStorage.removeItem("auth_token");
+        localStorage.removeItem("user_data");
+        localStorage.removeItem("mortgage_cycle_result");
+        localStorage.removeItem("new_mortgage_submitted");
+        navigate("/login", { replace: true });
+    };
 
     useEffect(() => {
         const token = localStorage.getItem("auth_token");
@@ -66,6 +74,10 @@ const HomeBeforeApproval = () => {
                         Authorization: `Bearer ${token}`
                     }
                 });
+                if (response.status === 401 || response.status === 403) {
+                    handleAuthFailure();
+                    return;
+                }
                 if (!response.ok) {
                     throw new Error("Failed to load bank visibility");
                 }
@@ -96,6 +108,10 @@ const HomeBeforeApproval = () => {
                         Authorization: `Bearer ${token}`
                     }
                 });
+                if (response.status === 401 || response.status === 403) {
+                    handleAuthFailure();
+                    return;
+                }
                 if (!response.ok) {
                     throw new Error("Failed to load bank responses");
                 }

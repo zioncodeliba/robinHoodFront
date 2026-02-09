@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import useGoogleAuth from '../utils/useGoogleAuth';
 import { getGatewayApiBase } from '../utils/apiBase';
+import { clearAffiliateCode, getAffiliateCode } from '../utils/affiliate';
 
 import logoup from '../assets/images/logoup.svg';
 import appleIcon from '../assets/images/apple_i.svg';
@@ -13,16 +14,53 @@ import loginman from '../assets/images/login_img.png';
 
 const Loginpage = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { isLoaded, handleGoogleLogin } = useGoogleAuth();
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isAppleLoading, setIsAppleLoading] = useState(false);
+
+  const extractErrorMessage = (payload, fallback) => {
+    if (typeof payload === 'string' && payload.trim()) {
+      try {
+        const parsed = JSON.parse(payload);
+        if (parsed?.detail) return parsed.detail;
+      } catch {
+        // ignore parse
+      }
+      return payload;
+    }
+    if (payload && typeof payload === 'object') {
+      const detail = payload.detail || payload.message;
+      if (typeof detail === 'string' && detail.trim()) {
+        try {
+          const parsed = JSON.parse(detail);
+          if (parsed?.detail) return parsed.detail;
+        } catch {
+          // ignore parse
+        }
+        return detail;
+      }
+    }
+    return fallback;
+  };
+
+  useEffect(() => {
+    const stateError = location.state?.error;
+    const queryError = new URLSearchParams(location.search || '').get('error');
+    if (stateError) {
+      setError(stateError);
+    } else if (queryError) {
+      setError(decodeURIComponent(queryError));
+    }
+  }, [location.search, location.state]);
 
   const handleGoogleAuth = async (credential) => {
     setIsLoading(true);
     setError('');
 
     try {
+      const affiliateCode = getAffiliateCode();
       const response = await fetch(`${getGatewayApiBase()}/google-login`, {
         method: 'POST',
         headers: {
@@ -31,6 +69,8 @@ const Loginpage = () => {
         },
         body: JSON.stringify({
           credential: credential,
+          ...(affiliateCode ? { affiliate_code: affiliateCode } : {}),
+          intent: 'login',
         }),
       });
 
@@ -42,27 +82,49 @@ const Loginpage = () => {
       }
 
       if (!response.ok) {
-        const errorMessage =
-          data?.message ||
-          (typeof data === 'string' ? data : null) ||
-          'שגיאה בהתחברות עם גוגל. נסה שוב.';
+        const errorMessage = extractErrorMessage(
+          data,
+          'שגיאה בהתחברות עם גוגל. נסה שוב.'
+        );
         throw new Error(errorMessage);
       }
 
       // Store auth token and user data on success
       if (data?.success || response.ok) {
+        if (data.data?.affiliate) {
+          if (data.data?.token) {
+            localStorage.removeItem('auth_token');
+            localStorage.removeItem('user_data');
+            localStorage.setItem('affiliate_token', data.data.token);
+            localStorage.setItem('affiliate_data', JSON.stringify(data.data.affiliate));
+          }
+          clearAffiliateCode();
+          navigate('/brokerhomepage');
+          return;
+        }
+
         if (data.data?.token) {
           localStorage.setItem('auth_token', data.data.token);
           if (data.data.customer) {
             localStorage.setItem('user_data', JSON.stringify(data.data.customer));
           }
         }
+        localStorage.removeItem('affiliate_token');
+        localStorage.removeItem('affiliate_data');
+        clearAffiliateCode();
 
         // Navigate to home page
         navigate('/');
       }
     } catch (err) {
-      setError(err?.message || 'שגיאה בהתחברות עם גוגל. נסה שוב.');
+      const message = err?.message || 'שגיאה בהתחברות עם גוגל. נסה שוב.';
+      if (window.google?.accounts?.id?.cancel) {
+        window.google.accounts.id.cancel();
+      }
+      setError(message);
+      if (location.pathname !== '/login') {
+        navigate('/login', { replace: true, state: { error: message } });
+      }
     } finally {
       setIsLoading(false);
     }
@@ -92,7 +154,9 @@ const Loginpage = () => {
 
     // Backend should start Apple OAuth and then redirect back with token in query (?token=...)
     const returnTo = window.location.origin + '/';
-    window.location.href = `${getGatewayApiBase()}/apple-login?redirect_uri=${encodeURIComponent(returnTo)}`;
+    const affiliateCode = getAffiliateCode();
+    const affiliateParam = affiliateCode ? `&affiliate_code=${encodeURIComponent(affiliateCode)}` : '';
+    window.location.href = `${getGatewayApiBase()}/apple-login?redirect_uri=${encodeURIComponent(returnTo)}${affiliateParam}`;
   };
 
   return (

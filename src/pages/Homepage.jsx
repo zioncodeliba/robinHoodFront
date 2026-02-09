@@ -22,11 +22,19 @@ const Homepage = () => {
   const apiBase = useMemo(() => getGatewayBase(), []);
   const [checkingResults, setCheckingResults] = useState(true);
 
+  const handleAuthFailure = () => {
+    localStorage.removeItem("auth_token");
+    localStorage.removeItem("user_data");
+    localStorage.removeItem("mortgage_cycle_result");
+    localStorage.removeItem("new_mortgage_submitted");
+    navigate("/login", { replace: true });
+  };
+
   const updateMortgageType = async (mortgageType) => {
     const token = localStorage.getItem("auth_token");
     if (!token) return;
     try {
-      await fetch(`${apiBase}/auth/v1/customers/me`, {
+      const response = await fetch(`${apiBase}/auth/v1/customers/me`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
@@ -34,6 +42,9 @@ const Homepage = () => {
         },
         body: JSON.stringify({ mortgage_type: mortgageType }),
       });
+      if (response.status === 401 || response.status === 403) {
+        handleAuthFailure();
+      }
     } catch {
       // Silently ignore; selection isn't critical for navigation.
     }
@@ -100,6 +111,10 @@ const Homepage = () => {
             Authorization: `Bearer ${token}`,
           },
         });
+        if (approvalResponse.status === 401 || approvalResponse.status === 403) {
+          handleAuthFailure();
+          return;
+        }
         if (approvalResponse.ok) {
           const approvalPayload = await approvalResponse.json().catch(() => null);
           if (hasSignatureFile(approvalPayload)) {
@@ -114,6 +129,10 @@ const Homepage = () => {
             Authorization: `Bearer ${token}`,
           },
         });
+        if (response.status === 401 || response.status === 403) {
+          handleAuthFailure();
+          return;
+        }
         if (!response.ok) {
           throw new Error("Failed to load mortgage cycle results");
         }

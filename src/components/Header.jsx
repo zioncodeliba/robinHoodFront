@@ -108,6 +108,7 @@ const Header = () => {
 
   const handleLogout = async () => {
     const token = localStorage.getItem("auth_token");
+    const affiliateToken = localStorage.getItem("affiliate_token");
     const apiBase = getGatewayApiBase();
     try{
       if (token && apiBase) {
@@ -126,8 +127,14 @@ const Header = () => {
     }
     localStorage.removeItem("auth_token");
     localStorage.removeItem("user_data");
+    localStorage.removeItem("affiliate_token");
+    localStorage.removeItem("affiliate_data");
     localStorage.removeItem("mortgage_cycle_result");
     localStorage.removeItem("new_mortgage_submitted");
+    if (affiliateToken && !token) {
+      navigate("/affiliate-login");
+      return;
+    }
     navigate("/login");
   }
 

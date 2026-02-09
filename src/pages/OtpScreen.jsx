@@ -13,6 +13,15 @@ const OtpScreen = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [success, setSuccess] = useState("");
 
+  const getOtpErrorMessage = (response, payload, fallback) => {
+    const detail = payload?.detail || payload?.message || (typeof payload === 'string' ? payload : '');
+    if (response?.status === 404 || detail === 'Customer not found' || detail === 'Affiliate not found' || detail === 'User not found') {
+      return 'לא נמצא משתמש עם המספר הזה.';
+    }
+    if (detail) return detail;
+    return fallback;
+  };
+
   const handleSubmit = async () => {
     //  min 9 and max 10 digits and only numbers
     if (phone.trim().length < 9 || phone.trim().length > 10 || !/^\d+$/.test(phone.trim())) {
@@ -25,7 +34,7 @@ const OtpScreen = () => {
     setIsSubmitting(true);
 
     try {
-      const response = await fetch(`${getGatewayApiBase()}/generate-otp`, {
+      const response = await fetch(`${getGatewayApiBase()}/unified-generate-otp`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -45,9 +54,7 @@ const OtpScreen = () => {
 
       if (!response.ok) {
         const errorMessage =
-          data?.message ||
-          (typeof data === 'string' ? data : null) ||
-          'שגיאה בשליחת הקוד. נסה שוב.';
+          getOtpErrorMessage(response, data, 'שגיאה בשליחת הקוד. נסה שוב.');
         throw new Error(errorMessage);
       }
 
