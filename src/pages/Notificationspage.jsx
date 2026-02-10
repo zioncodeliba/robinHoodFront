@@ -254,8 +254,20 @@ const Notificationspage = () => {
             <a href="/" className="btn view_certificates">לחץ כאן לצפיה באישורים</a>
           </div>
         ) : null}
-        <img src={notificationsman} className="notificationsman desktop_img" alt="" />
-        <img src={robinman} className="notificationsman mobile_img" alt="" />
+       {notifications.length > 0 ? (
+            <>
+              <img
+                src={notificationsman}
+                className="notificationsman desktop_img"
+                alt=""
+              />
+              <img
+                src={robinman}
+                className="notificationsman mobile_img"
+                alt=""
+              />
+            </>
+          ) : null}
       </div>
 
       {activeNotification && (

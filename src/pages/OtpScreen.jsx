@@ -21,7 +21,6 @@ const OtpScreen = () => {
     if (detail) return detail;
     return fallback;
   };
-
   const handleSubmit = async () => {
     //  min 9 and max 10 digits and only numbers
     if (phone.trim().length < 9 || phone.trim().length > 10 || !/^\d+$/.test(phone.trim())) {

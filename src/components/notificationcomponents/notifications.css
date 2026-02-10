@@ -71,7 +71,7 @@
     .notifications_page .approval_note { width: 100%; padding: 18px 23px 55px 39px; margin-top: 0;}
     .notifications_page .approval_note p { font-size: 14px; line-height: 20px; text-align: right; max-width: 220px; }
     .notifications_page .approval_note .btn { left: auto; right: 23px; bottom: -21px; font-size: 14px; line-height: 19px;}
-    .notifications_page .notificationsman { left: -15px; bottom: 0; max-width: 160px; }
+    .notifications_page .notificationsman {     bottom: 40px; left: -15px; max-width: 260px;}
     .notifications_page .inner { max-width: calc(100% - 60px); padding-bottom: 250px; min-height: calc(100vh - 250px); }
 
 }

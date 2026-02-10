@@ -122,6 +122,10 @@
   .ai_chat_box .colin .message_box{ max-width: 100% !important; }
   .ai_chat_box .boat_chat.colin .message_box { margin: 0 auto; margin-left: 0; margin-right: 0;}
   .ai_chat_box .order_benefit { max-width: 325px; margin: 44px auto 0; }
+  .ai_chat_box .range_box .minmax_text span.text-left { right: 0; }
+
+
+
 }
 
 @media (max-width:370px) {
