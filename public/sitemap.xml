@@ -2,75 +2,78 @@
 <?xml-stylesheet type="text/xsl" href="/sitemap.xsl"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>http://localhost:3001/</loc>
+    <loc>http://localhost:3001/preview/homepage</loc>
   </url>
   <url>
-    <loc>http://localhost:3001/login</loc>
+    <loc>http://localhost:3001/preview/explanationscreen1</loc>
   </url>
   <url>
-    <loc>http://localhost:3001/registration</loc>
+    <loc>http://localhost:3001/preview/explanationscreen2</loc>
   </url>
   <url>
-    <loc>http://localhost:3001/loginpage</loc>
+    <loc>http://localhost:3001/preview/loginpage</loc>
   </url>
   <url>
-    <loc>http://localhost:3001/mortgagepage</loc>
+    <loc>http://localhost:3001/preview/registrationpage</loc>
   </url>
   <url>
-    <loc>http://localhost:3001/notifications</loc>
+    <loc>http://localhost:3001/preview/otpscreen</loc>
   </url>
   <url>
-    <loc>http://localhost:3001/settings</loc>
+    <loc>http://localhost:3001/preview/otpverify</loc>
   </url>
   <url>
-    <loc>http://localhost:3001/treatmentstatus</loc>
+    <loc>http://localhost:3001/preview/otpverify-copy</loc>
   </url>
   <url>
-    <loc>http://localhost:3001/mortgagecyclecheck</loc>
+    <loc>http://localhost:3001/preview/brokerhomepage</loc>
   </url>
   <url>
-    <loc>http://localhost:3001/mortgagecyclepage</loc>
+    <loc>http://localhost:3001/preview/mortgagepage</loc>
   </url>
   <url>
-    <loc>http://localhost:3001/noofferfound</loc>
+    <loc>http://localhost:3001/preview/mortgagecyclecheck</loc>
   </url>
   <url>
-    <loc>http://localhost:3001/schedulemeetings</loc>
+    <loc>http://localhost:3001/preview/mortgagecyclepage</loc>
   </url>
   <url>
-    <loc>http://localhost:3001/appointment</loc>
+    <loc>http://localhost:3001/preview/noofferfoundpage</loc>
   </url>
   <url>
-    <loc>http://localhost:3001/viewoffer</loc>
+    <loc>http://localhost:3001/preview/schedulemeetingspage</loc>
   </url>
   <url>
-    <loc>http://localhost:3001/simulatorpage</loc>
+    <loc>http://localhost:3001/preview/appointmentconfirmationpage</loc>
   </url>
   <url>
-    <loc>http://localhost:3001/suggestionspage</loc>
+    <loc>http://localhost:3001/preview/viewofferspage</loc>
   </url>
   <url>
-    <loc>http://localhost:3001/homebeforeapproval</loc>
+    <loc>http://localhost:3001/preview/simulatorpage</loc>
   </url>
   <url>
-    <loc>http://localhost:3001/homebeforeapproval2</loc>
+    <loc>http://localhost:3001/preview/suggestionspage</loc>
   </url>
   <url>
-    <loc>http://localhost:3001/brokerhomepage</loc>
+    <loc>http://localhost:3001/preview/homebeforeapproval</loc>
   </url>
   <url>
-    <loc>http://localhost:3001/explanation-screen</loc>
+    <loc>http://localhost:3001/preview/homebeforeapproval2</loc>
   </url>
   <url>
-    <loc>http://localhost:3001/explanation-screen2</loc>
+    <loc>http://localhost:3001/preview/notificationspage</loc>
   </url>
   <url>
-    <loc>http://localhost:3001/otpscreen</loc>
+    <loc>http://localhost:3001/preview/settingspage</loc>
   </url>
   <url>
-    <loc>http://localhost:3001/otpverify</loc>
+    <loc>http://localhost:3001/preview/treatmentstatuspage</loc>
   </url>
   <url>
-    <loc>http://localhost:3001/aichat</loc>
+    <loc>http://localhost:3001/preview/aichatpage</loc>
+  </url>
+  <url>
+    <loc>http://localhost:3001/preview/aichatpagestatic</loc>
   </url>
 </urlset>

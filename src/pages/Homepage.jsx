@@ -21,6 +21,26 @@ const Homepage = () => {
   const navigate = useNavigate();
   const apiBase = useMemo(() => getGatewayBase(), []);
   const [checkingResults, setCheckingResults] = useState(true);
+  const isAuthenticated = Boolean(
+    localStorage.getItem("auth_token") || localStorage.getItem("affiliate_token")
+  );
+  const isDesktop = window.innerWidth >= 1024;
+
+  const openLoginPopup = () => {
+    window.dispatchEvent(new CustomEvent('auth:open-login'));
+  };
+
+  const handleProtectedClick = (event, mortgageType) => {
+    if (!isAuthenticated) {
+      if (isDesktop) {
+        event.preventDefault();
+        event.stopPropagation();
+        openLoginPopup();
+      }
+      return;
+    }
+    void updateMortgageType(mortgageType);
+  };
 
   const handleAuthFailure = () => {
     localStorage.removeItem("auth_token");
@@ -177,13 +197,19 @@ const Homepage = () => {
         <h3>מה נרצה לעשות היום?</h3>
         <ul className="d_flex">
           <li>
-            <Link to="/aichat" onClick={() => void updateMortgageType("משכנתא חדשה")}>
+            <Link
+              to="/aichat"
+              onClick={(event) => handleProtectedClick(event, "משכנתא חדשה")}
+            >
               <img src={mortgageimg1} alt="" />
               <span>לקיחת <br /> משכנתא חדשה</span>
             </Link>
           </li>
           <li>
-            <Link to="/recycle-loan" onClick={() => void updateMortgageType("מחזור משכנתא")}>
+            <Link
+              to="/recycle-loan"
+              onClick={(event) => handleProtectedClick(event, "מחזור משכנתא")}
+            >
               <img src={mortgageimg2} alt="" />
               <span>בדיקת מחזור <br />משכנתא</span>
             </Link>

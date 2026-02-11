@@ -56,7 +56,7 @@ const AffiliateRoute = ({ children }) => {
   }
 
   if (status !== 'authenticated') {
-    return <Navigate to="/affiliate-login" state={{ from: location }} replace />;
+    return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
   return children;

@@ -40,9 +40,52 @@ import ExplanationScreen1 from './pages/ExplanationScreen1';
 import ExplanationScreen2 from './pages/ExplanationScreen2';
 import OtpScreen from './pages/OtpScreen';
 import OtpVerify from './pages/OtpVerify';
+import OtpVerifyCopy from './pages/OtpVerify copy';
 import AIChatpage from './pages/AIChatpage';
 import AIChatpageStatic from './pages/AIChatpageStatic';
 
+const PREVIEW_PREFIX = '/preview';
+
+const PREVIEW_ROUTES = [
+  { slug: 'homepage', element: <Homepage /> },
+  { slug: 'loginpage', element: <Loginpage /> },
+  { slug: 'registrationpage', element: <Registration /> },
+  { slug: 'otpscreen', element: <OtpScreen /> },
+  { slug: 'otpverify', element: <OtpVerify /> },
+  { slug: 'otpverify-copy', element: <OtpVerifyCopy /> },
+  { slug: 'explanationscreen1', element: <ExplanationScreen1 /> },
+  { slug: 'explanationscreen2', element: <ExplanationScreen2 /> },
+  { slug: 'mortgagepage', element: <MortgagePage /> },
+  { slug: 'mortgagecyclecheck', element: <MortgageCycleCheck /> },
+  { slug: 'mortgagecyclepage', element: <MortgageCyclepage /> },
+  { slug: 'noofferfoundpage', element: <NoofferFoundpage /> },
+  { slug: 'schedulemeetingspage', element: <ScheduleMeetingspage /> },
+  { slug: 'appointmentconfirmationpage', element: <AppointmentConfirmationpage /> },
+  { slug: 'viewofferspage', element: <ViewOfferspage /> },
+  { slug: 'simulatorpage', element: <Simulatorpage /> },
+  { slug: 'suggestionspage', element: <Suggestionspage /> },
+  { slug: 'homebeforeapproval', element: <HomeBeforeApproval /> },
+  { slug: 'homebeforeapproval2', element: <HomeBeforeApproval2 /> },
+  { slug: 'notificationspage', element: <Notificationspage /> },
+  { slug: 'settingspage', element: <Settingspage /> },
+  { slug: 'treatmentstatuspage', element: <TreatmentStatuspage /> },
+  { slug: 'brokerhomepage', element: <BrokerHomepage /> },
+  { slug: 'aichatpage', element: <AIChatpage /> },
+  { slug: 'aichatpagestatic', element: <AIChatpageStatic /> },
+];
+
+const PATH_ALIASES = {
+  '/loginpage': '/login',
+  '/registrationpage': '/registration',
+  '/otpscreen': '/login-with-otp',
+  '/otpverify': '/otp-verify',
+  '/otpverify-copy': '/otp-verify',
+  '/explanationscreen1': '/explanation-screen',
+  '/explanationscreen2': '/explanation-screen2',
+  '/appointmentconfirmationpage': '/appointment',
+  '/aichatpage': '/aichat',
+  '/aichatpagestatic': '/aichat-static',
+};
 
 function AppWrapper() {
   const location = useLocation();
@@ -92,7 +135,11 @@ function AppWrapper() {
   // const hidepans = hidepan.includes(location.pathname);
 
   // const appointmentBg = ["/appointment"].includes(location.pathname);
-  const path = location.pathname.toLowerCase();
+  const rawPath = location.pathname.toLowerCase();
+  const normalizedPath = rawPath.startsWith(`${PREVIEW_PREFIX}/`)
+    ? `/${rawPath.slice(`${PREVIEW_PREFIX}/`.length)}`
+    : rawPath;
+  const path = PATH_ALIASES[normalizedPath] || normalizedPath;
 
   useEffect(() => {
     const affiliateToken = localStorage.getItem('affiliate_token');
@@ -105,6 +152,9 @@ function AppWrapper() {
     }
   }, [path, navigate]);
 
+  // screen check
+  const isDesktop = window.innerWidth >= 1024;
+
   // const hideHeader = path === ["/appointment","/explanation-screen"];
   const hideHeaderPaths = [
     "/appointment",
@@ -114,11 +164,11 @@ function AppWrapper() {
     "/otp-verify",
     "/registration",
   ];
-  const isLandingPromo = path === "/" && !localStorage.getItem('auth_token');
+  const isLandingPromo = path === "/"
+    && !localStorage.getItem('auth_token')
+    && !localStorage.getItem('affiliate_token')
+    && !isDesktop;
   const hideHeader = hideHeaderPaths.includes(path) || isLandingPromo;
-
-  // screen check
-  const isDesktop = window.innerWidth >= 1024;
 
   const hidepan = ["/simulatorpage", "/brokerhomepage", "/login"].includes(path) || isLandingPromo;
   const appointmentBg = ["/appointment"].includes(path);
@@ -126,8 +176,11 @@ function AppWrapper() {
   const HidestickyMenu = ["/registration", "/login", "/login-with-otp", "/otp-verify", "/aichat", "/aichat-static"].includes(path) || isLandingPromo;
 
   const LandingRoute = () => {
-    const isAuthenticated = localStorage.getItem('auth_token');
-    return isAuthenticated ? <Homepage /> : <ExplanationScreen1 />;
+    const isAuthenticated = localStorage.getItem('auth_token') || localStorage.getItem('affiliate_token');
+    if (isAuthenticated) {
+      return <Homepage />;
+    }
+    return isDesktop ? <Homepage /> : <ExplanationScreen1 />;
   };
 
 
@@ -158,6 +211,7 @@ function AppWrapper() {
           <Route path="/notifications" element={<ProtectedRoute><Notificationspage /></ProtectedRoute>} />
           <Route path="/settings" element={<ProtectedRoute><Settingspage /></ProtectedRoute>} />
           <Route path="/treatmentstatus" element={<ProtectedRoute><TreatmentStatuspage /></ProtectedRoute>} />
+          <Route path="/treatmentstatuspage" element={<ProtectedRoute><TreatmentStatuspage /></ProtectedRoute>} />
           <Route path="/mortgagecyclepage" element={<ProtectedRoute><MortgageCyclepage /></ProtectedRoute>} />
           <Route path="/noofferfound" element={<ProtectedRoute><NoofferFoundpage /></ProtectedRoute>} />
           <Route path="/schedulemeetings" element={<ProtectedRoute><ScheduleMeetingspage /></ProtectedRoute>} />
@@ -172,6 +226,10 @@ function AppWrapper() {
           <Route path="/explanation-screen2" element={<ExplanationScreen2 />} />
           <Route path="/aichat" element={<ProtectedRoute><AIChatpage /></ProtectedRoute>} />
           <Route path="/aichat-static" element={<ProtectedRoute><AIChatpageStatic /></ProtectedRoute>} />
+
+          {PREVIEW_ROUTES.map(({ slug, element }) => (
+            <Route key={slug} path={`${PREVIEW_PREFIX}/${slug}`} element={element} />
+          ))}
         </Routes>
 
       </div>

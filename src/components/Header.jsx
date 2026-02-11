@@ -24,6 +24,10 @@ const Header = () => {
   const navigate = useNavigate();
   const isLoginPage = location.pathname.includes("login");
   const isbrokerpage = location.pathname.includes("brokerhomepage");
+  const authToken = localStorage.getItem("auth_token");
+  const affiliateToken = localStorage.getItem("affiliate_token");
+  const isAuthenticated = Boolean(authToken || affiliateToken);
+  const isDesktop = window.innerWidth >= 1024;
   const userData = JSON.parse(localStorage.getItem("user_data")) || {};
   // popup visibility state
   const [showRegistrationPopup, setShowRegistrationPopup] = useState(false);
@@ -40,6 +44,31 @@ const Header = () => {
     e.preventDefault();
     setShowloginPopup((prev) => !prev);
     setShowRegistrationPopup(false);
+  };
+  const openRegistrationPopup = () => {
+    setShowRegistrationPopup(true);
+    setShowloginPopup(false);
+  };
+  const openLoginPopup = () => {
+    setShowloginPopup(true);
+    setShowRegistrationPopup(false);
+  };
+
+  useEffect(() => {
+    const handler = () => openLoginPopup();
+    window.addEventListener('auth:open-login', handler);
+    return () => {
+      window.removeEventListener('auth:open-login', handler);
+    };
+  }, []);
+
+  const handleDesktopNavClick = (event) => {
+    if (!isDesktop || isAuthenticated) {
+      return;
+    }
+    event.preventDefault();
+    event.stopPropagation();
+    openRegistrationPopup();
   };
 
 // headre scroll fixed
@@ -131,11 +160,7 @@ const Header = () => {
     localStorage.removeItem("affiliate_data");
     localStorage.removeItem("mortgage_cycle_result");
     localStorage.removeItem("new_mortgage_submitted");
-    if (affiliateToken && !token) {
-      navigate("/affiliate-login");
-      return;
-    }
-    navigate("/login");
+    window.location.assign("/");
   }
 
   return (
@@ -147,36 +172,33 @@ const Header = () => {
         {/* for desktop menu  */}
           <ul className='d_flex d_flex_ac'>
             {/* home */}
-            <li><Link to="/">דף הבית</Link></li>
+            <li><Link to="/" onClick={handleDesktopNavClick}>דף הבית</Link></li>
             {(!isLoginPage && !isbrokerpage) ?(
               <>
-              {/* My suggestions */}
-              <li><Link to="/suggestionspage">ההצעות שלי</Link></li>
-              {/* my files */}
-              <li><Link to="/recycle-loan">הקבצים שלי </Link></li>
-              {/* notifications */}
               <li>
-                <Link to="/notifications" className="nav_notification_link">
-                  ההתראות שלי
+                <Link to="/notifications" onClick={handleDesktopNavClick}>
+                ההתראות שלי
                   {unreadCount > 0 ? (
                     <span className="notification_badge">{badgeText}</span>
                   ) : null}
                 </Link>
               </li>
-              {/* Mortgage monitoring */}
-              <li><Link to="/treatmentstatus"> ניטור משכנתא</Link></li>
               {/* simulation */}
-              <li><Link to="/simulatorpage">סימולציה</Link></li>
+              <li><Link to="/simulatorpage" onClick={handleDesktopNavClick}>סימולציה</Link></li>
+              {/* Mortgage monitoring */}
+              <li><Link to="/treatmentstatuspage" onClick={handleDesktopNavClick}> ניטור משכנתא</Link></li>
+              {/* My suggestions */}
+              <li><Link to="/suggestionspage" onClick={handleDesktopNavClick}>ההצעות שלי</Link></li>
               </>
             ):(
               <>
               {/* Settings  */}
-              <li><Link to="/settings">הגדרות</Link></li>
+              <li><Link to="/settings" onClick={handleDesktopNavClick}>הגדרות</Link></li>
               {/* My suggestions */}
-              <li><Link to="/suggestionspage">ההצעות שלי</Link></li>
+              <li><Link to="/suggestionspage" onClick={handleDesktopNavClick}>ההצעות שלי</Link></li>
               {/* notifications */}
               <li>
-                <Link to="/notifications" className="nav_notification_link">
+                <Link to="/notifications" className="nav_notification_link" onClick={handleDesktopNavClick}>
                   ההתראות שלי
                   {unreadCount > 0 ? (
                     <span className="notification_badge">{badgeText}</span>
@@ -184,8 +206,8 @@ const Header = () => {
                 </Link>
               </li>
               {/* simulation */}
-              <li><Link to="/simulatorpage">סימולציה</Link></li>
-              <li><Link to="/appointment" className='whatsapp'>תמיכה בWhatsApp <img src={whatsapp} alt="" /></Link></li>
+              <li><Link to="/simulatorpage" onClick={handleDesktopNavClick}>סימולציה</Link></li>
+              <li><Link to="/appointment" className='whatsapp' onClick={handleDesktopNavClick}>תמיכה בWhatsApp <img src={whatsapp} alt="" /></Link></li>
               </>
             )}
           </ul>
@@ -214,13 +236,13 @@ const Header = () => {
       </nav>
       <div className="left_col d_flex d_flex_ac d_flex_jb">
 
-        {!isLoginPage ?(
+        {isAuthenticated ? (
           <>
-              <div className="username">ברוך הבא, {userData?.firstName || ''}</div>
-          <button onClick={handleLogout} className='btn exit_btn'>יציאה</button>
+            <div className="username">ברוך הבא, {userData?.firstName || ''}</div>
+            <button onClick={handleLogout} className='btn exit_btn'>יציאה</button>
           </>
-          ):(
-            <>
+        ) : isDesktop ? (
+          <>
             <div className="registration_had">
               <a href="/registration" onClick={togglePopuprg} className='btn registration'>הרשמה</a>
               <RegistrationPopup showRegistrationPopup={showRegistrationPopup} />
@@ -229,8 +251,8 @@ const Header = () => {
               <a href="/loginrecords" onClick={togglePopuplogin} className='btn login_records'>כניסה לרשומים</a>
               <LoginPopup showloginPopup={showloginPopup} />
             </div>
-            </>
-          )}
+          </>
+        ) : null}
         <Link to="/" className="brand">
           <img src={brand} alt="brand" />
         </Link>
