@@ -5,14 +5,12 @@ import '../components/simulatorcomponents/Simulatorpage.css';
 import simulatorImage from '../assets/images/simulator_p_img.png';
 import previcon from '../assets/images/prev_icon.png';
 
-
 // components 
 import MortgageCalculator from '../components/simulatorcomponents/MortgageCalculator';
 import UniformBasket from '../components/simulatorcomponents/UniformBasket';
 
 import ReturnsChart from '../components/commoncomponents/ReturnsChart';
 import YourRoutesMortgageDetails from '../components/commoncomponents/YourRoutesMortgageDetails';
-
 
 
 const Simulatorpage = () => {
@@ -121,7 +119,7 @@ const Simulatorpage = () => {
   }, [activeUniformBasket]);
 
   return (
-    <div className="simulator_page">
+    <div className="simulator_page ">
       <a href="/" className="prev_page_link"><img src={previcon} alt="" /></a>
        <div className="wrapper">
             <MortgageCalculator onResult={handleUniformResult} />
