@@ -11,6 +11,8 @@ import loginleftimgmobile from '../assets/images/login_left_img_m.png';
 import {
   getCalculatorResult,
   hasCalculatorOffer,
+  isMortgageCycleCalculatorResultValid,
+  loadMortgageCycleResult,
   saveMortgageCycleResult,
 } from "../utils/mortgageCycleResult";
 import { getGatewayBase } from "../utils/apiBase";
@@ -75,16 +77,6 @@ const Homepage = () => {
     let didRedirect = false;
     const NEW_MORTGAGE_KEY = "new_mortgage_submitted";
 
-    const isValidCalculatorResult = (calcResult) => {
-      if (!calcResult || typeof calcResult !== "object") {
-        return false;
-      }
-      if (calcResult.error || calcResult.status_code) {
-        return false;
-      }
-      return Object.prototype.hasOwnProperty.call(calcResult, "frontend_data");
-    };
-
     const hasSignatureFile = (files) =>
       Array.isArray(files) &&
       files.some((file) => {
@@ -99,7 +91,7 @@ const Homepage = () => {
 
     const redirectWith = (payload) => {
       const calcResult = getCalculatorResult(payload);
-      if (!isValidCalculatorResult(calcResult)) {
+      if (!isMortgageCycleCalculatorResultValid(calcResult)) {
         return false;
       }
       saveMortgageCycleResult(payload);
@@ -111,6 +103,11 @@ const Homepage = () => {
       return true;
     };
 
+    const isRefinanceResult = (calcResult) =>
+      Array.isArray(calcResult?.comparison_table) ||
+      (calcResult?.detailed_scenarios &&
+        typeof calcResult.detailed_scenarios === "object");
+
     const loadLatestResult = async () => {
       const token = localStorage.getItem("auth_token");
       if (!token) {
@@ -121,6 +118,39 @@ const Homepage = () => {
       }
 
       try {
+        const customerResponse = await fetch(`${apiBase}/auth/v1/customers/me`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        if (customerResponse.status === 401 || customerResponse.status === 403) {
+          handleAuthFailure();
+          return;
+        }
+        if (!customerResponse.ok) {
+          throw new Error("Failed to load customer profile");
+        }
+        const customerPayload = await customerResponse.json().catch(() => null);
+        const customerStatus = customerPayload?.status;
+        if (customerStatus === "נרשם") {
+          localStorage.removeItem("mortgage_cycle_result");
+          localStorage.removeItem(NEW_MORTGAGE_KEY);
+          return;
+        }
+        if (
+          customerStatus === "מחזור - יש הצעה" ||
+          customerStatus === "מיחזור - נקבעה פגישה" ||
+          customerStatus === "מחזור - נקבעה פגישה"
+        ) {
+          const storedResult = loadMortgageCycleResult();
+          didRedirect = true;
+          navigate("/mortgagecyclepage", {
+            state: storedResult ? { bankResponse: storedResult } : undefined,
+            replace: true,
+          });
+          return;
+        }
+
         if (localStorage.getItem(NEW_MORTGAGE_KEY) === "true") {
           redirectToApprovalHome();
           return;
@@ -158,14 +188,24 @@ const Homepage = () => {
         }
         const payload = await response.json().catch(() => null);
         if (Array.isArray(payload)) {
-          for (const item of payload) {
-            if (redirectWith(item)) {
+          const latest = payload[0] || null;
+          if (latest) {
+            const latestCalcResult = getCalculatorResult(latest);
+            // Refinance results are reviewed/admin-managed and should not force homepage redirects.
+            if (isRefinanceResult(latestCalcResult)) {
               return;
             }
+            if (redirectWith(latest)) {
+              return;
+            }
+            throw new Error("Latest mortgage cycle result is invalid");
           }
         }
       } catch (error) {
-        // Ignore and fall back to the default homepage.
+        console.error(error);
+        if (error instanceof Error && error.message === "Latest mortgage cycle result is invalid") {
+          alert("התוצאה העדכנית ביותר לא תקינה. יש להעלות קבצים מחדש.");
+        }
       } finally {
         if (isActive && !didRedirect) {
           setCheckingResults(false);

@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 
 const FrequentlyQuestions = ({questionsdata}) => {
-  const [openIndex, setOpenIndex] = useState(2); // default open first one
+  const [openIndex, setOpenIndex] = useState(null);
 
   const toggleQuestion = (index) => {
     setOpenIndex(openIndex === index ? null : index);

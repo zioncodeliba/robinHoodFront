@@ -1,5 +1,5 @@
 // Homepage.jsx
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import '../components/beforeapprovalcomponents/HomeBeforeApproval.css'
 
@@ -14,9 +14,6 @@ import noteIcon from "../assets/images/note_i_o.svg";
 import hapoalimbankicon from "../assets/images/hapoalimbank-icon.svg";
 import nationalbank from "../assets/images/national_bank.png";
 import mizrahitefahotbank from "../assets/images/mfahot_bank.png";
-import discountbankicon from "../assets/images/bank_discount.svg";
-import internationalbankicon from "../assets/images/bank_international.svg";
-import mercantilebankicon from "../assets/images/bank_mercantile.svg";
 import allbanksicon from "../assets/images/bank_all.svg";
 
 import { getGatewayBase } from "../utils/apiBase";
@@ -25,12 +22,16 @@ import { getGatewayBase } from "../utils/apiBase";
 import FrequentlyQuestions from '../components/beforeapprovalcomponents/FrequentlyQuestions';
 import StatusSummary from '../components/commoncomponents/StatusSummary';
 
+const DISCOUNT_BANK_LOGO_URL = "/discont.webp";
+const INTERNATIONAL_BANK_LOGO_URL = "/banks/international-logo.png";
+const MERCANTILE_BANK_LOGO_URL = "/Mercantile.svg.png";
+
 const BANK_LIST = [
     {
         id: 3,
         bankLogo: hapoalimbankicon,
         bankName: "בנק הפועלים",
-        statusText: "בקשה נשלחה",
+        statusText: "ממתין לאישור עקרוני",
         statusClass: "awaiting_approval",
         link: "/homebeforeapproval?bankId=3&status=sent"
     },
@@ -38,7 +39,7 @@ const BANK_LIST = [
         id: 2,
         bankLogo: nationalbank,
         bankName: "בנק לאומי",
-        statusText: "בקשה נשלחה",
+        statusText: "ממתין לאישור עקרוני",
         statusClass: "awaiting_approval",
         link: "/homebeforeapproval?bankId=2&status=sent"
     },
@@ -46,31 +47,31 @@ const BANK_LIST = [
         id: 1,
         bankLogo: mizrahitefahotbank,
         bankName: "בנק מזרחי טפחות",
-        statusText: "בקשה נשלחה",
+        statusText: "ממתין לאישור עקרוני",
         statusClass: "awaiting_approval",
         link: "/homebeforeapproval?bankId=1&status=sent"
     },
     {
         id: 4,
-        bankLogo: discountbankicon,
+        bankLogo: DISCOUNT_BANK_LOGO_URL,
         bankName: "בנק דיסקונט",
-        statusText: "בקשה נשלחה",
+        statusText: "ממתין לאישור עקרוני",
         statusClass: "awaiting_approval",
         link: "/homebeforeapproval?bankId=4&status=sent"
     },
     {
         id: 8,
-        bankLogo: internationalbankicon,
+        bankLogo: INTERNATIONAL_BANK_LOGO_URL,
         bankName: "בנק הבינלאומי",
-        statusText: "בקשה נשלחה",
+        statusText: "ממתין לאישור עקרוני",
         statusClass: "awaiting_approval",
         link: "/homebeforeapproval?bankId=8&status=sent"
     },
     {
         id: 12,
-        bankLogo: mercantilebankicon,
+        bankLogo: MERCANTILE_BANK_LOGO_URL,
         bankName: "בנק מרכנתיל",
-        statusText: "בקשה נשלחה",
+        statusText: "ממתין לאישור עקרוני",
         statusClass: "awaiting_approval",
         link: "/homebeforeapproval?bankId=12&status=sent"
     }
@@ -84,11 +85,29 @@ const normalizeAllowedBankIds = (ids) => {
     return DEFAULT_BANK_IDS.filter((id) => allowed.has(id));
 };
 
+const HEADER_SLIDE_DURATION_MS = 600;
+const SWIPE_THRESHOLD_PX = 48;
+const SWIPE_MAX_VERTICAL_DELTA_PX = 80;
+
 const HomeBeforeApproval2 = () => {
     const navigate = useNavigate();
     const apiBase = useMemo(() => getGatewayBase(), []);
     const [allowedBankIds, setAllowedBankIds] = useState(DEFAULT_BANK_IDS);
     const [approvedBankIds, setApprovedBankIds] = useState([]);
+    const [activeMobileBankIndex, setActiveMobileBankIndex] = useState(0);
+    const [headerTransition, setHeaderTransition] = useState(null);
+    const [isHeaderSlideRunning, setIsHeaderSlideRunning] = useState(false);
+    const slideTimeoutRef = useRef(null);
+    const transitionTargetIndexRef = useRef(null);
+    const touchStartRef = useRef(null);
+    const userData = useMemo(() => {
+        try {
+            return JSON.parse(localStorage.getItem("user_data")) || {};
+        } catch {
+            return {};
+        }
+    }, []);
+    const displayName = userData?.firstName || userData?.first_name || userData?.name || "שם";
     const handleAuthFailure = () => {
         localStorage.removeItem("auth_token");
         localStorage.removeItem("user_data");
@@ -192,14 +211,40 @@ const HomeBeforeApproval2 = () => {
         const approvedSet = new Set(approvedBankIds);
         return visibleBanks.map((bank) => {
             const isApproved = approvedSet.has(bank.id);
-            const statusText = isApproved ? "אישור עקרוני" : "בקשה נשלחה";
+            const statusText = isApproved ? "אישור עקרוני" : "ממתין לאישור עקרוני";
             const statusClass = isApproved ? "final_approval" : "awaiting_approval";
-            const link = isApproved
-                ? `/homebeforeapproval?bankId=${bank.id}&statusText=${encodeURIComponent(statusText)}`
-                : `/homebeforeapproval?bankId=${bank.id}&status=sent`;
+            const link = `/homebeforeapproval?bankId=${bank.id}&status=sent`;
             return { ...bank, statusText, statusClass, link };
         });
     }, [visibleBanks, approvedBankIds]);
+
+    useEffect(() => {
+        if (approvedBankIds.length > 0) {
+            navigate('/viewoffer', { replace: true });
+        }
+    }, [approvedBankIds, navigate]);
+
+    useEffect(() => {
+        if (statusList.length === 0) {
+            setActiveMobileBankIndex(0);
+            return;
+        }
+        setActiveMobileBankIndex((prev) => {
+            if (prev < 0 || prev >= statusList.length) {
+                return 0;
+            }
+            return prev;
+        });
+    }, [statusList.length]);
+
+    useEffect(() => {
+        return () => {
+            if (slideTimeoutRef.current) {
+                window.clearTimeout(slideTimeoutRef.current);
+                slideTimeoutRef.current = null;
+            }
+        };
+    }, []);
 
     const statusData = {
         title: "ריכוז הסטטוסים שלי",
@@ -207,37 +252,207 @@ const HomeBeforeApproval2 = () => {
         list: statusList
     };
 
-    const prevLink = statusList.length
-        ? statusList[statusList.length - 1].link
-        : "/homebeforeapproval2";
-    const nextLink = statusList.length
-        ? statusList[0].link
-        : "/homebeforeapproval2";
     const summaryText = allowedBankIds.length === DEFAULT_BANK_IDS.length
         ? "הבקשה נשלחה לכל הבנקים"
         : "הבקשה נשלחה לבנקים שנבחרו";
+    const mobileBank = statusList.length ? statusList[activeMobileBankIndex] : null;
+
+    const completeHeaderSlide = useCallback(() => {
+        const targetIndex = transitionTargetIndexRef.current;
+        transitionTargetIndexRef.current = null;
+        if (slideTimeoutRef.current) {
+            window.clearTimeout(slideTimeoutRef.current);
+            slideTimeoutRef.current = null;
+        }
+        if (typeof targetIndex === "number") {
+            setActiveMobileBankIndex(targetIndex);
+        }
+        setHeaderTransition(null);
+        setIsHeaderSlideRunning(false);
+    }, []);
+
+    const startHeaderSlide = useCallback((direction) => {
+        if (statusList.length <= 1 || headerTransition) return;
+
+        const nextIndex = direction === "next"
+            ? (activeMobileBankIndex + 1) % statusList.length
+            : (activeMobileBankIndex - 1 + statusList.length) % statusList.length;
+
+        transitionTargetIndexRef.current = nextIndex;
+        setHeaderTransition({
+            direction,
+            fromIndex: activeMobileBankIndex,
+            toIndex: nextIndex
+        });
+        setIsHeaderSlideRunning(false);
+
+        requestAnimationFrame(() => {
+            requestAnimationFrame(() => {
+                setIsHeaderSlideRunning(true);
+            });
+        });
+
+        if (slideTimeoutRef.current) {
+            window.clearTimeout(slideTimeoutRef.current);
+        }
+        slideTimeoutRef.current = window.setTimeout(
+            completeHeaderSlide,
+            HEADER_SLIDE_DURATION_MS + 60
+        );
+    }, [activeMobileBankIndex, completeHeaderSlide, headerTransition, statusList.length]);
+
+    useEffect(() => {
+        if (!headerTransition) return;
+        if (!statusList[headerTransition.fromIndex] || !statusList[headerTransition.toIndex]) {
+            completeHeaderSlide();
+        }
+    }, [completeHeaderSlide, headerTransition, statusList]);
+
+    const handleHeaderTouchStart = (event) => {
+        if (statusList.length <= 1 || headerTransition) return;
+        const touch = event.touches?.[0];
+        if (!touch) return;
+        touchStartRef.current = {
+            startX: touch.clientX,
+            startY: touch.clientY,
+            lastX: touch.clientX,
+            lastY: touch.clientY
+        };
+    };
+
+    const handleHeaderTouchMove = (event) => {
+        const touch = event.touches?.[0];
+        if (!touch || !touchStartRef.current) return;
+        touchStartRef.current.lastX = touch.clientX;
+        touchStartRef.current.lastY = touch.clientY;
+    };
+
+    const handleHeaderTouchEnd = () => {
+        const touchData = touchStartRef.current;
+        touchStartRef.current = null;
+        if (!touchData) return;
+
+        const deltaX = touchData.lastX - touchData.startX;
+        const deltaY = touchData.lastY - touchData.startY;
+
+        if (Math.abs(deltaX) < SWIPE_THRESHOLD_PX) return;
+        if (Math.abs(deltaY) > SWIPE_MAX_VERTICAL_DELTA_PX) return;
+        if (Math.abs(deltaX) <= Math.abs(deltaY)) return;
+
+        if (deltaX < 0) {
+            startHeaderSlide("next");
+            return;
+        }
+        startHeaderSlide("prev");
+    };
+
+    const handleHeaderTouchCancel = () => {
+        touchStartRef.current = null;
+    };
+
+    const handleMobilePrev = () => {
+        startHeaderSlide("prev");
+    };
+
+    const handleMobileNext = () => {
+        startHeaderSlide("next");
+    };
+
+    const renderHeaderCard = (bank) => (
+        <>
+            <div className="awaiting_approval_box awaiting_approval_box_mobile">
+                <div className="bank_title1">
+                    {bank ? (
+                        <>
+                            <span><img src={bank.bankLogo} alt="" /></span>
+                            <h3>{bank.bankName}</h3>
+                        </>
+                    ) : (
+                        <h3>לא נמצאו בנקים להצגה</h3>
+                    )}
+                </div>
+                <div className="tag"> <img src={timeicon} alt="" />ממתין לאישור עקרוני</div>
+                <span className="notification"><img src={noteIcon} alt="" /></span>
+                
+                <img src={sandicon} className="sandicon" alt="" />
+            </div>
+        </>
+    );
+
+    const fromBank = headerTransition ? statusList[headerTransition.fromIndex] || null : null;
+    const toBank = headerTransition ? statusList[headerTransition.toIndex] || null : null;
+    const outgoingTarget = headerTransition?.direction === "next" ? "-100%" : "100%";
+    const incomingStart = headerTransition?.direction === "next" ? "100%" : "-100%";
+    const slideTransitionStyle = isHeaderSlideRunning
+        ? `transform ${HEADER_SLIDE_DURATION_MS}ms cubic-bezier(0.22, 1, 0.36, 1), opacity ${HEADER_SLIDE_DURATION_MS}ms ease`
+        : "none";
+    const arrowDisabled = Boolean(headerTransition) || statusList.length <= 1;
 
   return (
     <div className="homebefore_approval_page ">
         <div className="wrapper">
-            <h1>ברוכים הבאים, דני</h1>
-            <div className="bank_title">
-                <span><img src={allbanksicon} alt="" /></span>
-                <h3>{summaryText}</h3>
-            </div>
-            <div className="awaiting_approval_box awaiting_approval_box_mobile">
-                <div className="tag"> <img src={timeicon} alt="" />בקשה נשלחה לבנקים </div>
-
-                <span className="notification"><img src={noteIcon} alt="" /></span>
-                <div className="bank_title1">
-                    <span><img src={hapoalimbankicon} alt="" /></span>
-                    <h3>בנק הפועלים</h3>
-                </div>
-
-                <img src={sandicon} className="sandicon" alt="" />
-                 <div className="next_prev_box">
-                    <a href={prevLink} className="prev"><img src={nextprevarrow} alt="" /></a>
-                    <a href={nextLink} className="next"><img src={nextprevarrow} alt="" /></a>
+            <h1>ברוכים הבאים, {displayName}</h1>
+            {/* <div className="bank_title">
+                {/* <span><img src={allbanksicon} alt="" /></span>
+                <h3>{summaryText}</h3> 
+            </div> */}
+            <div
+                className="mobile_header_slider"
+                style={{ position: "relative", overflow: "hidden", touchAction: "pan-y" }}
+                onTouchStart={handleHeaderTouchStart}
+                onTouchMove={handleHeaderTouchMove}
+                onTouchEnd={handleHeaderTouchEnd}
+                onTouchCancel={handleHeaderTouchCancel}
+            >
+                {headerTransition ? (
+                    <>
+                        <div style={{ visibility: "hidden" }}>
+                            {renderHeaderCard(fromBank || mobileBank)}
+                        </div>
+                        <div
+                            style={{
+                                position: "absolute",
+                                top: 0,
+                                left: 0,
+                                width: "100%",
+                                transform: isHeaderSlideRunning ? `translateX(${outgoingTarget})` : "translateX(0%)",
+                                opacity: isHeaderSlideRunning ? 0.2 : 1,
+                                transition: slideTransitionStyle,
+                                willChange: "transform, opacity"
+                            }}
+                        >
+                            {renderHeaderCard(fromBank || mobileBank)}
+                        </div>
+                        <div
+                            style={{
+                                position: "absolute",
+                                top: 0,
+                                left: 0,
+                                width: "100%",
+                                transform: isHeaderSlideRunning ? "translateX(0%)" : `translateX(${incomingStart})`,
+                                opacity: isHeaderSlideRunning ? 1 : 0.85,
+                                transition: slideTransitionStyle,
+                                willChange: "transform, opacity"
+                            }}
+                            onTransitionEnd={(event) => {
+                                if (event.propertyName !== "transform") return;
+                                if (!headerTransition || !isHeaderSlideRunning) return;
+                                completeHeaderSlide();
+                            }}
+                        >
+                            {renderHeaderCard(toBank || mobileBank)}
+                        </div>
+                    </>
+                ) : (
+                    renderHeaderCard(mobileBank)
+                )}
+                <div className="next_prev_box">
+                    <button type="button" className="prev" onClick={handleMobilePrev} disabled={arrowDisabled}>
+                        <img src={nextprevarrow} alt="" />
+                    </button>
+                    <button type="button" className="next" onClick={handleMobileNext} disabled={arrowDisabled}>
+                        <img src={nextprevarrow} alt="" />
+                    </button>
                 </div>
             </div>
             <div className="inner d_flex d_flex_jb">
@@ -248,7 +463,7 @@ const HomeBeforeApproval2 = () => {
                     <div className="offer_col">
                         <img src={offericon} alt="" />
                         <h4>מידע חשוב</h4>
-                        <p>הבקשה לאישור העקרוני נמצאת בבדיקת הבנק ויכולה להימשך עד 5 ימי עסקים. ברגע שהבנק יסיים את הטיפול ויתקבל מענה, נעדכן אותך אוטומטית בהודעה במערכת ובאימייל.</p>
+                        <p>נשלח בקשה לאישור עקרוני לכלל הבנקים כשיתקבלו האישורים ישלח עדכון</p>
                     </div>
                     <FrequentlyQuestions questionsdata={questionsdata} />
                     <StatusSummary statusData={statusData} />

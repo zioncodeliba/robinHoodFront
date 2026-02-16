@@ -11,6 +11,7 @@ import prevIcon from '../assets/images/prev_icon.svg';
 import {
   getCalculatorResult,
   hasCalculatorOffer,
+  isMortgageCycleCalculatorResultValid,
   saveMortgageCycleResult,
 } from "../utils/mortgageCycleResult";
 import { getGatewayBase } from "../utils/apiBase";
@@ -54,6 +55,7 @@ const MortgageCycleCheck = () => {
       formData.append("bank_id", bankId);
       formData.append("amount", String(numericAmount));
       formData.append("file", selectedFiles[0]);
+      formData.append("scan_type", "recycle");
 
       const response = await fetch(`${apiBase}/auth/v1/bank-responses`, {
         method: "POST",
@@ -71,11 +73,7 @@ const MortgageCycleCheck = () => {
       }
 
       const calculatorResult = getCalculatorResult(payload);
-      if (
-        !calculatorResult ||
-        typeof calculatorResult !== "object" ||
-        !("frontend_data" in calculatorResult)
-      ) {
+      if (!isMortgageCycleCalculatorResultValid(calculatorResult)) {
         throw new Error("לא התקבלה תשובת מחשבון");
       }
       if (calculatorResult?.error || calculatorResult?.status_code) {

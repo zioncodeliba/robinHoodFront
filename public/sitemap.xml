@@ -56,6 +56,18 @@
     <loc>http://localhost:3001/preview/suggestionspage</loc>
   </url>
   <url>
+    <loc>http://localhost:3001/preview/internationalsuggestioncard</loc>
+  </url>
+  <url>
+    <loc>http://localhost:3001/preview/internationalsuggestioncardv2</loc>
+  </url>
+  <url>
+    <loc>http://localhost:3001/preview/animaboxcard</loc>
+  </url>
+  <url>
+    <loc>http://localhost:3001/preview/international-suggestion-card.html</loc>
+  </url>
+  <url>
     <loc>http://localhost:3001/preview/homebeforeapproval</loc>
   </url>
   <url>

@@ -1,5 +1,5 @@
 import React,{useState ,useEffect} from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import brand from '../assets/images/brand.svg';
 import brandWhite from '../assets/images/brand_w.svg';
 import whatsapp from '../assets/images/whatsapp.svg';
@@ -21,7 +21,6 @@ import LoginPopup from './homecomponents/LoginPopup';
 
 const Header = () => {
   const location = useLocation();
-  const navigate = useNavigate();
   const isLoginPage = location.pathname.includes("login");
   const isbrokerpage = location.pathname.includes("brokerhomepage");
   const authToken = localStorage.getItem("auth_token");
@@ -34,6 +33,7 @@ const Header = () => {
   const [showloginPopup, setShowloginPopup] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [hasSuggestions, setHasSuggestions] = useState(false);
 
   const togglePopuprg = (e) => {
     e.preventDefault();
@@ -92,6 +92,39 @@ const Header = () => {
     };
   }, []);
 
+  const hasVisibleSuggestions = (responses) => {
+    if (!Array.isArray(responses) || !responses.length) {
+      return false;
+    }
+    const latestByBank = new Map();
+    responses.forEach((response) => {
+      const bankId = Number(response?.bank_id);
+      if (!Number.isFinite(bankId)) {
+        return;
+      }
+      const previous = latestByBank.get(bankId);
+      if (!previous) {
+        latestByBank.set(bankId, response);
+        return;
+      }
+      const prevDate = new Date(previous?.uploaded_at || 0).getTime();
+      const nextDate = new Date(response?.uploaded_at || 0).getTime();
+      if (nextDate >= prevDate) {
+        latestByBank.set(bankId, response);
+      }
+    });
+
+    return Array.from(latestByBank.values()).some((response) => {
+      const calcResult = response?.extracted_json?.calculator_result || null;
+      const isRefinance =
+        Array.isArray(calcResult?.comparison_table) ||
+        (calcResult?.detailed_scenarios &&
+          typeof calcResult.detailed_scenarios === 'object');
+      if (isRefinance) return false;
+      return true;
+    });
+  };
+
   useEffect(() => {
     let isMounted = true;
     const loadUnreadCount = async () => {
@@ -129,7 +162,63 @@ const Header = () => {
     };
   }, []);
 
+  useEffect(() => {
+    let isMounted = true;
+    const token = localStorage.getItem("auth_token");
+    if (!token) {
+      setHasSuggestions(false);
+      return () => {
+        isMounted = false;
+      };
+    }
+
+    const loadSuggestionsState = async () => {
+      try {
+        const response = await fetch(`${getGatewayBase()}/auth/v1/bank-responses/me`, {
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            'Authorization': `Bearer ${token}`,
+          },
+        });
+        const data = await response.json().catch(() => null);
+        if (!isMounted) return;
+        if (!response.ok) {
+          setHasSuggestions(false);
+          return;
+        }
+        setHasSuggestions(hasVisibleSuggestions(Array.isArray(data) ? data : []));
+      } catch (error) {
+        if (isMounted) setHasSuggestions(false);
+      }
+    };
+
+    loadSuggestionsState();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [location.pathname]);
+
   const badgeText = unreadCount > 99 ? '99+' : `${unreadCount}`;
+  const notificationsDisabled = isAuthenticated && unreadCount === 0;
+  const suggestionsDisabled = isAuthenticated && !hasSuggestions;
+
+  const handleStateAwareNavClick = (event, options = {}) => {
+    const { requireNotifications = false, requireSuggestions = false, closeMenu = false } = options;
+    const shouldDisable =
+      (requireNotifications && notificationsDisabled) ||
+      (requireSuggestions && suggestionsDisabled);
+    if (shouldDisable) {
+      event.preventDefault();
+      event.stopPropagation();
+      return;
+    }
+    handleDesktopNavClick(event);
+    if (closeMenu) {
+      setIsOpen(false);
+    }
+  };
 
   const hambergerhandle = () =>{
      setIsOpen(true);
@@ -137,7 +226,6 @@ const Header = () => {
 
   const handleLogout = async () => {
     const token = localStorage.getItem("auth_token");
-    const affiliateToken = localStorage.getItem("affiliate_token");
     const apiBase = getGatewayApiBase();
     try{
       if (token && apiBase) {
@@ -173,10 +261,34 @@ const Header = () => {
           <ul className='d_flex d_flex_ac'>
             {/* home */}
             <li><Link to="/" onClick={handleDesktopNavClick}>דף הבית</Link></li>
+            {/* Settings  */}
+              <li><Link to="/settings" onClick={handleDesktopNavClick}>הגדרות</Link></li>
+               
             {(!isLoginPage && !isbrokerpage) ?(
               <>
+              {/* My suggestions */}
               <li>
-                <Link to="/notifications" onClick={handleDesktopNavClick}>
+                <Link
+                  to="/suggestionspage"
+                  className={suggestionsDisabled ? 'is-disabled' : ''}
+                  aria-disabled={suggestionsDisabled}
+                  onClick={(event) =>
+                    handleStateAwareNavClick(event, { requireSuggestions: true })
+                  }
+                >
+                  ההצעות שלי
+                </Link>
+              </li>
+              
+              <li>
+                <Link
+                  to="/notifications"
+                  className={notificationsDisabled ? 'is-disabled' : ''}
+                  aria-disabled={notificationsDisabled}
+                  onClick={(event) =>
+                    handleStateAwareNavClick(event, { requireNotifications: true })
+                  }
+                >
                 ההתראות שלי
                   {unreadCount > 0 ? (
                     <span className="notification_badge">{badgeText}</span>
@@ -185,20 +297,39 @@ const Header = () => {
               </li>
               {/* simulation */}
               <li><Link to="/simulatorpage" onClick={handleDesktopNavClick}>סימולציה</Link></li>
+              <li><Link to="/appointment" className='whatsapp' onClick={handleDesktopNavClick}>תמיכה בWhatsApp <img src={whatsapp} alt="" /></Link></li>
               {/* Mortgage monitoring */}
-              <li><Link to="/treatmentstatuspage" onClick={handleDesktopNavClick}> ניטור משכנתא</Link></li>
+              {/* <li><Link to="/treatmentstatuspage" onClick={handleDesktopNavClick}> ניטור משכנתא</Link></li> */}
               {/* My suggestions */}
-              <li><Link to="/suggestionspage" onClick={handleDesktopNavClick}>ההצעות שלי</Link></li>
+              {/* <li><Link to="/suggestionspage" onClick={handleDesktopNavClick}>ההצעות שלי</Link></li> */}
               </>
             ):(
               <>
               {/* Settings  */}
               <li><Link to="/settings" onClick={handleDesktopNavClick}>הגדרות</Link></li>
               {/* My suggestions */}
-              <li><Link to="/suggestionspage" onClick={handleDesktopNavClick}>ההצעות שלי</Link></li>
+              <li>
+                <Link
+                  to="/suggestionspage"
+                  className={suggestionsDisabled ? 'is-disabled' : ''}
+                  aria-disabled={suggestionsDisabled}
+                  onClick={(event) =>
+                    handleStateAwareNavClick(event, { requireSuggestions: true })
+                  }
+                >
+                  ההצעות שלי
+                </Link>
+              </li>
               {/* notifications */}
               <li>
-                <Link to="/notifications" className="nav_notification_link" onClick={handleDesktopNavClick}>
+                <Link
+                  to="/notifications"
+                  className={notificationsDisabled ? "nav_notification_link is-disabled" : "nav_notification_link"}
+                  aria-disabled={notificationsDisabled}
+                  onClick={(event) =>
+                    handleStateAwareNavClick(event, { requireNotifications: true })
+                  }
+                >
                   ההתראות שלי
                   {unreadCount > 0 ? (
                     <span className="notification_badge">{badgeText}</span>
@@ -220,7 +351,17 @@ const Header = () => {
             <ul>
                 <li><Link to="/" onClick={() => setIsOpen(false)}><img src={HomeIcon} alt="" /> דף הבית</Link></li>
                 <li>
-                  <Link to="/notifications" onClick={() => setIsOpen(false)} className="nav_notification_link">
+                  <Link
+                    to="/notifications"
+                    className={notificationsDisabled ? "nav_notification_link is-disabled" : "nav_notification_link"}
+                    aria-disabled={notificationsDisabled}
+                    onClick={(event) =>
+                      handleStateAwareNavClick(event, {
+                        requireNotifications: true,
+                        closeMenu: true,
+                      })
+                    }
+                  >
                     <img src={NotificationIcon} alt="" />ההודעות שלי
                     {unreadCount > 0 ? (
                       <span className="notification_badge">{badgeText}</span>

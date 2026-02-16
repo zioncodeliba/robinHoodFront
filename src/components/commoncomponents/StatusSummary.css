@@ -1,4 +1,9 @@
 .status_summary_sec{max-width: 100%;border: 1px dashed var(--green);border-radius: 10px;padding: 20px 19px 0 14px;position: relative;}
+.status_summary_sec .title{cursor: pointer;}
+.status_summary_sec .title img{transition: transform 0.2s ease;}
+.status_summary_sec .title img.status_arrow_closed{transform: rotate(180deg);}
+.status_summary_sec .inner_list{max-height: 1000px;overflow: hidden;transition: max-height 0.3s ease;}
+.status_summary_sec .inner_list.closed{max-height: 0;}
 .status_summary_sec .title{margin-bottom: 17.29px;}
 .status_summary_sec .title h3{line-height: 27.29px;font-size: 18px;}
 .status_summary_sec ul{display: flex;align-items: center;justify-content: flex-start;border-top: 1px dashed #27450E;    padding: 10px 0;}

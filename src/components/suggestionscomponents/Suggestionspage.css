@@ -28,6 +28,13 @@
 .bank_mortgage_card ul li h3,
 .bank_mortgage_card ul li p{font-size:18px;line-height: 24px;color: #27450E;}
 .bank_mortgage_card ul li p{margin-top: -4.5px;}
+
+.bank_mortgage_card_international{border-color:#FDB726;box-shadow:0 4px 60px #27450e14;}
+.bank_mortgage_card_international::after{background-color:#FDB726;}
+.bank_mortgage_card_international .tag{background-color:#FDB726;font-weight:500;left:30px;}
+.bank_mortgage_card_international .bank_icon_international{width:62px;height:58px;top:-22px;right:18px;border-radius:8px;overflow:hidden;background-color:#fff;border:1px solid #f2c778;}
+.bank_mortgage_card_international .bank_icon_international img{max-width:none;height:100%;width:auto;transform:translateX(-56%);}
+.bank_mortgage_card_international h2{font-weight:500;}
     
 /* baskets list */
 .suggestions_page .baskets_list{margin-top: 15px;}

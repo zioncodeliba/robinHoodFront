@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { getCalcApiBase } from '../../utils/apiBase';
+import { getGatewayBase } from '../../utils/apiBase';
 
 import CustomRangeInput from './CustomRangeInput';
 
@@ -24,8 +24,8 @@ const MortgageCalculator = ({ onResult }) => {
     setIsLoading(true);
     setError('');
     try {
-      const baseUrl = getCalcApiBase();
-      const url = `${baseUrl}/uniform-baskets?principal=${mortgageAmount}&years=${termInYears}`;
+      const apiBase = getGatewayBase();
+      const url = `${apiBase}/auth/v1/bank-responses?principal=${mortgageAmount}&years=${termInYears}&calc_type=mortgage_calculator_front`;
       const response = await fetch(url);
       if (!response.ok) {
         const text = await response.text();

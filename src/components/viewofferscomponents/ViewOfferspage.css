@@ -27,14 +27,21 @@
 /* bank offer list */
 .bank_offer_list{width: calc(50% - 15px);border: 1px dashed var(--green);border-radius: 10px;padding: 16px 15px 55px;position: relative;}
 .bank_offer_list ul{display: flex;align-items: center;justify-content: flex-start;border-bottom: 1px dashed #27450E;padding:10px 0;}
+.bank_offer_list ul.best_offer_row{background-color: rgba(78, 143, 247, 0.08);border-radius: 10px;padding: 10px 8px;}
 .bank_offer_list ul:nth-last-child(2){border: none !important;}
 .bank_offer_list ul li{width: 194px;display: flex;align-items: center;justify-content: flex-start;}
+.bank_offer_list .bank_name_cell{cursor: pointer;flex-wrap: wrap;gap: 6px 8px;}
+.bank_offer_list .bank_name_cell:hover{background-color: rgba(39, 69, 14, 0.06);border-radius: 8px;}
 .bank_offer_list ul li+li{width: calc(100% - 194px);justify-content: flex-end;}
 .bank_offer_list ul li h4{font-size: 18px;font-weight:400;}
 .bank_offer_list ul li span{margin-left:13px;}
+.bank_offer_list .best_offer_badge{font-size: 10px;line-height: 18px;padding: 0 8px;border-radius: 12px;background-color: #4E8FF7;color: var(--white);margin-left: 0;}
 .bank_offer_list ul li a{background-color: #D9E8D8;padding: 0 14.5px;color:var(--green);font-size: 12px;line-height: 24px;border-radius: 15px;}
+.bank_offer_list ul li button{background-color: #D9E8D8;padding: 0 14.5px;color:var(--green);font-size: 12px;line-height: 24px;border-radius: 15px;border: none;cursor: pointer;}
 .bank_offer_list ul li a.awaiting_approval{}
 .bank_offer_list ul li a.final_approval{background-color: #4E8FF7;color: var(--white);}
+.bank_offer_list ul li button.awaiting_approval{}
+.bank_offer_list ul li button.final_approval{background-color: #4E8FF7;color: var(--white);}
 .bank_offer_list .most_offer{line-height: 35px;text-align: center;background-color: #90968A;color:var(--white);font-size: 18px;font-weight: 400;position: absolute;bottom: 0;left: 0;width: 100%;border-radius: 0 0 10px 10px;}
 
 
@@ -60,8 +67,10 @@
 @media (max-width:767px) {
     .viewoffers_page { padding: 26px 13px 150px; }
     .viewoffers_page h1 { font-weight: 300; }
-    .next_prev_box a { height: 38px; width: 46px;padding: 0 5px;}
-    .next_prev_box a img { max-width: 28px; }
+    .next_prev_box a,
+    .next_prev_box button { height: 28px; width: 34px;padding: 0 4px;}
+    .next_prev_box a img,
+    .next_prev_box button img { max-width: 20px; }
     .viewoffers_page .routes_mortgage_sec { margin-top: 56px; padding: 0; box-shadow: none; background: no-repeat; }
     .viewoffers_page .routes_mobile { max-width: calc(100% - 32px); }
     .viewoffers_page .routes_mortgage_sec h2{display: none;}

@@ -1,24 +1,34 @@
 import React  from "react";
 
-import mizrahitefahotbank from '../../assets/images/mfahot_bank.png'
-import nationalbank from '../../assets/images/national_bank.png'
+import mizrahitefahotbank from '../../assets/images/mfahot_bank.png';
+import nationalbank from '../../assets/images/national_bank.png';
 
 
 const BankMortgageCard = ({bankData}) => {
+    const fallbackImage = bankData?.name_en === 'Mizrahi-Tefahot' ? mizrahitefahotbank : nationalbank;
+    const bankImage = bankData?.bankLogo || fallbackImage;
 
-    const bankImage = bankData.name_en === 'Mizrahi-Tefahot' ? mizrahitefahotbank : nationalbank;
+    const formatMoney = (value) => {
+        const num = Number(value);
+        if (!Number.isFinite(num)) {
+            return '—';
+        }
+        return `₪${num.toLocaleString('he-IL')}`;
+    };
 
     const renderStatusTag = () => {
-        if (bankData.status.type === 'final') {
+        const status = bankData?.status;
+        if (!status?.type) return null;
+        if (status.type === 'final') {
             return (
                 <div className="tag final_approval">
                     אישור סופי
                 </div>
             );
-        } else if (bankData.status.type === 'conditional') {
+        } else if (status.type === 'conditional') {
             return (
                 <div className="tag conditional_approval">
-                    אישור עקרוני  {bankData.status.time}
+                    אישור עקרוני  {status.time || ''}
                 </div>
             );
         }
@@ -36,23 +46,23 @@ const BankMortgageCard = ({bankData}) => {
         <ul className="d_flex">
             <li>
                 <h3>סכום</h3>
-                <p>₪{bankData.amount.toLocaleString()}</p>
+                <p>{formatMoney(bankData.amount)}</p>
             </li>
             <li>
                 <h3>תקופה בשנים</h3>
-                <p>{bankData.years}</p>
+                <p>{bankData.years ?? '—'}</p>
             </li>
             <li>
                 <h3>תשלום חודשי מקסימלי צפוי</h3>
-                <p>₪{bankData.maxMonthlyPayment.toLocaleString()}</p>
+                <p>{formatMoney(bankData.maxMonthlyPayment)}</p>
             </li>
             <li>
                 <h3>תשלום חודשי ראשון</h3>
-                <p>₪{bankData.firstMonthlyPayment.toLocaleString()}</p>
+                <p>{formatMoney(bankData.firstMonthlyPayment)}</p>
             </li>
             <li>
                 <h3>סך הכל תשלומים</h3>
-                <p>₪{bankData.totalPayments.toLocaleString()}</p>
+                <p>{formatMoney(bankData.totalPayments)}</p>
             </li>
         </ul>
     </div>

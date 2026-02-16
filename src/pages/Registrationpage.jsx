@@ -32,6 +32,27 @@ const Registrationpage = () => {
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const [isAppleLoading, setIsAppleLoading] = useState(false);
 
+  const extractErrorMessage = (payload, fallback) => {
+    if (typeof payload === 'string') {
+      const trimmed = payload.trim();
+      if (!trimmed) return fallback;
+      try {
+        return extractErrorMessage(JSON.parse(trimmed), trimmed);
+      } catch {
+        return trimmed;
+      }
+    }
+
+    if (payload && typeof payload === 'object') {
+      const candidate = payload.detail ?? payload.message ?? payload.error;
+      if (candidate !== undefined) {
+        return extractErrorMessage(candidate, fallback);
+      }
+    }
+
+    return fallback;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
@@ -79,10 +100,7 @@ const Registrationpage = () => {
       }
 
       if (!res.ok) {
-        const msg =
-          data?.message ||
-          (typeof data === 'string' ? data : null) ||
-          'Registration failed.';
+        const msg = extractErrorMessage(data, 'Registration failed.');
         throw new Error(msg);
       }
 
@@ -126,10 +144,10 @@ const Registrationpage = () => {
       }
 
       if (!response.ok) {
-        const errorMessage =
-          data?.message ||
-          (typeof data === 'string' ? data : null) ||
-          'שגיאה בהרשמה עם גוגל. נסה שוב.';
+        const errorMessage = extractErrorMessage(
+          data,
+          'שגיאה בהרשמה עם גוגל. נסה שוב.'
+        );
         throw new Error(errorMessage);
       }
 

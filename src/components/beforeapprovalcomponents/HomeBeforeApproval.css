@@ -6,7 +6,7 @@
 .homebefore_approval_page .bank_title span{width: 63px;height: 63px;display: flex;align-items: center;justify-content: center;    margin: 0 auto;}
 .homebefore_approval_page .bank_title h3{font-size: 18px;line-height: 24px;font-weight: 400;}
 
-.awaiting_approval_box{position: relative;background: #FFFFFF; background: linear-gradient(180deg, rgba(255, 255, 255, 1) 0%, rgba(225, 240, 223, 1) 100%);min-height: 196px; padding: 46px 20px 20px;margin-top: 46px;border-radius: 15px;}
+.awaiting_approval_box{position: relative;background: #FFFFFF; background: linear-gradient(180deg, rgba(255, 255, 255, 1) 0%, rgba(225, 240, 223, 1) 100%);min-height: 196px; padding: 28px 20px 43px;margin-top: 46px;border-radius: 15px;}
 .awaiting_approval_box .tag{line-height: 48px;background-color: var(--white);border-radius: 50px;border: 1px solid var(--orange);display: flex;align-items: center;justify-content: center;position: absolute;top:-30px;left: 0;right: 0;margin: 0 auto;width:fit-content;padding: 0 18px;color: var(--orange);font-size: 16px;font-weight: 500;}
 .awaiting_approval_box .tag img{margin-left: 5px;}
 .awaiting_approval_box ul{}
@@ -24,14 +24,14 @@
 .frequently_questions_sec .colin:last-child{border: none;}
 .frequently_questions_sec h3{color: #27450E;font-size: 18px;line-height: 28px;font-weight: 500;padding-left: 35px;position: relative;cursor: pointer;margin-bottom: 7px;}
 .frequently_questions_sec p{color: #4B5563;font-weight: 400;font-size: 16px;line-height: 24px;max-width: 308px;padding:0 0 16px;   }
-.frequently_questions_sec .text{ max-height: 500px; overflow: hidden;transition:max-height 0.5s ease;}
+.frequently_questions_sec .text{ max-height: 0; overflow: hidden;transition:max-height 0.5s ease;}
 .frequently_questions_sec span{width: 13px;height: 13px;position: absolute;left:7px;top:8px;}
 .frequently_questions_sec span::after,
 .frequently_questions_sec span::before{content:'';position: absolute;top: 0;width: 100%;height: 2px;bottom: 0;background-color:#27450E;left: 0;margin: auto;}
-.frequently_questions_sec span::before{transform:rotate(90deg);opacity: 0;background-color: var(--orange);}
+.frequently_questions_sec span::before{transform:rotate(90deg);opacity: 1;background-color:#27450E;}
 .frequently_questions_sec .colin.open span::after{background-color: var(--orange);}
-.frequently_questions_sec .colin.open span::before{opacity: 1;}
-.frequently_questions_sec .colin.open .text{max-height:0;transition: max-height 0.5s ease;}
+.frequently_questions_sec .colin.open span::before{opacity: 0;}
+.frequently_questions_sec .colin.open .text{max-height:500px;transition: max-height 0.5s ease;}
 
 /* offer_col */
 .homebefore_approval_page .offer_col{width:100%; min-height: 103px; border-radius: 10px; border: 1px dashed var(--green); position: relative; padding: 31px 33px 25px 11px;}
@@ -42,10 +42,13 @@
 .homebefore_approval_page .sandicon{margin: -18px auto 0;}
 .homebefore_approval_page .status_summary_sec{margin-top: 18px;}
 
-.homebefore_approval_page .prev_page_link{display: none;}
+.homebefore_approval_page .prev_page_link{display: block;position: fixed;top: 110px;right: 25px;z-index: 999;pointer-events: auto;cursor: pointer;background: transparent;border: none;padding: 0;line-height: 0;}
 .homebefore_approval_page .left_col .frequently_questions_sec{display: none;} 
 
-.awaiting_approval_box .next_prev_box{position: absolute;width: 100%;bottom: auto;top: 45px;}
+.awaiting_approval_box .next_prev_box{position: absolute;width: 100%;bottom: auto;top: 45px;pointer-events: auto;z-index: 2;}
+.awaiting_approval_box .bank_title1{display: flex;align-items: center;justify-content: center;gap: 8px;margin-top: 12px;}
+.awaiting_approval_box .bank_title1 span{width: 64px;height: 64px;display: flex;align-items: center;justify-content: center;}
+.awaiting_approval_box .bank_title1 h3{line-height: 24px;color: #27450E;font-size: 18px;font-weight: 400;}
 
 /* responsive */
 @media (max-width:1399px){
@@ -54,12 +57,12 @@
 }
 @media (max-width:1023px){
     .homebefore_approval_page { padding: 50px 20px 50px; }
+    .homebefore_approval_page .prev_page_link { top: 110px; }
 }
 .awaiting_approval_box .notification{display: none;}
-.awaiting_approval_box .bank_title1{display: none;}
 @media (max-width:767px){
     .homebefore_approval_page { padding: 22px 13px 178px; }
-    .homebefore_approval_page .prev_page_link { display: block;}
+    .homebefore_approval_page .prev_page_link { left: 25px; right: auto; top: 110px; }
     .homebefore_approval_page h1 { margin-bottom: 40px; font-weight: 300; }
     .homebefore_approval_page .inner { background-color: transparent; border-radius: 0; box-shadow: none; padding: 0; margin-top: 46px;}
     .homebefore_approval_page .inner>div { width: 100%; }
@@ -68,13 +71,41 @@
     .frequently_questions_sec{margin-top: 43px;}
     .homebefore_approval_page .status_summary_sec { margin-top: 38px; }
  
-    .awaiting_approval_box .next_prev_box { width: calc(100% + 30px); bottom: 27px; top: auto; right: -15px; }
+    .homebefore_approval_page .mobile_header_slider .next_prev_box {
+        position: absolute;
+        top: 80%;
+        bottom: auto;
+        left: 0;
+        right: 0;
+        width: 100%;
+        min-width: 0;
+        height: auto;
+        margin: 0;
+        transform: translateY(-50%);
+        pointer-events: none;
+        z-index: 6;
+    }
+    .homebefore_approval_page .mobile_header_slider .next_prev_box button {
+        pointer-events: all;
+        width: 42px;
+        height: 36px;
+        padding: 0;
+        justify-content: center;
+        border-radius: 999px;
+        box-shadow: 0 4px 16px #27450E2E;
+    }
+    .homebefore_approval_page .mobile_header_slider .next_prev_box button img {
+        max-width: 22px;
+    }
+    .homebefore_approval_page .mobile_header_slider .next_prev_box button:disabled {
+        opacity: 0.55;
+    }
     .awaiting_approval_box { min-height:236px; padding: 46px 20px 20px; }
     .homebefore_approval_page .sandicon { margin: 20px auto 0; }
     .awaiting_approval_box::after{content:'';position: absolute;bottom: 0;height: 5px;width: calc(100% - 60px);left: 0;right: 0;margin: 0 auto;background-color: #E27600;border-radius: 10px;}
     .awaiting_approval_box_mobile .tag { margin-left: 44px; }
     .awaiting_approval_box_mobile .notification{position: absolute;left: 8px;top: 6px;display: block;}
-    .awaiting_approval_box_mobile .bank_title1{position: absolute;right: 20px;top:-29px;display: block;}
+    .awaiting_approval_box_mobile .bank_title1{position: absolute;right: 20px;top:-44px;display: block;}
     .awaiting_approval_box_mobile .bank_title1 span{width: 64px;height: 64px;display: flex;align-items: center;justify-content: center;}
     .awaiting_approval_box_mobile .bank_title1 h3{line-height: 24px;color: #27450E;font-size: 18px;line-height: 24px;font-weight: 400;padding-right: 7px;}
 

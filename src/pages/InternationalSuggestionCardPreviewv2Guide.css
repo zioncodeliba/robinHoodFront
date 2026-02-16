@@ -1,0 +1,15 @@
+:root {
+    --14-b-font-family: "Noto Sans Hebrew", Helvetica;
+    --14-b-font-size: 14px;
+    --14-b-font-style: normal;
+    --14-b-font-weight: 700;
+    --14-b-letter-spacing: 0px;
+    --14-b-line-height: 24px;
+    --18-font-family: "Noto Sans Hebrew", Helvetica;
+    --18-font-size: 18px;
+    --18-font-style: normal;
+    --18-font-weight: 400;
+    --18-letter-spacing: 0px;
+    --18-line-height: 24px;
+    --dark-mode-green-bar: rgba(14, 62, 62, 1);
+}

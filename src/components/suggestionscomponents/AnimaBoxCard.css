@@ -1,0 +1,317 @@
+.anima-box-card {
+  height: 266px;
+  position: relative;
+  width: 416px;
+}
+
+.anima-box-card .group {
+  height: 266px;
+  left: -29px;
+  position: absolute;
+  top: 0;
+  width: 448px;
+}
+
+.anima-box-card .rectangle {
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 1) 0%,
+    rgba(225, 240, 223, 1) 100%
+  );
+  border: 2px solid;
+  border-color: #4e8ff7;
+  border-radius: 15px;
+  box-shadow: 0 4px 60px #27450e0d;
+  height: 236px;
+  left: 60px;
+  position: absolute;
+  top: 30px;
+  width: 356px;
+}
+
+.anima-box-card .text-wrapper {
+  color: #27450e;
+  font-family: "Noto Sans Hebrew", Helvetica, Arial, sans-serif;
+  font-size: 18px;
+  font-weight: 400;
+  left: 73px;
+  letter-spacing: 0;
+  line-height: 24px;
+  position: absolute;
+  text-align: right;
+  top: 109px;
+  width: 111px;
+}
+
+.anima-box-card .div {
+  color: #27450e;
+  direction: rtl;
+  font-family: "Noto Sans Hebrew", Helvetica, Arial, sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  left: 248px;
+  letter-spacing: 0;
+  line-height: 24px;
+  position: absolute;
+  top: 86px;
+  white-space: nowrap;
+}
+
+.anima-box-card .text-wrapper-2 {
+  color: #27450e;
+  font-family: "Noto Sans Hebrew", Helvetica, Arial, sans-serif;
+  font-size: 18px;
+  font-weight: 400;
+  left: 281px;
+  letter-spacing: 0;
+  line-height: 24px;
+  position: absolute;
+  text-align: right;
+  top: 109px;
+  width: 111px;
+}
+
+.anima-box-card .text-wrapper-3 {
+  color: #27450e;
+  direction: rtl;
+  font-family: "Noto Sans Hebrew", Helvetica, Arial, sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  left: 320px;
+  letter-spacing: 0;
+  line-height: 24px;
+  position: absolute;
+  top: 212px;
+  white-space: nowrap;
+}
+
+.anima-box-card .text-wrapper-4 {
+  color: #27450e;
+  font-family: "Noto Sans Hebrew", Helvetica, Arial, sans-serif;
+  font-size: 18px;
+  font-weight: 400;
+  left: 272px;
+  letter-spacing: 0;
+  line-height: 24px;
+  position: absolute;
+  text-align: right;
+  top: 233px;
+  width: 121px;
+}
+
+.anima-box-card .text-wrapper-5 {
+  color: #27450e;
+  direction: rtl;
+  font-family: "Noto Sans Hebrew", Helvetica, Arial, sans-serif;
+  font-size: 10px;
+  font-weight: 700;
+  left: 209px;
+  letter-spacing: 0;
+  line-height: 24px;
+  position: absolute;
+  top: 149px;
+  width: 185px;
+}
+
+.anima-box-card .text-wrapper-6 {
+  color: #27450e;
+  direction: rtl;
+  font-family: "Noto Sans Hebrew", Helvetica, Arial, sans-serif;
+  font-size: 10px;
+  font-weight: 700;
+  left: 116px;
+  letter-spacing: 0;
+  line-height: 24px;
+  position: absolute;
+  top: 149px;
+  width: 185px;
+}
+
+.anima-box-card .text-wrapper-7 {
+  color: #27450e;
+  direction: rtl;
+  font-family: "Noto Sans Hebrew", Helvetica, Arial, sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  left: 51px;
+  letter-spacing: 0;
+  line-height: 24px;
+  position: absolute;
+  top: 208px;
+  width: 185px;
+}
+
+.anima-box-card .text-wrapper-8 {
+  color: #27450e;
+  direction: rtl;
+  font-family: "Noto Sans Hebrew", Helvetica, Arial, sans-serif;
+  font-size: 10px;
+  font-weight: 700;
+  left: 0;
+  letter-spacing: 0;
+  line-height: 24px;
+  position: absolute;
+  top: 150px;
+  width: 185px;
+}
+
+.anima-box-card .text-wrapper-9 {
+  color: #27450e;
+  font-family: "Noto Sans Hebrew", Helvetica, Arial, sans-serif;
+  font-size: 18px;
+  font-weight: 400;
+  left: 317px;
+  letter-spacing: 0;
+  line-height: 24px;
+  position: absolute;
+  text-align: center;
+  top: 168px;
+  width: 91px;
+}
+
+.anima-box-card .text-wrapper-10 {
+  color: #27450e;
+  font-family: "Noto Sans Hebrew", Helvetica, Arial, sans-serif;
+  font-size: 18px;
+  font-weight: 400;
+  left: 226px;
+  letter-spacing: 0;
+  line-height: 24px;
+  position: absolute;
+  text-align: center;
+  top: 168px;
+  width: 91px;
+}
+
+.anima-box-card .text-wrapper-11 {
+  color: #27450e;
+  font-family: "Noto Sans Hebrew", Helvetica, Arial, sans-serif;
+  font-size: 18px;
+  font-weight: 400;
+  left: 78px;
+  letter-spacing: 0;
+  line-height: 24px;
+  position: absolute;
+  text-align: center;
+  top: 169px;
+  width: 121px;
+}
+
+.anima-box-card .element {
+  color: #27450e;
+  font-family: "Noto Sans Hebrew", Helvetica, Arial, sans-serif;
+  font-size: 18px;
+  font-weight: 400;
+  left: 129px;
+  letter-spacing: 0;
+  line-height: 24px;
+  position: absolute;
+  text-align: center;
+  top: 233px;
+  width: 121px;
+}
+
+.anima-box-card .line {
+  height: 1px;
+  left: 86px;
+  position: absolute;
+  top: 140px;
+  width: 304px;
+}
+
+.anima-box-card .img {
+  height: 1px;
+  left: 86px;
+  position: absolute;
+  top: 204px;
+  width: 304px;
+}
+
+.anima-box-card .line-2 {
+  height: 48px;
+  left: 202px;
+  object-fit: cover;
+  position: absolute;
+  top: 149px;
+  width: 1px;
+}
+
+.anima-box-card .line-3 {
+  height: 48px;
+  left: 316px;
+  object-fit: cover;
+  position: absolute;
+  top: 149px;
+  width: 1px;
+}
+
+.anima-box-card .line-4 {
+  height: 48px;
+  left: 316px;
+  object-fit: cover;
+  position: absolute;
+  top: 213px;
+  width: 1px;
+}
+
+.anima-box-card .text-wrapper-12 {
+  color: #27450e;
+  direction: rtl;
+  font-family: "Noto Sans Hebrew", Helvetica, Arial, sans-serif;
+  font-size: 18px;
+  font-weight: 400;
+  left: 220px;
+  letter-spacing: 0;
+  line-height: 24px;
+  position: absolute;
+  top: 58px;
+  width: 170px;
+}
+
+.anima-box-card .image {
+  aspect-ratio: 1;
+  height: 63px;
+  left: 346px;
+  position: absolute;
+  top: 0;
+  width: 63px;
+}
+
+.anima-box-card .text-wrapper-13 {
+  color: #27450e;
+  direction: rtl;
+  font-family: "Noto Sans Hebrew", Helvetica, Arial, sans-serif;
+  font-size: 15px;
+  font-weight: 700;
+  left: 79px;
+  letter-spacing: 0;
+  line-height: 24px;
+  position: absolute;
+  top: 86px;
+  white-space: nowrap;
+  width: 129px;
+}
+
+.anima-box-card .rectangle-2 {
+  background-color: #4e8ff7;
+  border-radius: 0 0 8px 8px;
+  height: 38px;
+  left: 81px;
+  position: absolute;
+  top: 30px;
+  width: 136px;
+}
+
+.anima-box-card .text-wrapper-14 {
+  color: #ffffff;
+  direction: rtl;
+  font-family: "Noto Sans Hebrew", Helvetica, Arial, sans-serif;
+  font-size: 14px;
+  font-weight: 400;
+  left: 26px;
+  letter-spacing: 0;
+  line-height: 24px;
+  position: absolute;
+  top: 37px;
+  width: 170px;
+}

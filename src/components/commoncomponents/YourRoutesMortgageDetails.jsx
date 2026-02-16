@@ -39,7 +39,7 @@ const YourRoutesMortgageDetails = ({ data, themeColor }) => {
   return (
     <div className="routes_mortgage_sec" style={{ borderColor: themeColor , "--bgcolor": themeColor }}>
 
-      {/* {expireoffertext &&(
+      {expireoffertext &&(
         <div className="expire_offer"><strong>אישור עקרוני</strong> {expireoffertext}</div>
       )}
       <div className="routes_mobile">
@@ -64,7 +64,7 @@ const YourRoutesMortgageDetails = ({ data, themeColor }) => {
             <h4 style={{ color: themeColor }}>{totalPayments}</h4>
           </div>
         )}
-      </div> */}
+      </div>
       {note?.text && (
         <div className="routs_note">
           <img src={noteicon} alt="" />

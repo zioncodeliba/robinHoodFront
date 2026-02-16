@@ -32,6 +32,9 @@ import AppointmentConfirmationpage from './pages/AppointmentConfirmationpage';
 import ViewOfferspage from './pages/ViewOfferspage';
 import Simulatorpage from './pages/Simulatorpage';
 import Suggestionspage from './pages/Suggestionspage';
+import InternationalSuggestionCardPreview from './pages/InternationalSuggestionCardPreview';
+import InternationalSuggestionCardPreviewv2 from './pages/InternationalSuggestionCardPreviewv2';
+import AnimaBoxPreview from './pages/AnimaBoxPreview';
 import HomeBeforeApproval from './pages/HomeBeforeApproval';
 import HomeBeforeApproval2 from './pages/HomeBeforeApproval2';
 import BrokerHomepage from './pages/BrokerHomepage';
@@ -64,6 +67,9 @@ const PREVIEW_ROUTES = [
   { slug: 'viewofferspage', element: <ViewOfferspage /> },
   { slug: 'simulatorpage', element: <Simulatorpage /> },
   { slug: 'suggestionspage', element: <Suggestionspage /> },
+  { slug: 'internationalsuggestioncard', element: <InternationalSuggestionCardPreview /> },
+  { slug: 'internationalsuggestioncardv2', element: <InternationalSuggestionCardPreviewv2 /> },
+  { slug: 'animaboxcard', element: <AnimaBoxPreview /> },
   { slug: 'homebeforeapproval', element: <HomeBeforeApproval /> },
   { slug: 'homebeforeapproval2', element: <HomeBeforeApproval2 /> },
   { slug: 'notificationspage', element: <Notificationspage /> },

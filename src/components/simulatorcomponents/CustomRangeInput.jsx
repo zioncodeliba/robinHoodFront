@@ -7,7 +7,7 @@ const formatNumber = (num) => {
 };
 
 
-const CustomRangeInput = ({ value, min, max, step, unit, onChange }) => {
+const CustomRangeInput = ({ value, min, max, step, unit, onChange, disabled = false }) => {
   
   const getBubblePosition = useCallback((currentValue) => {
     const percentage = ((currentValue - min) / (max - min)) * 100;
@@ -40,6 +40,7 @@ const CustomRangeInput = ({ value, min, max, step, unit, onChange }) => {
             onChange={onChange}
             style={inputStyle}
             className="custom-range-slider "
+            disabled={disabled}
           />
         </div>
         <div className="minmax_text " dir="rtl">

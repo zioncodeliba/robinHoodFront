@@ -3,13 +3,9 @@ import React, { useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import '../components/beforeapprovalcomponents/HomeBeforeApproval.css'
 
-import nextprevarrow from "../assets/images/np_arrow.svg";
 import hapoalimbankicon from "../assets/images/bank_hapoalim.png";
 import nationalbank from "../assets/images/national_bank.png";
 import mizrahitefahotbank from "../assets/images/mfahot_bank.png";
-import discountbankicon from "../assets/images/bank_discount.svg";
-import internationalbankicon from "../assets/images/bank_international.svg";
-import mercantilebankicon from "../assets/images/bank_mercantile.svg";
 import timeicon from "../assets/images/tt.png";
 import offericon from "../assets/images/offer_i.png";
 import previcon from '../assets/images/prev_icon.png';
@@ -19,13 +15,17 @@ import { getGatewayBase } from "../utils/apiBase";
 // components
 import FrequentlyQuestions from '../components/beforeapprovalcomponents/FrequentlyQuestions';
 
+const DISCOUNT_BANK_LOGO_URL = "/discont.webp";
+const INTERNATIONAL_BANK_LOGO_URL = "/banks/international-logo.png";
+const MERCANTILE_BANK_LOGO_URL = "/Mercantile.svg.png";
+
 const BANK_MAP = {
     1: { name: "בנק מזרחי טפחות", logo: mizrahitefahotbank },
     2: { name: "בנק לאומי", logo: nationalbank },
     3: { name: "בנק הפועלים", logo: hapoalimbankicon },
-    4: { name: "בנק דיסקונט", logo: discountbankicon },
-    8: { name: "בנק הבינלאומי", logo: internationalbankicon },
-    12: { name: "בנק מרכנתיל", logo: mercantilebankicon }
+    4: { name: "בנק דיסקונט", logo: DISCOUNT_BANK_LOGO_URL },
+    8: { name: "בנק הבינלאומי", logo: INTERNATIONAL_BANK_LOGO_URL },
+    12: { name: "בנק מרכנתיל", logo: MERCANTILE_BANK_LOGO_URL }
 };
 
 const DEFAULT_BANK_ORDER = [3, 2, 1, 4, 8, 12];
@@ -40,6 +40,14 @@ const HomeBeforeApproval = () => {
     const location = useLocation();
     const navigate = useNavigate();
     const apiBase = useMemo(() => getGatewayBase(), []);
+    const userData = useMemo(() => {
+        try {
+            return JSON.parse(localStorage.getItem("user_data")) || {};
+        } catch {
+            return {};
+        }
+    }, []);
+    const displayName = userData?.firstName || userData?.first_name || userData?.name || "שם";
     const [allowedBankIds, setAllowedBankIds] = useState(DEFAULT_BANK_ORDER);
     const [approvedBankIds, setApprovedBankIds] = useState([]);
     const params = new URLSearchParams(location.search);
@@ -140,29 +148,6 @@ const HomeBeforeApproval = () => {
     const isApproved = activeBankId ? approvedBankIds.includes(activeBankId) : false;
     const statusLabel = statusTextParam
         || (isApproved ? "אישור עקרוני" : (statusLabels[statusKey] || statusLabels.awaiting_approval));
-    const activeIndex = hasBanks ? bankOrder.indexOf(activeBankId) : -1;
-    const prevBankId = hasBanks ? bankOrder[(activeIndex - 1 + bankOrder.length) % bankOrder.length] : null;
-    const nextBankId = hasBanks ? bankOrder[(activeIndex + 1) % bankOrder.length] : null;
-
-    const buildBankLink = (bankId) => {
-        const nextParams = new URLSearchParams();
-        nextParams.set("bankId", String(bankId));
-        if (statusKey) {
-            nextParams.set("status", statusKey);
-        }
-        if (statusTextParam) {
-            nextParams.set("statusText", statusTextParam);
-        }
-        return `/homebeforeapproval?${nextParams.toString()}`;
-    };
-
-    const prevLink =
-        !hasBanks || activeIndex === 0 ? "/homebeforeapproval2" : buildBankLink(prevBankId);
-    const nextLink =
-        !hasBanks || activeIndex === bankOrder.length - 1
-            ? "/homebeforeapproval2"
-            : buildBankLink(nextBankId);
-
     const questionsdata = [
         {
             question: "כמה זמן לוקח האישור העקרוני?",
@@ -178,12 +163,21 @@ const HomeBeforeApproval = () => {
         }
     ];
 
+    const handleBackToHome = (event) => {
+        event.preventDefault();
+        if (window.history.length > 1) {
+            navigate(-1);
+            return;
+        }
+        navigate("/homebeforeapproval2", { replace: true });
+    };
+
  
   return (
     <div className="homebefore_approval_page ">
-        <a href="/" className="prev_page_link"><img src={previcon} alt="" /></a>
+        <button type="button" onClick={handleBackToHome} className="prev_page_link"><img src={previcon} alt="" /></button>
         <div className="wrapper">
-            <h1>ברוכים הבאים, דני</h1>
+            <h1>ברוכים הבאים, {displayName}</h1>
             <div className="bank_title">
                 {selectedBank ? (
                     <>
@@ -206,10 +200,6 @@ const HomeBeforeApproval = () => {
                         <h3>אישור עקרוני</h3>
                     </li>
                 </ul>
-                <div className="next_prev_box">
-                    <a href={prevLink} className="prev"><img src={nextprevarrow} alt="" /></a>
-                    <a href={nextLink} className="next"><img src={nextprevarrow} alt="" /></a>
-                </div>
             </div>
             <div className="inner d_flex d_flex_jb">
                 <div className="right_col">
