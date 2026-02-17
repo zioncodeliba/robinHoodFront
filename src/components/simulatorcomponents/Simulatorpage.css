@@ -64,6 +64,13 @@
 .simulator_page .approval_btn{margin: 136px auto 0; display: block; margin-left: 0;border:none;}
 .simulator_page .img1{position: absolute; bottom: -85px; right: -270px;}
 .simulator_page .prev_page_link{display: none;}
+.custom-range { touch-action: pan-x; }
+.chart-container{ touch-action: pan-x;}
+.chart-container svg { touch-action: pan-x; }
+.mortgage_calculator_sec .inner * { pointer-events: none; }
+.range_box .tooltip, .range_box .tooltip * { pointer-events: all;touch-action: pan-x; }
+.range_box .range_wrap input { pointer-events: all;touch-action: pan-x;    width: 120%;}
+
 
 /* responsive */
 @media (max-width:1850px) {
