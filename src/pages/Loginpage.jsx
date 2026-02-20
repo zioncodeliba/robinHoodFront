@@ -20,6 +20,13 @@ const Loginpage = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isAppleLoading, setIsAppleLoading] = useState(false);
 
+  useEffect(() => {
+    const isDesktop = typeof window !== 'undefined' ? window.innerWidth >= 1024 : false;
+    if (!isDesktop) return;
+    window.dispatchEvent(new CustomEvent('auth:open-login'));
+    navigate('/', { replace: true });
+  }, [navigate]);
+
   const extractErrorMessage = (payload, fallback) => {
     if (typeof payload === 'string' && payload.trim()) {
       try {

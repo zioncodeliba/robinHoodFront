@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { Link ,useLocation } from 'react-router-dom';
-import { getGatewayBase } from '../utils/apiBase';
+import { useNavState } from '../context/NavStateContext';
 
 import HomeIcon from '../assets/images/s_home.svg';
 import Alerts from '../assets/images/s_alerts.svg';
@@ -11,108 +11,11 @@ import suggestions from '../assets/images/s_suggestions.svg';
 
 const StickyMobileMenu = () => {
   const location = useLocation();
-  const [unreadCount, setUnreadCount] = useState(0);
-  const [hasSuggestions, setHasSuggestions] = useState(false);
+  const { unreadCount, hasSuggestions, hasPrincipalApproval } = useNavState();
   
   const notificationsDisabled = Boolean(localStorage.getItem('auth_token')) && unreadCount === 0;
   const suggestionsDisabled = Boolean(localStorage.getItem('auth_token')) && !hasSuggestions;
-
-  const hasVisibleSuggestions = (responses) => {
-    if (!Array.isArray(responses) || !responses.length) {
-      return false;
-    }
-    const latestByBank = new Map();
-    responses.forEach((response) => {
-      const bankId = Number(response?.bank_id);
-      if (!Number.isFinite(bankId)) {
-        return;
-      }
-      const previous = latestByBank.get(bankId);
-      if (!previous) {
-        latestByBank.set(bankId, response);
-        return;
-      }
-      const prevDate = new Date(previous?.uploaded_at || 0).getTime();
-      const nextDate = new Date(response?.uploaded_at || 0).getTime();
-      if (nextDate >= prevDate) {
-        latestByBank.set(bankId, response);
-      }
-    });
-
-    return Array.from(latestByBank.values()).some((response) => {
-      const calcResult = response?.extracted_json?.calculator_result || null;
-      const isRefinance =
-        Array.isArray(calcResult?.comparison_table) ||
-        (calcResult?.detailed_scenarios &&
-          typeof calcResult.detailed_scenarios === 'object');
-      if (isRefinance) return false;
-      return true;
-    });
-  };
-
-  useEffect(() => {
-    let isMounted = true;
-    const token = localStorage.getItem('auth_token');
-    if (!token) {
-      setUnreadCount(0);
-      setHasSuggestions(false);
-      return () => {
-        isMounted = false;
-      };
-    }
-
-    const loadNavigationState = async () => {
-      try {
-        const [notificationsResponse, suggestionsResponse] = await Promise.all([
-          fetch(`${getGatewayBase()}/auth/v1/notifications/me`, {
-            headers: {
-              'Authorization': `Bearer ${token}`,
-            },
-          }),
-          fetch(`${getGatewayBase()}/auth/v1/bank-responses/me`, {
-            headers: {
-              'Authorization': `Bearer ${token}`,
-            },
-          }),
-        ]);
-
-        if (!isMounted) return;
-
-        const notificationsPayload = await notificationsResponse.json().catch(() => null);
-        const suggestionsPayload = await suggestionsResponse.json().catch(() => null);
-
-        if (notificationsResponse.ok) {
-          const unread = Array.isArray(notificationsPayload)
-            ? notificationsPayload.filter((item) => !item.read_at).length
-            : 0;
-          setUnreadCount(unread);
-        } else {
-          setUnreadCount(0);
-        }
-
-        if (suggestionsResponse.ok) {
-          setHasSuggestions(hasVisibleSuggestions(Array.isArray(suggestionsPayload) ? suggestionsPayload : []));
-        } else {
-          setHasSuggestions(false);
-        }
-      } catch (error) {
-        if (!isMounted) return;
-        setUnreadCount(0);
-        setHasSuggestions(false);
-      }
-    };
-
-    loadNavigationState();
-
-    const notificationsHandler = () => {
-      loadNavigationState();
-    };
-    window.addEventListener('notifications:updated', notificationsHandler);
-    return () => {
-      isMounted = false;
-      window.removeEventListener('notifications:updated', notificationsHandler);
-    };
-  }, [location.pathname]);
+  const statusDisabled = Boolean(localStorage.getItem('auth_token')) && !hasPrincipalApproval;
 
   const handleDisabledNavigation = (event, isDisabled) => {
     if (!isDisabled) {
@@ -157,7 +60,16 @@ const StickyMobileMenu = () => {
            {/* {(isHome || isViewoffer) && (
              <li><Link to='/treatmentstatus'><img src={status} alt="" /><span>סטטוס</span></Link></li>
            )} */}
-           <li><Link to='/treatmentstatus' className={location.pathname === "/treatmentstatus" ? "active" : ""}><img src={status} alt="" /><span>סטטוס</span></Link></li>
+          <li>
+            <Link
+              to='/treatmentstatus'
+              className={`${location.pathname === "/treatmentstatus" && !statusDisabled ? "active" : ""} ${statusDisabled ? "is-disabled" : ""}`.trim()}
+              aria-disabled={statusDisabled}
+              onClick={(event) => handleDisabledNavigation(event, statusDisabled)}
+            >
+              <img src={status} alt="" /><span>סטטוס</span>
+            </Link>
+          </li>
           <li>
             <Link
               to='/suggestionspage'

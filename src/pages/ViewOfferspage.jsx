@@ -5,20 +5,26 @@ import '../components/viewofferscomponents/ViewOfferspage.css';
 
 import offer_i from "../assets/images/offer_i.png";
 import nextprevarrow from "../assets/images/np_arrow.svg";
-import hapoalimbankicon from "../assets/images/hapoalimbank-icon.svg";
-import nationalbank from "../assets/images/national_bank.png";
-import mizrahitefahotbank from "../assets/images/mfahot_bank.png";
+import timeicon from "../assets/images/tt.svg";
+import sandicon from "../assets/images/sandicon.png";
+import noteIcon from "../assets/images/note_i_o.svg";
 
 import { getGatewayBase } from "../utils/apiBase";
+import useCustomerProfile, { getCustomerDisplayName } from "../hooks/useCustomerProfile";
 
 // page components
 import YourRoutesMortgageDetails from '../components/commoncomponents/YourRoutesMortgageDetails';
 import AffordableOffer from '../components/viewofferscomponents/AffordableOffer';
-import OffersStatusSummary from '../components/viewofferscomponents/OffersStatusSummary';
+import StatusSummary from '../components/commoncomponents/StatusSummary';
 
-const DISCOUNT_BANK_LOGO_URL = "/discont.webp";
-const INTERNATIONAL_BANK_LOGO_URL = "/banks/international-logo.png";
-const MERCANTILE_BANK_LOGO_URL = "/Mercantile.svg.png";
+const BANK_LOGOS = {
+  hapoalim: "/banks/hapoalim.png",
+  leumi: "/banks/leumi.png",
+  mizrahi: "/banks/mizrahi.png",
+  discount: "/banks/discount.png",
+  international: "/banks/international.png",
+  mercantile: "/banks/mercantile.png",
+};
 const OFFER_SLIDE_DURATION_MS = 360;
 const SWIPE_THRESHOLD_PX = 48;
 const SWIPE_MAX_VERTICAL_DELTA_PX = 80;
@@ -26,58 +32,80 @@ const SWIPE_MAX_VERTICAL_DELTA_PX = 80;
 const BANK_LIST = [
   {
     id: 3,
-    bankLogo: hapoalimbankicon,
+    bankLogo: BANK_LOGOS.hapoalim,
     bankName: "בנק הפועלים",
   },
   {
     id: 2,
-    bankLogo: nationalbank,
+    bankLogo: BANK_LOGOS.leumi,
     bankName: "בנק לאומי",
   },
   {
     id: 1,
-    bankLogo: mizrahitefahotbank,
+    bankLogo: BANK_LOGOS.mizrahi,
     bankName: "בנק מזרחי טפחות",
   },
   {
     id: 4,
-    bankLogo: DISCOUNT_BANK_LOGO_URL,
+    bankLogo: BANK_LOGOS.discount,
     bankName: "בנק דיסקונט",
   },
   {
     id: 8,
-    bankLogo: INTERNATIONAL_BANK_LOGO_URL,
+    bankLogo: BANK_LOGOS.international,
     bankName: "בנק הבינלאומי",
   },
   {
     id: 12,
-    bankLogo: MERCANTILE_BANK_LOGO_URL,
+    bankLogo: BANK_LOGOS.mercantile,
     bankName: "בנק מרכנתיל",
   }
 ];
+
+const DEFAULT_BANK_IDS = BANK_LIST.map((bank) => bank.id);
+
+const normalizeAllowedBankIds = (ids, fallback = DEFAULT_BANK_IDS) => {
+  if (!Array.isArray(ids)) return [...fallback];
+  const allowed = new Set(ids.map((value) => Number(value)));
+  return DEFAULT_BANK_IDS.filter((id) => allowed.has(id));
+};
+
+const isRefinanceResult = (calcResult) =>
+  Array.isArray(calcResult?.comparison_table) ||
+  (calcResult?.detailed_scenarios && typeof calcResult.detailed_scenarios === "object");
+
+const isApprovalOfferResult = (calcResult) => {
+  if (!calcResult || typeof calcResult !== "object") return false;
+  if (isRefinanceResult(calcResult)) return false;
+  const proposedMix = calcResult?.proposed_mix;
+  if (!proposedMix || typeof proposedMix !== "object") return false;
+  return Boolean(
+    proposedMix?.summary ||
+    proposedMix?.metrics ||
+    proposedMix?.graph_data ||
+    (Array.isArray(proposedMix?.tracks_detail) && proposedMix.tracks_detail.length > 0)
+  );
+};
 
 const ViewOfferspage = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const apiBase = useMemo(() => getGatewayBase(), []);
-  const [offerBankIds, setOfferBankIds] = useState([]);
+  const [allowedBankIds, setAllowedBankIds] = useState([]);
+  const [visibilityLoaded, setVisibilityLoaded] = useState(false);
   const [bankResponses, setBankResponses] = useState([]);
   const [offersLoading, setOffersLoading] = useState(false);
   const [offersLoaded, setOffersLoaded] = useState(false);
   const [activeOfferIndex, setActiveOfferIndex] = useState(0);
+  const [pendingOfferIndex, setPendingOfferIndex] = useState(null);
   const [offerTransition, setOfferTransition] = useState(null);
   const [isOfferSlideRunning, setIsOfferSlideRunning] = useState(false);
   const slideTimeoutRef = useRef(null);
   const transitionTargetIndexRef = useRef(null);
   const touchStartRef = useRef(null);
-  const userData = useMemo(() => {
-    try {
-      return JSON.parse(localStorage.getItem("user_data")) || {};
-    } catch {
-      return {};
-    }
-  }, []);
-  const displayName = userData?.firstName || userData?.first_name || userData?.name || "שם";
+  const pendingRouteBankIdRef = useRef(null);
+  const { userData } = useCustomerProfile();
+  const displayName = getCustomerDisplayName(userData, "שם");
 
   const handleAuthFailure = () => {
     localStorage.removeItem("auth_token");
@@ -86,6 +114,45 @@ const ViewOfferspage = () => {
     localStorage.removeItem("new_mortgage_submitted");
     navigate("/login", { replace: true });
   };
+
+  useEffect(() => {
+    const token = localStorage.getItem("auth_token");
+    if (!token || !apiBase) return;
+    let isMounted = true;
+
+    const loadVisibility = async () => {
+      try {
+        const response = await fetch(`${apiBase}/auth/v1/customers/me/bank-visibility`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        if (response.status === 401 || response.status === 403) {
+          handleAuthFailure();
+          return;
+        }
+        if (!response.ok) {
+          throw new Error("Failed to load bank visibility");
+        }
+        const payload = await response.json().catch(() => null);
+        if (!isMounted) return;
+        setAllowedBankIds(normalizeAllowedBankIds(payload?.allowed_bank_ids, DEFAULT_BANK_IDS));
+      } catch {
+        if (!isMounted) return;
+        setAllowedBankIds(DEFAULT_BANK_IDS);
+      } finally {
+        if (isMounted) {
+          setVisibilityLoaded(true);
+        }
+      }
+    };
+
+    loadVisibility();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [apiBase]);
 
   useEffect(() => {
     const token = localStorage.getItem("auth_token");
@@ -109,9 +176,10 @@ const ViewOfferspage = () => {
         }
         const payload = await response.json().catch(() => null);
         if (!isMounted) return;
-        const responses = Array.isArray(payload) ? payload : [];
-        const ids = responses.map((item) => Number(item?.bank_id)).filter((id) => Number.isFinite(id));
-        setOfferBankIds(Array.from(new Set(ids)));
+        const responses = (Array.isArray(payload) ? payload : []).filter((item) => {
+          const calcResult = item?.extracted_json?.calculator_result;
+          return isApprovalOfferResult(calcResult);
+        });
         setBankResponses(responses);
         setOffersLoaded(true);
       } catch {
@@ -130,6 +198,46 @@ const ViewOfferspage = () => {
     };
   }, [apiBase]);
 
+  const approvedBanks = useMemo(() => {
+    if (allowedBankIds.length === 0) return [];
+    const known = BANK_LIST.filter((bank) => allowedBankIds.includes(bank.id));
+    const knownIds = new Set(known.map((bank) => bank.id));
+    const extras = allowedBankIds
+      .filter((id) => !knownIds.has(id))
+      .map((id) => ({
+        id,
+        bankLogo: '',
+        bankName: `בנק ${id}`,
+      }));
+    return [...known, ...extras];
+  }, [allowedBankIds]);
+
+  const allowedBankIdsSet = useMemo(
+    () => new Set(allowedBankIds),
+    [allowedBankIds]
+  );
+
+  const visibleBankResponses = useMemo(() => {
+    if (!visibilityLoaded || !allowedBankIds.length || !bankResponses.length) {
+      return [];
+    }
+    return bankResponses.filter((response) => {
+      const bankId = Number(response?.bank_id);
+      return Number.isFinite(bankId) && allowedBankIdsSet.has(bankId);
+    });
+  }, [allowedBankIds.length, allowedBankIdsSet, bankResponses, visibilityLoaded]);
+
+  const offerBankIds = useMemo(() => {
+    if (!visibleBankResponses.length) return [];
+    return Array.from(
+      new Set(
+        visibleBankResponses
+          .map((item) => Number(item?.bank_id))
+          .filter((id) => Number.isFinite(id))
+      )
+    );
+  }, [visibleBankResponses]);
+
   const offerBanks = useMemo(() => {
     if (offerBankIds.length === 0) return [];
     const known = BANK_LIST.filter((bank) => offerBankIds.includes(bank.id));
@@ -144,21 +252,38 @@ const ViewOfferspage = () => {
     return [...known, ...extras];
   }, [offerBankIds]);
 
-  useEffect(() => {
-    if (offersLoaded && !offersLoading && offerBankIds.length === 0) {
-      navigate('/homebeforeapproval2', { replace: true });
-    }
-  }, [offersLoaded, offersLoading, offerBankIds.length, navigate]);
+  const carouselBanks = useMemo(() => {
+    if (approvedBanks.length === 0) return offerBanks;
+    const merged = [...approvedBanks];
+    const mergedIds = new Set(approvedBanks.map((bank) => bank.id));
+    offerBanks.forEach((bank) => {
+      if (mergedIds.has(bank.id)) return;
+      merged.push(bank);
+      mergedIds.add(bank.id);
+    });
+    return merged;
+  }, [approvedBanks, offerBanks]);
 
   useEffect(() => {
-    if (offerBanks.length === 0) {
+    if (offersLoaded && !offersLoading && visibilityLoaded && offerBankIds.length === 0 && allowedBankIds.length === 0) {
+      navigate('/homebeforeapproval2', { replace: true });
+    }
+  }, [offersLoaded, offersLoading, visibilityLoaded, offerBankIds.length, allowedBankIds.length, navigate]);
+
+  useEffect(() => {
+    if (carouselBanks.length === 0) {
       setActiveOfferIndex(0);
+      setPendingOfferIndex(null);
       return;
     }
     setActiveOfferIndex((prev) => (
-      prev < 0 || prev >= offerBanks.length ? 0 : prev
+      prev < 0 || prev >= carouselBanks.length ? 0 : prev
     ));
-  }, [offerBanks.length]);
+    setPendingOfferIndex((prev) => {
+      if (prev === null) return null;
+      return prev < 0 || prev >= carouselBanks.length ? 0 : prev;
+    });
+  }, [carouselBanks.length]);
 
   useEffect(() => {
     return () => {
@@ -169,11 +294,8 @@ const ViewOfferspage = () => {
     };
   }, []);
 
-  const activeBank = offerBanks.length ? offerBanks[activeOfferIndex] : null;
-  const activeBankResponse = useMemo(() => {
-    if (!activeBank) return null;
-    return bankResponses.find((item) => Number(item?.bank_id) === activeBank.id) || null;
-  }, [activeBank, bankResponses]);
+  const effectiveOfferIndex = pendingOfferIndex !== null ? pendingOfferIndex : activeOfferIndex;
+  const activeBank = carouselBanks.length ? carouselBanks[effectiveOfferIndex] : null;
 
   const toNumber = (value) => {
     if (value === null || value === undefined || value === '') return null;
@@ -182,15 +304,37 @@ const ViewOfferspage = () => {
     return Number.isFinite(numeric) ? numeric : null;
   };
 
-  const getMetrics = (response) =>
-    response?.extracted_json?.calculator_result?.proposed_mix?.metrics || null;
+  const getDurationMonths = (monthsValue) => {
+    if (Array.isArray(monthsValue)) {
+      const numericMonths = monthsValue
+        .map((item) => toNumber(item))
+        .filter((item) => item !== null && item > 0);
+      if (!numericMonths.length) return null;
+      return numericMonths[numericMonths.length - 1];
+    }
+    return toNumber(monthsValue);
+  };
+
+  const getSummary = (response) =>
+    response?.extracted_json?.calculator_result?.proposed_mix?.summary ||
+    response?.extracted_json?.calculator_result?.proposed_mix?.metrics ||
+    null;
 
   const getSavings = (response) =>
     toNumber(response?.extracted_json?.calculator_result?.savings?.total_savings);
 
-  const formatValue = (value) => {
-    if (value === null || value === undefined || value === '') return '-';
-    return String(value);
+  const formatYears = (months, summary) => {
+    const numericMonths = getDurationMonths(months);
+    if (numericMonths !== null && numericMonths > 0) {
+      const years = Math.round((numericMonths / 12) * 10) / 10;
+      return String(years).replace(/\.0$/, '');
+    }
+    const fallbackYears =
+      summary?.['תקופה_מקסימלית'] ??
+      summary?.['תקופה_בשנים'] ??
+      summary?.['תקופה'];
+    if (fallbackYears === null || fallbackYears === undefined || fallbackYears === '') return '-';
+    return String(fallbackYears);
   };
 
   const formatMoney = (value) => {
@@ -202,49 +346,33 @@ const ViewOfferspage = () => {
     return `₪${numeric.toLocaleString('he-IL')}`;
   };
 
-  const metrics = getMetrics(activeBankResponse);
-  const mortgageData = activeBank
-    ? {
-        logobank: activeBank.bankLogo,
-        title: "המשכנתא שלך:",
-        expireoffertext: '',
-        details: {
-          bank: activeBank.bankName,
-          amount: formatMoney(metrics?.['סכום_הלוואה']),
-          years: formatValue(metrics?.['תקופה_מקסימלית']),
-          firstMonthlyPayment: formatMoney(metrics?.['החזר_חודשי_ראשון']),
-          maxMonthlyPayment: formatMoney(metrics?.['החזר_חודשי_מקסימלי']),
-        },
-        totalPayments: formatMoney(metrics?.['סהכ_החזר_כולל']),
-      }
-    : undefined;
-
   const mortgageDataByBankId = useMemo(() => {
     const map = new Map();
-    offerBanks.forEach((bank) => {
-      const response = bankResponses.find((item) => Number(item?.bank_id) === bank.id) || null;
-      const bankMetrics = getMetrics(response);
+    carouselBanks.forEach((bank) => {
+      const response = visibleBankResponses.find((item) => Number(item?.bank_id) === bank.id) || null;
+      const bankSummary = getSummary(response);
+      const months = response?.extracted_json?.calculator_result?.proposed_mix?.graph_data?.months;
       map.set(bank.id, {
         logobank: bank.bankLogo,
         title: "המשכנתא שלך:",
         expireoffertext: '',
         details: {
           bank: bank.bankName,
-          amount: formatMoney(bankMetrics?.['סכום_הלוואה']),
-          years: formatValue(bankMetrics?.['תקופה_מקסימלית']),
-          firstMonthlyPayment: formatMoney(bankMetrics?.['החזר_חודשי_ראשון']),
-          maxMonthlyPayment: formatMoney(bankMetrics?.['החזר_חודשי_מקסימלי']),
+          amount: formatMoney(bankSummary?.['סכום_הלוואה']),
+          years: formatYears(months, bankSummary),
+          firstMonthlyPayment: formatMoney(bankSummary?.['החזר_חודשי_ראשון']),
+          maxMonthlyPayment: formatMoney(bankSummary?.['החזר_חודשי_ראשון']),
         },
-        totalPayments: formatMoney(bankMetrics?.['סהכ_החזר_כולל']),
+        totalPayments: formatMoney(bankSummary?.['סהכ_החזר_משוער']),
       });
     });
     return map;
-  }, [offerBanks, bankResponses]);
+  }, [carouselBanks, visibleBankResponses]);
 
   const bestOffer = useMemo(() => {
-    if (!bankResponses.length) return null;
+    if (!visibleBankResponses.length) return null;
     const latestByBank = new Map();
-    bankResponses.forEach((response) => {
+    visibleBankResponses.forEach((response) => {
       const bankId = Number(response?.bank_id);
       if (!Number.isFinite(bankId)) return;
       const prev = latestByBank.get(bankId);
@@ -273,25 +401,47 @@ const ViewOfferspage = () => {
       }
     });
     return best;
-  }, [bankResponses, offerBanks]);
+  }, [visibleBankResponses, offerBanks]);
+
+  const offerBankIdsSet = useMemo(() => new Set(offerBankIds), [offerBankIds]);
+
+  const statusData = useMemo(() => ({
+    title: "ריכוז הסטטוסים שלי",
+    offertext: bestOffer?.bankName ? `ההצעה המשתלמת ביותר: ${bestOffer.bankName}` : '',
+    list: approvedBanks.map((bank) => {
+      const hasOffer = offerBankIdsSet.has(bank.id);
+      return {
+        bankLogo: bank.bankLogo,
+        bankName: bank.bankName,
+        statusText: hasOffer ? "אישור עקרוני" : "ממתין לאישור עקרוני",
+        statusClass: hasOffer ? "final_approval" : "awaiting_approval",
+        link: hasOffer
+          ? `/suggestionspage?bankId=${bank.id}`
+          : `/homebeforeapproval?bankId=${bank.id}&status=sent`,
+      };
+    }),
+  }), [approvedBanks, offerBankIdsSet, bestOffer?.bankName]);
 
   useEffect(() => {
     const params = new URLSearchParams(location.search || '');
     const bankIdParam = Number(params.get('bankId'));
-    if (!Number.isFinite(bankIdParam)) return;
-    const index = offerBanks.findIndex((bank) => bank.id === bankIdParam);
+    if (!Number.isFinite(bankIdParam)) {
+      pendingRouteBankIdRef.current = null;
+      return;
+    }
+    const pendingRouteBankId = pendingRouteBankIdRef.current;
+    if (pendingRouteBankId !== null && bankIdParam !== pendingRouteBankId) {
+      return;
+    }
+    if (pendingRouteBankId !== null && bankIdParam === pendingRouteBankId) {
+      pendingRouteBankIdRef.current = null;
+    }
+    const index = carouselBanks.findIndex((bank) => bank.id === bankIdParam);
     if (index >= 0 && index !== activeOfferIndex) {
+      setPendingOfferIndex(index);
       setActiveOfferIndex(index);
     }
-  }, [location.search, offerBanks, activeOfferIndex]);
-
-  const handleSelectBank = (bankId) => {
-    const index = offerBanks.findIndex((bank) => bank.id === bankId);
-    if (index >= 0) {
-      setActiveOfferIndex(index);
-    }
-    navigate(`/suggestionspage?bankId=${bankId}`);
-  };
+  }, [location.search, carouselBanks, activeOfferIndex]);
 
   const completeOfferSlide = useCallback(() => {
     const targetIndex = transitionTargetIndexRef.current;
@@ -301,25 +451,45 @@ const ViewOfferspage = () => {
       slideTimeoutRef.current = null;
     }
     if (typeof targetIndex === 'number') {
-      const normalized = offerBanks.length
-        ? ((targetIndex % offerBanks.length) + offerBanks.length) % offerBanks.length
+      const normalized = carouselBanks.length
+        ? ((targetIndex % carouselBanks.length) + carouselBanks.length) % carouselBanks.length
         : 0;
+      setPendingOfferIndex(normalized);
       setActiveOfferIndex(normalized);
-      const bankId = offerBanks[normalized]?.id;
+      const bankId = carouselBanks[normalized]?.id;
       if (bankId) {
+        pendingRouteBankIdRef.current = bankId;
         navigate(`/viewoffer?bankId=${bankId}`);
       }
     }
     setOfferTransition(null);
-    setIsOfferSlideRunning(false);
-  }, [navigate, offerBanks]);
+  }, [navigate, carouselBanks]);
+
+  useEffect(() => {
+    if (!offerTransition && isOfferSlideRunning) {
+      setIsOfferSlideRunning(false);
+    }
+  }, [offerTransition, isOfferSlideRunning]);
+
+  useEffect(() => {
+    if (pendingOfferIndex === null) return;
+    if (pendingOfferIndex !== activeOfferIndex) return;
+    const frameId = window.requestAnimationFrame(() => {
+      setPendingOfferIndex(null);
+    });
+    return () => {
+      window.cancelAnimationFrame(frameId);
+    };
+  }, [pendingOfferIndex, activeOfferIndex]);
 
   const startOfferSlide = useCallback((direction) => {
-    if (offerBanks.length <= 1 || offerTransition) return;
+    if (carouselBanks.length <= 1 || offerTransition) return;
+    pendingRouteBankIdRef.current = null;
+    setPendingOfferIndex(null);
 
     const nextIndex = direction === 'next'
-      ? (activeOfferIndex + 1) % offerBanks.length
-      : (activeOfferIndex - 1 + offerBanks.length) % offerBanks.length;
+      ? (activeOfferIndex + 1) % carouselBanks.length
+      : (activeOfferIndex - 1 + carouselBanks.length) % carouselBanks.length;
 
     transitionTargetIndexRef.current = nextIndex;
     setOfferTransition({
@@ -342,17 +512,17 @@ const ViewOfferspage = () => {
       completeOfferSlide,
       OFFER_SLIDE_DURATION_MS + 80
     );
-  }, [activeOfferIndex, completeOfferSlide, offerBanks.length, offerTransition]);
+  }, [activeOfferIndex, completeOfferSlide, carouselBanks.length, offerTransition]);
 
   useEffect(() => {
     if (!offerTransition) return;
-    if (!offerBanks[offerTransition.fromIndex] || !offerBanks[offerTransition.toIndex]) {
+    if (!carouselBanks[offerTransition.fromIndex] || !carouselBanks[offerTransition.toIndex]) {
       completeOfferSlide();
     }
-  }, [completeOfferSlide, offerBanks, offerTransition]);
+  }, [completeOfferSlide, carouselBanks, offerTransition]);
 
   const handleDetailsTouchStart = (event) => {
-    if (offerBanks.length <= 1 || offerTransition) return;
+    if (carouselBanks.length <= 1 || offerTransition) return;
     const touch = event.touches?.[0];
     if (!touch) return;
     touchStartRef.current = {
@@ -401,71 +571,111 @@ const ViewOfferspage = () => {
     startOfferSlide('next');
   };
 
-  const fromBank = offerTransition ? offerBanks[offerTransition.fromIndex] || null : null;
-  const toBank = offerTransition ? offerBanks[offerTransition.toIndex] || null : null;
-  const fromMortgageData = fromBank ? mortgageDataByBankId.get(fromBank.id) : mortgageData;
-  const toMortgageData = toBank ? mortgageDataByBankId.get(toBank.id) : mortgageData;
+  const renderAwaitingApprovalCard = useCallback((bank) => (
+    <div className="awaiting_offer_card awaiting_offer_card_mobile">
+      <div className="awaiting_offer_bank_title">
+        {bank ? (
+          <>
+            <span>
+              {bank.bankLogo ? (
+                <img src={bank.bankLogo} alt="" />
+              ) : null}
+            </span>
+            {/* <h3>{bank.bankName}</h3> */}
+          </>
+        ) : (
+          <h3>לא נמצאו בנקים להצגה</h3>
+        )}
+      </div>
+      <div className="tag"><img src={timeicon} alt="" />ממתין לאישור עקרוני</div>
+      <span className="notification"><img src={noteIcon} alt="" /></span>
+      <img src={sandicon} className="sandicon" alt="" />
+    </div>
+  ), []);
+
+  const renderBankCard = useCallback((bank) => {
+    if (!bank) return null;
+    if (!offerBankIdsSet.has(bank.id)) {
+      return renderAwaitingApprovalCard(bank);
+    }
+    return (
+      <YourRoutesMortgageDetails
+        data={mortgageDataByBankId.get(bank.id)}
+        themeColor="#D92D20"
+      />
+    );
+  }, [offerBankIdsSet, mortgageDataByBankId, renderAwaitingApprovalCard]);
+
+  const fromBank = offerTransition ? carouselBanks[offerTransition.fromIndex] || null : null;
+  const toBank = offerTransition ? carouselBanks[offerTransition.toIndex] || null : null;
   const outgoingTarget = offerTransition?.direction === 'next' ? '-100%' : '100%';
   const incomingStart = offerTransition?.direction === 'next' ? '100%' : '-100%';
   const slideTransitionStyle = isOfferSlideRunning
     ? `transform ${OFFER_SLIDE_DURATION_MS}ms cubic-bezier(0.22, 1, 0.36, 1), opacity ${OFFER_SLIDE_DURATION_MS}ms ease`
     : 'none';
-  const arrowDisabled = Boolean(offerTransition) || offerBanks.length <= 1;
+  const arrowDisabled = Boolean(offerTransition) || carouselBanks.length <= 1;
 
   return (
     <div className="viewoffers_page">
       <div className="wrapper">
         <h1>ברוכים הבאים, {displayName}</h1>
-        <div
-          style={{ position: 'relative', overflow: 'hidden', touchAction: 'pan-y' }}
-          onTouchStart={handleDetailsTouchStart}
-          onTouchMove={handleDetailsTouchMove}
-          onTouchEnd={handleDetailsTouchEnd}
-          onTouchCancel={handleDetailsTouchCancel}
-        >
-          {offerTransition ? (
-            <>
-              <div style={{ visibility: 'hidden' }}>
-                <YourRoutesMortgageDetails data={fromMortgageData} themeColor="#D92D20" />
-              </div>
-              <div
-                style={{
-                  position: 'absolute',
-                  top: 0,
-                  left: 0,
-                  width: '100%',
-                  transform: isOfferSlideRunning ? `translateX(${outgoingTarget})` : 'translateX(0%)',
-                  opacity: isOfferSlideRunning ? 0.2 : 1,
-                  transition: slideTransitionStyle,
-                  willChange: 'transform, opacity',
-                }}
-              >
-                <YourRoutesMortgageDetails data={fromMortgageData} themeColor="#D92D20" />
-              </div>
-              <div
-                style={{
-                  position: 'absolute',
-                  top: 0,
-                  left: 0,
-                  width: '100%',
-                  transform: isOfferSlideRunning ? 'translateX(0%)' : `translateX(${incomingStart})`,
-                  opacity: isOfferSlideRunning ? 1 : 0.85,
-                  transition: slideTransitionStyle,
-                  willChange: 'transform, opacity',
-                }}
-                onTransitionEnd={(event) => {
-                  if (event.propertyName !== 'transform') return;
-                  if (!offerTransition || !isOfferSlideRunning) return;
-                  completeOfferSlide();
-                }}
-              >
-                <YourRoutesMortgageDetails data={toMortgageData} themeColor="#D92D20" />
-              </div>
-            </>
-          ) : (
-            <YourRoutesMortgageDetails data={mortgageData} themeColor="#D92D20" />
-          )}
-        </div>
+        {carouselBanks.length > 0 ? (
+          <div
+            style={{ position: 'relative', overflow: 'hidden', touchAction: 'pan-y' }}
+            onTouchStart={handleDetailsTouchStart}
+            onTouchMove={handleDetailsTouchMove}
+            onTouchEnd={handleDetailsTouchEnd}
+            onTouchCancel={handleDetailsTouchCancel}
+          >
+            {offerTransition ? (
+              <>
+                <div style={{ visibility: 'hidden' }}>
+                  {renderBankCard(fromBank || activeBank)}
+                </div>
+                <div
+                  style={{
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    width: '100%',
+                    transform: isOfferSlideRunning ? `translateX(${outgoingTarget})` : 'translateX(0%)',
+                    opacity: isOfferSlideRunning ? 0.2 : 1,
+                    transition: slideTransitionStyle,
+                    willChange: 'transform, opacity',
+                  }}
+                >
+                  {renderBankCard(fromBank || activeBank)}
+                </div>
+                <div
+                  style={{
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    width: '100%',
+                    transform: isOfferSlideRunning ? 'translateX(0%)' : `translateX(${incomingStart})`,
+                    opacity: isOfferSlideRunning ? 1 : 0.85,
+                    transition: slideTransitionStyle,
+                    willChange: 'transform, opacity',
+                  }}
+                  onTransitionEnd={(event) => {
+                    if (event.propertyName !== 'transform') return;
+                    if (!offerTransition || !isOfferSlideRunning) return;
+                    completeOfferSlide();
+                  }}
+                >
+                  {renderBankCard(toBank || activeBank)}
+                </div>
+              </>
+            ) : (
+              renderBankCard(activeBank)
+            )}
+          </div>
+        ) : (
+          <div className="no_offers">
+            <h2>אין עדיין הצעה מבנק</h2>
+            <p>הבקשות ממשיכות להתעדכן. אפשר לעבור לסטטוס של כל בנק ברשימה למטה.</p>
+          </div>
+        )}
         <div className="inner d_flex d_flex_jb">
           <AffordableOffer savings={bestOffer?.savings} />
           <div className="offer_col">
@@ -474,13 +684,7 @@ const ViewOfferspage = () => {
             <p>בנק מזרחי ממתין למסמכי עו”ש על מנת להפניק הצעה עדכנית, נא לקדם את הנושא</p>
           </div>
           <div className="my_statuses_summary_sec d_flex d_flex_jb d_flex_as">
-            <h2>ריכוז הסטטוסים שלי</h2>
-            <OffersStatusSummary
-              banks={offerBanks}
-              bestBankId={bestOffer?.bankId}
-              bestBankName={bestOffer?.bankName}
-              onSelectBank={handleSelectBank}
-            />
+            <StatusSummary statusData={statusData} />
           </div>
         </div>
       </div>

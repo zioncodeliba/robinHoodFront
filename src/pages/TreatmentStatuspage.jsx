@@ -1,10 +1,12 @@
-import React, { useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import "../components/treatmentstatuscomponents/treatmentstatuspage.css";
 
 import noteicon from "../assets/images/note_i.svg";
 import yesicon from "../assets/images/yes.svg";
 import treatmentstatusImage from "../assets/images/treatmentstatus_img.png";
 import treatmentstatusImagemob from "../assets/images/treatmentstatus_img_mobile.png";
+import { getGatewayBase } from "../utils/apiBase";
 
 const stepsData = [
   "אישור עקרוני",
@@ -14,8 +16,107 @@ const stepsData = [
   "קבלת הכסף",
 ];
 
+const STEP_BY_STATUS = {
+  "אישור עקרוני": 1,
+  "שיחת תמהיל": 2,
+  "משא ומתן": 3,
+  "חתימות": 4,
+  "קבלת הכסף": 5,
+};
+
+const PRE_APPROVAL_STATUSES = new Set([
+  "",
+  "נרשם",
+  "שיחה עם הצ׳אט",
+  "העלאת קבצים",
+  "ממתין לאישור עקרוני",
+  "סיום צ׳אט בהצלחה",
+  "חוסר התאמה",
+]);
+
+const getStepFromCustomerStatus = (status) => {
+  const normalizedStatus = typeof status === "string" ? status.trim() : "";
+
+  if (STEP_BY_STATUS[normalizedStatus]) {
+    return STEP_BY_STATUS[normalizedStatus];
+  }
+
+  if (PRE_APPROVAL_STATUSES.has(normalizedStatus)) {
+    return 0;
+  }
+
+  if (normalizedStatus.includes("אישור עקרוני")) return 1;
+  if (normalizedStatus.includes("תמהיל")) return 2;
+  if (normalizedStatus.includes("משא ומתן")) return 3;
+  if (normalizedStatus.includes("חתימ")) return 4;
+  if (normalizedStatus.includes("קבלת הכסף")) return 5;
+
+  return 0;
+};
+
 const TreatmentStatuspage = () => {
-  const [currentStep] = useState(2); 
+  const navigate = useNavigate();
+  const apiBase = useMemo(() => getGatewayBase(), []);
+  const [customerStatus, setCustomerStatus] = useState("");
+  const [loadingStatus, setLoadingStatus] = useState(true);
+
+  const handleAuthFailure = useCallback(() => {
+    localStorage.removeItem("auth_token");
+    localStorage.removeItem("user_data");
+    localStorage.removeItem("mortgage_cycle_result");
+    localStorage.removeItem("new_mortgage_submitted");
+    navigate("/login", { replace: true });
+  }, [navigate]);
+
+  useEffect(() => {
+    const token = localStorage.getItem("auth_token");
+    if (!apiBase) return;
+    if (!token) {
+      handleAuthFailure();
+      return;
+    }
+
+    let isMounted = true;
+
+    const loadCustomerStatus = async () => {
+      try {
+        const response = await fetch(`${apiBase}/auth/v1/customers/me`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        if (response.status === 401 || response.status === 403) {
+          handleAuthFailure();
+          return;
+        }
+
+        if (!response.ok) {
+          throw new Error("Failed to load customer profile");
+        }
+
+        const payload = await response.json().catch(() => null);
+        if (!isMounted) return;
+        setCustomerStatus(payload?.status || "");
+      } catch {
+        if (isMounted) {
+          setCustomerStatus("");
+        }
+      } finally {
+        if (isMounted) {
+          setLoadingStatus(false);
+        }
+      }
+    };
+
+    loadCustomerStatus();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [apiBase, handleAuthFailure]);
+
+  const currentStep = loadingStatus ? 0 : getStepFromCustomerStatus(customerStatus);
 
   const totalSteps = stepsData.length;
   const completedSteps = currentStep;

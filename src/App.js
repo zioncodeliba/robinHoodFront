@@ -5,7 +5,7 @@ import './App.css';
 import leavesleft from './assets/images/leaves_left.png';
 import leavesright from './assets/images/leaves_right.png';
 
-import { BrowserRouter as Router, Routes, Route, useLocation, useNavigate } from 'react-router-dom';
+import { BrowserRouter as Router, Navigate, Routes, Route, useLocation, useNavigate } from 'react-router-dom';
 import { clearAffiliateCode, setAffiliateCode } from './utils/affiliate';
 
 // Component
@@ -13,6 +13,7 @@ import Header from './components/Header';
 import StickyMobileMenu from './components/StickyMobileMenu';
 import ProtectedRoute from './components/ProtectedRoute';
 import AffiliateRoute from './components/AffiliateRoute';
+import { NavStateProvider } from './context/NavStateContext';
 
 //pages
 import Registration from './pages/Registrationpage';
@@ -32,20 +33,19 @@ import AppointmentConfirmationpage from './pages/AppointmentConfirmationpage';
 import ViewOfferspage from './pages/ViewOfferspage';
 import Simulatorpage from './pages/Simulatorpage';
 import Suggestionspage from './pages/Suggestionspage';
-import InternationalSuggestionCardPreview from './pages/InternationalSuggestionCardPreview';
-import InternationalSuggestionCardPreviewv2 from './pages/InternationalSuggestionCardPreviewv2';
-import AnimaBoxPreview from './pages/AnimaBoxPreview';
+// import InternationalSuggestionCardPreview from './pages/InternationalSuggestionCardPreview';
+// import InternationalSuggestionCardPreviewv2 from './pages/InternationalSuggestionCardPreviewv2';
+// import AnimaBoxPreview from './pages/AnimaBoxPreview';
 import HomeBeforeApproval from './pages/HomeBeforeApproval';
 import HomeBeforeApproval2 from './pages/HomeBeforeApproval2';
 import BrokerHomepage from './pages/BrokerHomepage';
 
 import ExplanationScreen1 from './pages/ExplanationScreen1';
-import ExplanationScreen2 from './pages/ExplanationScreen2';
 import OtpScreen from './pages/OtpScreen';
 import OtpVerify from './pages/OtpVerify';
-import OtpVerifyCopy from './pages/OtpVerify copy';
+// import OtpVerifyCopy from './pages/OtpVerify copy';
 import AIChatpage from './pages/AIChatpage';
-import AIChatpageStatic from './pages/AIChatpageStatic';
+// import AIChatpageStatic from './pages/AIChatpageStatic';
 
 const PREVIEW_PREFIX = '/preview';
 
@@ -55,9 +55,9 @@ const PREVIEW_ROUTES = [
   { slug: 'registrationpage', element: <Registration /> },
   { slug: 'otpscreen', element: <OtpScreen /> },
   { slug: 'otpverify', element: <OtpVerify /> },
-  { slug: 'otpverify-copy', element: <OtpVerifyCopy /> },
+  // { slug: 'otpverify-copy', element: <OtpVerifyCopy /> },
   { slug: 'explanationscreen1', element: <ExplanationScreen1 /> },
-  { slug: 'explanationscreen2', element: <ExplanationScreen2 /> },
+  { slug: 'explanationscreen2', element: <ExplanationScreen1 initialStep={1} /> },
   { slug: 'mortgagepage', element: <MortgagePage /> },
   { slug: 'mortgagecyclecheck', element: <MortgageCycleCheck /> },
   { slug: 'mortgagecyclepage', element: <MortgageCyclepage /> },
@@ -67,9 +67,9 @@ const PREVIEW_ROUTES = [
   { slug: 'viewofferspage', element: <ViewOfferspage /> },
   { slug: 'simulatorpage', element: <Simulatorpage /> },
   { slug: 'suggestionspage', element: <Suggestionspage /> },
-  { slug: 'internationalsuggestioncard', element: <InternationalSuggestionCardPreview /> },
-  { slug: 'internationalsuggestioncardv2', element: <InternationalSuggestionCardPreviewv2 /> },
-  { slug: 'animaboxcard', element: <AnimaBoxPreview /> },
+  // { slug: 'internationalsuggestioncard', element: <InternationalSuggestionCardPreview /> },
+  // { slug: 'internationalsuggestioncardv2', element: <InternationalSuggestionCardPreviewv2 /> },
+  // { slug: 'animaboxcard', element: <AnimaBoxPreview /> },
   { slug: 'homebeforeapproval', element: <HomeBeforeApproval /> },
   { slug: 'homebeforeapproval2', element: <HomeBeforeApproval2 /> },
   { slug: 'notificationspage', element: <Notificationspage /> },
@@ -77,7 +77,7 @@ const PREVIEW_ROUTES = [
   { slug: 'treatmentstatuspage', element: <TreatmentStatuspage /> },
   { slug: 'brokerhomepage', element: <BrokerHomepage /> },
   { slug: 'aichatpage', element: <AIChatpage /> },
-  { slug: 'aichatpagestatic', element: <AIChatpageStatic /> },
+  // { slug: 'aichatpagestatic', element: <AIChatpageStatic /> },
 ];
 
 const PATH_ALIASES = {
@@ -85,12 +85,11 @@ const PATH_ALIASES = {
   '/registrationpage': '/registration',
   '/otpscreen': '/login-with-otp',
   '/otpverify': '/otp-verify',
-  '/otpverify-copy': '/otp-verify',
   '/explanationscreen1': '/explanation-screen',
   '/explanationscreen2': '/explanation-screen2',
   '/appointmentconfirmationpage': '/appointment',
   '/aichatpage': '/aichat',
-  '/aichatpagestatic': '/aichat-static',
+
 };
 
 function AppWrapper() {
@@ -191,60 +190,62 @@ function AppWrapper() {
 
 
   return (
-    <div className={`App ${(exscreenBg ? "exscreenhideheader " : "")}`}>
+    <NavStateProvider>
+      <div className={`App ${(exscreenBg ? "exscreenhideheader " : "")}`}>
 
-      {(!isDesktop || !hideHeader) &&
-        <Header />
-      }
+        {(!isDesktop || !hideHeader) &&
+          <Header />
+        }
 
-      {/* <div className={`main ${appointmentBg ? "appointmentBg" : ""} ${hidepans ? "test" : ""}`} > */}
-      <div className={`main ${(appointmentBg ? "appointmentBg " : "")} ${(exscreenBg ? "exscreenBg " : "")} ${(hidepan ? "hidepan" : "")} `}>
+        {/* <div className={`main ${appointmentBg ? "appointmentBg" : ""} ${hidepans ? "test" : ""}`} > */}
+        <div className={`main ${(appointmentBg ? "appointmentBg " : "")} ${(exscreenBg ? "exscreenBg " : "")} ${(hidepan ? "hidepan" : "")} `}>
 
-        <img src={leavesleft} alt="" className='l_left' />
-        <img src={leavesright} alt="" className='l_right' />
+          <img src={leavesleft} alt="" className='l_left' />
+          <img src={leavesright} alt="" className='l_right' />
 
-        <Routes>
-          {/* Public routes */}
-          <Route path="/" element={<LandingRoute />} />
-          <Route path="/registration" element={<Registration />} />
-          <Route path="/login" element={<Loginpage />} />
-          <Route path="/login-with-otp" element={<OtpScreen />} />
-          <Route path="/otp-verify" element={<OtpVerify />} />
+          <Routes>
+            {/* Public routes */}
+            <Route path="/" element={<LandingRoute />} />
+            <Route path="/registration" element={<Registration />} />
+            <Route path="/login" element={<Loginpage />} />
+            <Route path="/login-with-otp" element={<OtpScreen />} />
+            <Route path="/otp-verify" element={<OtpVerify />} />
 
-          {/* Protected routes */}
-          <Route path="/new-loan" element={<ProtectedRoute><MortgagePage /></ProtectedRoute>} />
-          <Route path="/recycle-loan" element={<ProtectedRoute><MortgageCycleCheck /></ProtectedRoute>} />
-          <Route path="/notifications" element={<ProtectedRoute><Notificationspage /></ProtectedRoute>} />
-          <Route path="/settings" element={<ProtectedRoute><Settingspage /></ProtectedRoute>} />
-          <Route path="/treatmentstatus" element={<ProtectedRoute><TreatmentStatuspage /></ProtectedRoute>} />
-          <Route path="/treatmentstatuspage" element={<ProtectedRoute><TreatmentStatuspage /></ProtectedRoute>} />
-          <Route path="/mortgagecyclepage" element={<ProtectedRoute><MortgageCyclepage /></ProtectedRoute>} />
-          <Route path="/noofferfound" element={<ProtectedRoute><NoofferFoundpage /></ProtectedRoute>} />
-          <Route path="/schedulemeetings" element={<ProtectedRoute><ScheduleMeetingspage /></ProtectedRoute>} />
-          <Route path="/appointment" element={<ProtectedRoute><AppointmentConfirmationpage /></ProtectedRoute>} />
-          <Route path="/viewoffer" element={<ProtectedRoute><ViewOfferspage /></ProtectedRoute>} />
-          <Route path="/simulatorpage" element={<ProtectedRoute><Simulatorpage /></ProtectedRoute>} />
-          <Route path="/suggestionspage" element={<ProtectedRoute><Suggestionspage /></ProtectedRoute>} />
-          <Route path="/homebeforeapproval" element={<ProtectedRoute><HomeBeforeApproval /></ProtectedRoute>} />
-          <Route path="/homebeforeapproval2" element={<ProtectedRoute><HomeBeforeApproval2 /></ProtectedRoute>} />
-          <Route path="/brokerhomepage" element={<AffiliateRoute><BrokerHomepage /></AffiliateRoute>} />
-          <Route path="/explanation-screen" element={<ExplanationScreen1 />} />
-          <Route path="/explanation-screen2" element={<ExplanationScreen2 />} />
-          <Route path="/aichat" element={<ProtectedRoute><AIChatpage /></ProtectedRoute>} />
-          <Route path="/aichat-static" element={<ProtectedRoute><AIChatpageStatic /></ProtectedRoute>} />
+            {/* Protected routes */}
+            <Route path="/new-loan" element={<ProtectedRoute><MortgagePage /></ProtectedRoute>} />
+            <Route path="/recycle-loan" element={<ProtectedRoute><MortgageCycleCheck /></ProtectedRoute>} />
+            <Route path="/notifications" element={<ProtectedRoute><Notificationspage /></ProtectedRoute>} />
+            <Route path="/settings" element={<ProtectedRoute><Settingspage /></ProtectedRoute>} />
+            <Route path="/treatmentstatus" element={<ProtectedRoute><TreatmentStatuspage /></ProtectedRoute>} />
+            <Route path="/treatmentstatuspage" element={<ProtectedRoute><TreatmentStatuspage /></ProtectedRoute>} />
+            <Route path="/mortgagecyclepage" element={<ProtectedRoute><MortgageCyclepage /></ProtectedRoute>} />
+            <Route path="/noofferfound" element={<ProtectedRoute><NoofferFoundpage /></ProtectedRoute>} />
+            <Route path="/schedulemeetings" element={<ProtectedRoute><ScheduleMeetingspage /></ProtectedRoute>} />
+            <Route path="/appointment" element={<ProtectedRoute><AppointmentConfirmationpage /></ProtectedRoute>} />
+            <Route path="/viewoffer" element={<ProtectedRoute><ViewOfferspage /></ProtectedRoute>} />
+            <Route path="/simulatorpage" element={<ProtectedRoute><Simulatorpage /></ProtectedRoute>} />
+            <Route path="/suggestionspage" element={<ProtectedRoute><Suggestionspage /></ProtectedRoute>} />
+            <Route path="/homebeforeapproval" element={<ProtectedRoute><HomeBeforeApproval /></ProtectedRoute>} />
+            <Route path="/homebeforeapproval2" element={<ProtectedRoute><HomeBeforeApproval2 /></ProtectedRoute>} />
+            <Route path="/brokerhomepage" element={<AffiliateRoute><BrokerHomepage /></AffiliateRoute>} />
+            <Route path="/explanation-screen" element={<ExplanationScreen1 />} />
+            <Route path="/explanation-screen2" element={<Navigate to="/explanation-screen" replace />} />
+            <Route path="/aichat" element={<ProtectedRoute><AIChatpage /></ProtectedRoute>} />
+            {/* <Route path="/aichat-static" element={<ProtectedRoute><AIChatpageStatic /></ProtectedRoute>} /> */}
 
-          {PREVIEW_ROUTES.map(({ slug, element }) => (
-            <Route key={slug} path={`${PREVIEW_PREFIX}/${slug}`} element={element} />
-          ))}
-        </Routes>
+            {PREVIEW_ROUTES.map(({ slug, element }) => (
+              <Route key={slug} path={`${PREVIEW_PREFIX}/${slug}`} element={element} />
+            ))}
+          </Routes>
+
+        </div>
+
+        {!HidestickyMenu && (
+          <StickyMobileMenu />
+        )}
 
       </div>
-
-      {!HidestickyMenu && (
-        <StickyMobileMenu />
-      )}
-
-    </div>
+    </NavStateProvider>
   );
 }
 

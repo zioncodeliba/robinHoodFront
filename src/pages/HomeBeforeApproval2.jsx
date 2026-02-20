@@ -10,26 +10,30 @@ import offericon from "../assets/images/offer_i.svg";
 import sandicon from "../assets/images/sandicon.png";
 import noteIcon from "../assets/images/note_i_o.svg";
 
-// import hapoalimbankicon from "../assets/images/bank_hapoalim.png";
-import hapoalimbankicon from "../assets/images/hapoalimbank-icon.svg";
-import nationalbank from "../assets/images/national_bank.png";
-import mizrahitefahotbank from "../assets/images/mfahot_bank.png";
-import allbanksicon from "../assets/images/bank_all.svg";
-
 import { getGatewayBase } from "../utils/apiBase";
+import {
+    getDefaultAllowedBankIds,
+    hasSupportedMortgageType,
+} from "../utils/customerFlowRouting";
+import useCustomerProfile, { getCustomerDisplayName } from "../hooks/useCustomerProfile";
 
 // components
 import FrequentlyQuestions from '../components/beforeapprovalcomponents/FrequentlyQuestions';
 import StatusSummary from '../components/commoncomponents/StatusSummary';
 
-const DISCOUNT_BANK_LOGO_URL = "/discont.webp";
-const INTERNATIONAL_BANK_LOGO_URL = "/banks/international-logo.png";
-const MERCANTILE_BANK_LOGO_URL = "/Mercantile.svg.png";
+const BANK_LOGOS = {
+    hapoalim: "/banks/hapoalim.png",
+    leumi: "/banks/leumi.png",
+    mizrahi: "/banks/mizrahi.png",
+    discount: "/banks/discount.png",
+    international: "/banks/international.png",
+    mercantile: "/banks/mercantile.png",
+};
 
 const BANK_LIST = [
     {
         id: 3,
-        bankLogo: hapoalimbankicon,
+        bankLogo: BANK_LOGOS.hapoalim,
         bankName: "בנק הפועלים",
         statusText: "ממתין לאישור עקרוני",
         statusClass: "awaiting_approval",
@@ -37,7 +41,7 @@ const BANK_LIST = [
     },
     {
         id: 2,
-        bankLogo: nationalbank,
+        bankLogo: BANK_LOGOS.leumi,
         bankName: "בנק לאומי",
         statusText: "ממתין לאישור עקרוני",
         statusClass: "awaiting_approval",
@@ -45,7 +49,7 @@ const BANK_LIST = [
     },
     {
         id: 1,
-        bankLogo: mizrahitefahotbank,
+        bankLogo: BANK_LOGOS.mizrahi,
         bankName: "בנק מזרחי טפחות",
         statusText: "ממתין לאישור עקרוני",
         statusClass: "awaiting_approval",
@@ -53,7 +57,7 @@ const BANK_LIST = [
     },
     {
         id: 4,
-        bankLogo: DISCOUNT_BANK_LOGO_URL,
+        bankLogo: BANK_LOGOS.discount,
         bankName: "בנק דיסקונט",
         statusText: "ממתין לאישור עקרוני",
         statusClass: "awaiting_approval",
@@ -61,7 +65,7 @@ const BANK_LIST = [
     },
     {
         id: 8,
-        bankLogo: INTERNATIONAL_BANK_LOGO_URL,
+        bankLogo: BANK_LOGOS.international,
         bankName: "בנק הבינלאומי",
         statusText: "ממתין לאישור עקרוני",
         statusClass: "awaiting_approval",
@@ -69,7 +73,7 @@ const BANK_LIST = [
     },
     {
         id: 12,
-        bankLogo: MERCANTILE_BANK_LOGO_URL,
+        bankLogo: BANK_LOGOS.mercantile,
         bankName: "בנק מרכנתיל",
         statusText: "ממתין לאישור עקרוני",
         statusClass: "awaiting_approval",
@@ -79,10 +83,27 @@ const BANK_LIST = [
 
 const DEFAULT_BANK_IDS = BANK_LIST.map((item) => item.id);
 
-const normalizeAllowedBankIds = (ids) => {
-    if (!Array.isArray(ids)) return DEFAULT_BANK_IDS;
+const normalizeAllowedBankIds = (ids, fallback = DEFAULT_BANK_IDS) => {
+    if (!Array.isArray(ids)) return [...fallback];
     const allowed = new Set(ids.map((value) => Number(value)));
     return DEFAULT_BANK_IDS.filter((id) => allowed.has(id));
+};
+
+const isRefinanceResult = (calcResult) =>
+    Array.isArray(calcResult?.comparison_table) ||
+    (calcResult?.detailed_scenarios && typeof calcResult.detailed_scenarios === "object");
+
+const isApprovalOfferResult = (calcResult) => {
+    if (!calcResult || typeof calcResult !== "object") return false;
+    if (isRefinanceResult(calcResult)) return false;
+    const proposedMix = calcResult?.proposed_mix;
+    if (!proposedMix || typeof proposedMix !== "object") return false;
+    return Boolean(
+        proposedMix?.summary ||
+        proposedMix?.metrics ||
+        proposedMix?.graph_data ||
+        (Array.isArray(proposedMix?.tracks_detail) && proposedMix.tracks_detail.length > 0)
+    );
 };
 
 const HEADER_SLIDE_DURATION_MS = 600;
@@ -92,7 +113,13 @@ const SWIPE_MAX_VERTICAL_DELTA_PX = 80;
 const HomeBeforeApproval2 = () => {
     const navigate = useNavigate();
     const apiBase = useMemo(() => getGatewayBase(), []);
-    const [allowedBankIds, setAllowedBankIds] = useState(DEFAULT_BANK_IDS);
+    const { userData } = useCustomerProfile();
+    const mortgageType = String(userData?.mortgageType || userData?.mortgage_type || "").trim();
+    const defaultAllowedBankIds = useMemo(
+        () => (hasSupportedMortgageType(mortgageType) ? getDefaultAllowedBankIds(mortgageType) : []),
+        [mortgageType]
+    );
+    const [allowedBankIds, setAllowedBankIds] = useState(defaultAllowedBankIds);
     const [approvedBankIds, setApprovedBankIds] = useState([]);
     const [activeMobileBankIndex, setActiveMobileBankIndex] = useState(0);
     const [headerTransition, setHeaderTransition] = useState(null);
@@ -100,21 +127,14 @@ const HomeBeforeApproval2 = () => {
     const slideTimeoutRef = useRef(null);
     const transitionTargetIndexRef = useRef(null);
     const touchStartRef = useRef(null);
-    const userData = useMemo(() => {
-        try {
-            return JSON.parse(localStorage.getItem("user_data")) || {};
-        } catch {
-            return {};
-        }
-    }, []);
-    const displayName = userData?.firstName || userData?.first_name || userData?.name || "שם";
-    const handleAuthFailure = () => {
+    const displayName = getCustomerDisplayName(userData, "שם");
+    const handleAuthFailure = useCallback(() => {
         localStorage.removeItem("auth_token");
         localStorage.removeItem("user_data");
         localStorage.removeItem("mortgage_cycle_result");
         localStorage.removeItem("new_mortgage_submitted");
         navigate("/login", { replace: true });
-    };
+    }, [navigate]);
 
     const questionsdata = [
         {
@@ -130,6 +150,10 @@ const HomeBeforeApproval2 = () => {
             answer: "אפשר לבטל את הבקשה כל עוד היא עדיין לא יצאה לטיפול.  אם התהליך כבר התחיל – לא ניתן לבטל, אבל תמיד אפשר לפנות אלינו וננסה לעזור."
         }
     ];
+
+    useEffect(() => {
+        setAllowedBankIds(defaultAllowedBankIds);
+    }, [defaultAllowedBankIds]);
 
     useEffect(() => {
         const token = localStorage.getItem("auth_token");
@@ -152,9 +176,10 @@ const HomeBeforeApproval2 = () => {
                 }
                 const payload = await response.json().catch(() => null);
                 if (!isMounted) return;
-                setAllowedBankIds(normalizeAllowedBankIds(payload?.allowed_bank_ids));
+                setAllowedBankIds(normalizeAllowedBankIds(payload?.allowed_bank_ids, defaultAllowedBankIds));
             } catch {
-                // Keep defaults on failure
+                if (!isMounted) return;
+                setAllowedBankIds(defaultAllowedBankIds);
             }
         };
 
@@ -163,7 +188,7 @@ const HomeBeforeApproval2 = () => {
         return () => {
             isMounted = false;
         };
-    }, [apiBase]);
+    }, [apiBase, defaultAllowedBankIds, handleAuthFailure]);
 
     useEffect(() => {
         const token = localStorage.getItem("auth_token");
@@ -187,7 +212,13 @@ const HomeBeforeApproval2 = () => {
                 const payload = await response.json().catch(() => null);
                 if (!isMounted) return;
                 const ids = Array.isArray(payload)
-                    ? payload.map((item) => Number(item?.bank_id)).filter((id) => Number.isFinite(id))
+                    ? payload
+                        .filter((item) => {
+                            const calcResult = item?.extracted_json?.calculator_result;
+                            return isApprovalOfferResult(calcResult);
+                        })
+                        .map((item) => Number(item?.bank_id))
+                        .filter((id) => Number.isFinite(id))
                     : [];
                 setApprovedBankIds(Array.from(new Set(ids)));
             } catch {
@@ -200,15 +231,21 @@ const HomeBeforeApproval2 = () => {
         return () => {
             isMounted = false;
         };
-    }, [apiBase]);
+    }, [apiBase, handleAuthFailure]);
 
     const visibleBanks = useMemo(
         () => BANK_LIST.filter((bank) => allowedBankIds.includes(bank.id)),
         [allowedBankIds]
     );
 
+    const approvedVisibleBankIds = useMemo(() => {
+        if (!allowedBankIds.length || !approvedBankIds.length) return [];
+        const allowedSet = new Set(allowedBankIds);
+        return approvedBankIds.filter((bankId) => allowedSet.has(bankId));
+    }, [allowedBankIds, approvedBankIds]);
+
     const statusList = useMemo(() => {
-        const approvedSet = new Set(approvedBankIds);
+        const approvedSet = new Set(approvedVisibleBankIds);
         return visibleBanks.map((bank) => {
             const isApproved = approvedSet.has(bank.id);
             const statusText = isApproved ? "אישור עקרוני" : "ממתין לאישור עקרוני";
@@ -216,13 +253,13 @@ const HomeBeforeApproval2 = () => {
             const link = `/homebeforeapproval?bankId=${bank.id}&status=sent`;
             return { ...bank, statusText, statusClass, link };
         });
-    }, [visibleBanks, approvedBankIds]);
+    }, [visibleBanks, approvedVisibleBankIds]);
 
     useEffect(() => {
-        if (approvedBankIds.length > 0) {
+        if (approvedVisibleBankIds.length > 0) {
             navigate('/viewoffer', { replace: true });
         }
-    }, [approvedBankIds, navigate]);
+    }, [approvedVisibleBankIds, navigate]);
 
     useEffect(() => {
         if (statusList.length === 0) {
@@ -252,9 +289,12 @@ const HomeBeforeApproval2 = () => {
         list: statusList
     };
 
-    const summaryText = allowedBankIds.length === DEFAULT_BANK_IDS.length
-        ? "הבקשה נשלחה לכל הבנקים"
-        : "הבקשה נשלחה לבנקים שנבחרו";
+    const waitingForAdminSelection = allowedBankIds.length === 0;
+    const summaryText = waitingForAdminSelection
+        ? "ממתין לבחירת בנקים על ידי הצוות"
+        : allowedBankIds.length === DEFAULT_BANK_IDS.length
+            ? "הבקשה נשלחה לכל הבנקים"
+            : "הבקשה נשלחה לבנקים שנבחרו";
     const mobileBank = statusList.length ? statusList[activeMobileBankIndex] : null;
 
     const completeHeaderSlide = useCallback(() => {
@@ -392,10 +432,7 @@ const HomeBeforeApproval2 = () => {
     <div className="homebefore_approval_page ">
         <div className="wrapper">
             <h1>ברוכים הבאים, {displayName}</h1>
-            {/* <div className="bank_title">
-                {/* <span><img src={allbanksicon} alt="" /></span>
-                <h3>{summaryText}</h3> 
-            </div> */}
+            
             <div
                 className="mobile_header_slider"
                 style={{ position: "relative", overflow: "hidden", touchAction: "pan-y" }}
@@ -463,7 +500,11 @@ const HomeBeforeApproval2 = () => {
                     <div className="offer_col">
                         <img src={offericon} alt="" />
                         <h4>מידע חשוב</h4>
-                        <p>נשלח בקשה לאישור עקרוני לכלל הבנקים כשיתקבלו האישורים ישלח עדכון</p>
+                        <p>
+                            {waitingForAdminSelection
+                                ? `${summaryText}. החישוב הזמני מוכן. הצוות בודק ובוחר עבורך בנקים להצגה, וברגע שזה יקרה נראה כאן את הסטטוסים.`
+                                : `${summaryText}. כשיתקבלו אישורים יישלח עדכון.`}
+                        </p>
                     </div>
                     <FrequentlyQuestions questionsdata={questionsdata} />
                     <StatusSummary statusData={statusData} />

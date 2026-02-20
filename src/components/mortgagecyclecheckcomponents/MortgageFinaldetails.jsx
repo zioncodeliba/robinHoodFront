@@ -2,6 +2,17 @@ import React from "react";
 
 
 const MortgageFinaldetails = ({ bankId, amount, onBankIdChange, onAmountChange }) => {
+  const stripToDigits = (value) => String(value || "").replace(/[^\d]/g, "");
+  const formatDigitsWithCommas = (value) => {
+    const digits = stripToDigits(value).replace(/^0+(?=\d)/, "");
+    if (!digits) return "";
+    return digits.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+  };
+
+  const handleAmountChange = (event) => {
+    onAmountChange(formatDigitsWithCommas(event.target.value));
+  };
+
   const bankOptions = [
     { value: "1", label: "מזרחי-טפחות" },
     { value: "2", label: "לאומי" },
@@ -35,10 +46,11 @@ const MortgageFinaldetails = ({ bankId, amount, onBankIdChange, onAmountChange }
               <input
                 type="text"
                 inputMode="numeric"
+                pattern="[0-9,]*"
                 className="in"
                 placeholder="נא להקליד כאן סכום..."
                 value={amount}
-                onChange={(e) => onAmountChange(e.target.value)}
+                onChange={handleAmountChange}
               />
             </div>
         </div>

@@ -9,6 +9,24 @@ const BANK_LABELS = {
   12: "מרכנתיל",
 };
 
+const BANK_LOGOS = {
+  1: "/banks/mizrahi.png",
+  2: "/banks/leumi.png",
+  3: "/banks/hapoalim.png",
+  4: "/banks/discount.png",
+  8: "/banks/international.png",
+  12: "/banks/mercantile.png",
+};
+
+const BANK_COLORS = {
+  1: "#F5821F",
+  2: "#007BFF",
+  3: "#D92D20",
+  4: "#27450E",
+  8: "#FDB726",
+  12: "#27450E",
+};
+
 const LOAN_TYPE_LABELS = {
   1: "פריים",
   2: 'קל"צ',
@@ -56,6 +74,15 @@ const formatRate = (value) => {
   }
   const formatted = num.toFixed(2).replace(/\.00$/, "");
   return `${formatted}%`;
+};
+
+const formatYearsCount = (value) => {
+  const num = toOptionalNumber(value);
+  if (num === null || num <= 0) {
+    return "—";
+  }
+  const formatted = num.toFixed(1).replace(/\.0$/, "");
+  return formatted;
 };
 
 const formatYears = (months) => {
@@ -112,7 +139,20 @@ export const getCalculatorResult = (payload) =>
   payload?.extracted_json?.calculator_result ?? null;
 
 const SCENARIO_CURRENT = "משכנתא נוכחית";
-const SCENARIO_OPTIMAL = "משכנתא מחזור אופטימלי";
+const NO_SAVING_BEST_RESULT = "there is no saving!!";
+
+const normalizeScenarioName = (value) =>
+  String(value ?? "")
+    .trim()
+    .replace(/\s+/g, " ")
+    .toLowerCase();
+
+const getBestResultScenarioName = (calcResult) =>
+  String(calcResult?.best_res?.name ?? "").trim();
+
+const isNoSavingBestResult = (calcResult) =>
+  normalizeScenarioName(getBestResultScenarioName(calcResult)) ===
+  normalizeScenarioName(NO_SAVING_BEST_RESULT);
 
 const getComparisonTable = (calcResult) =>
   Array.isArray(calcResult?.comparison_table) ? calcResult.comparison_table : [];
@@ -131,21 +171,27 @@ const getComparisonRow = (calcResult, preferredNames) => {
     return null;
   }
   for (const name of preferredNames) {
-    const row = table.find((item) => item?.["תרחיש"] === name);
-    if (row) {
-      return row;
+    const normalizedName = normalizeScenarioName(name);
+    if (!normalizedName) {
+      continue;
     }
+    const row =
+      table.find((item) => normalizeScenarioName(item?.["תרחיש"]) === normalizedName) || null;
+    if (row) return row;
   }
   return null;
 };
 
 const getScenario = (calcResult, preferredNames) => {
   const scenarios = getDetailedScenarios(calcResult);
+  const scenarioEntries = Object.entries(scenarios);
   for (const name of preferredNames) {
-    const scenario = scenarios[name];
-    if (scenario && typeof scenario === "object") {
-      return scenario;
-    }
+    const normalizedName = normalizeScenarioName(name);
+    if (!normalizedName) continue;
+    const match = scenarioEntries.find(
+      ([scenarioName]) => normalizeScenarioName(scenarioName) === normalizedName
+    );
+    if (match?.[1] && typeof match[1] === "object") return match[1];
   }
   return null;
 };
@@ -153,19 +199,24 @@ const getScenario = (calcResult, preferredNames) => {
 const getRefinanceCurrentScenario = (calcResult) =>
   getScenario(calcResult, [SCENARIO_CURRENT]);
 
-const getRefinanceOptimalScenario = (calcResult) =>
-  getScenario(calcResult, [SCENARIO_OPTIMAL, "משכנתא אופטימלית"]);
+const getRefinanceOptimalScenario = (calcResult) => {
+  const bestScenarioName = getBestResultScenarioName(calcResult);
+  if (!bestScenarioName || isNoSavingBestResult(calcResult)) {
+    return null;
+  }
+  return getScenario(calcResult, [bestScenarioName]);
+};
 
 const getRefinanceCurrentComparison = (calcResult) =>
   getComparisonRow(calcResult, [SCENARIO_CURRENT]);
 
-const getRefinanceOptimalComparison = (calcResult) =>
-  getComparisonRow(calcResult, [SCENARIO_OPTIMAL, "משכנתא אופטימלית"]);
-
-const hasLegacyOffer = (calcResult) =>
-  Array.isArray(calcResult?.optimal_mortgage_mix) &&
-  calcResult.optimal_mortgage_mix.length > 0 &&
-  Array.isArray(calcResult.optimal_mortgage_mix[0]);
+const getRefinanceOptimalComparison = (calcResult) => {
+  const bestScenarioName = getBestResultScenarioName(calcResult);
+  if (!bestScenarioName || isNoSavingBestResult(calcResult)) {
+    return null;
+  }
+  return getComparisonRow(calcResult, [bestScenarioName]);
+};
 
 export const isMortgageCycleCalculatorResultValid = (calcResult) => {
   if (!calcResult || typeof calcResult !== "object") {
@@ -174,29 +225,32 @@ export const isMortgageCycleCalculatorResultValid = (calcResult) => {
   if (calcResult.error || calcResult.status_code) {
     return false;
   }
-  const hasLegacyRefinance =
-    Object.prototype.hasOwnProperty.call(calcResult, "frontend_data") ||
-    hasLegacyOffer(calcResult);
-  const hasRefinanceScenarios =
-    getComparisonTable(calcResult).length > 0 ||
-    Object.keys(getDetailedScenarios(calcResult)).length > 0;
-  return hasLegacyRefinance || hasRefinanceScenarios;
+  const hasRequiredShape =
+    Object.prototype.hasOwnProperty.call(calcResult, "best_res") &&
+    Object.prototype.hasOwnProperty.call(calcResult, "ltv_used") &&
+    Object.prototype.hasOwnProperty.call(calcResult, "comparison_table") &&
+    Object.prototype.hasOwnProperty.call(calcResult, "detailed_scenarios");
+  if (!hasRequiredShape) {
+    return false;
+  }
+  if (!Array.isArray(calcResult?.comparison_table)) {
+    return false;
+  }
+  if (!calcResult?.detailed_scenarios || typeof calcResult.detailed_scenarios !== "object") {
+    return false;
+  }
+  return typeof calcResult?.best_res?.name === "string";
 };
 
 export const hasCalculatorOffer = (calcResult) => {
   if (!isMortgageCycleCalculatorResultValid(calcResult)) {
     return false;
   }
-  if (hasLegacyOffer(calcResult)) {
-    return true;
+  const bestScenarioName = getBestResultScenarioName(calcResult);
+  if (!bestScenarioName) {
+    return false;
   }
-  const optimalComparison = getRefinanceOptimalComparison(calcResult);
-  const savings = toOptionalNumber(optimalComparison?.["חיסכון ₪"]);
-  if (savings !== null) {
-    return savings > 0;
-  }
-  const optimalScenario = getRefinanceOptimalScenario(calcResult);
-  return Array.isArray(optimalScenario?.tracks) && optimalScenario.tracks.length > 0;
+  return !isNoSavingBestResult(calcResult);
 };
 
 const mapScenarioTrackToRoute = (track, totalAmount) => {
@@ -263,73 +317,37 @@ export const buildMortgageDataFromOptimal = (payload) => {
     return { mortgageData: null, hasData: false };
   }
 
-  let totalAmount = 0;
-  let maxMonths = 0;
-  let totalPayments = 0;
-  let firstPayment = 0;
-  let maxPayment = 0;
-  let totalInterestIndex = 0;
-  let routesList = [];
+  const optimalScenario = getRefinanceOptimalScenario(calcResult);
+  const optimalComparison = getRefinanceOptimalComparison(calcResult);
+  const optimalTracks = Array.isArray(optimalScenario?.tracks)
+    ? optimalScenario.tracks
+    : [];
 
-  if (hasLegacyOffer(calcResult)) {
-    const optimalMix = calcResult.optimal_mortgage_mix;
-    const candidate = Array.isArray(optimalMix?.[0]) ? optimalMix[0] : [];
-    totalAmount = sumBy(candidate, ([route]) => route?.["סכום"]);
-    maxMonths = Math.max(
-      0,
-      ...candidate.map(([route]) => toNumber(route?.["תקופה (חודשים)"]))
-    );
-    totalPayments = toNumber(optimalMix?.[1]);
-    firstPayment = toNumber(optimalMix?.[2]);
-    maxPayment = toNumber(optimalMix?.[3]) || firstPayment;
-    totalInterestIndex = sumBy(
-      candidate,
-      ([route]) => route?.['סה״כ ריבית והצמדה']
-    );
-
-    routesList = candidate.map(([route]) => {
-      const amount = toNumber(route?.["סכום"]);
-      const percent = totalAmount ? (amount / totalAmount) * 100 : 0;
-      return {
-        name: route?.["מסלול"] || "—",
-        percentage: formatPercent(percent),
-        interest: formatRate(route?.["ריבית"]),
-        balance: formatCurrency(amount),
-      };
-    });
-  } else {
-    const optimalScenario = getRefinanceOptimalScenario(calcResult);
-    const optimalComparison = getRefinanceOptimalComparison(calcResult);
-    const optimalTracks = Array.isArray(optimalScenario?.tracks)
-      ? optimalScenario.tracks
-      : [];
-
-    totalAmount =
-      toNumber(optimalScenario?.summary?.total_principal) ||
-      sumBy(optimalTracks, (track) => track?.["סכום"]) ||
-      toNumber(payload?.amount);
-    maxMonths = Math.max(
-      0,
-      ...optimalTracks.map((track) => toNumber(track?.["תקופה_חודשים"]))
-    );
-    totalPayments =
-      toNumber(optimalScenario?.summary?.total_repayment) ||
-      toNumber(optimalComparison?.["סך הכל תשלומים"]);
-    firstPayment =
-      toNumber(optimalScenario?.summary?.first_payment) ||
-      toNumber(optimalComparison?.["החזר חודשי ראשון"]);
-    maxPayment =
-      toNumber(optimalScenario?.summary?.max_payment) ||
-      toNumber(optimalComparison?.["החזר חודשי מקסימלי"]) ||
-      firstPayment;
-    totalInterestIndex = sumBy(
-      optimalTracks,
-      (track) => track?.["סהכ_ריבית_והצמדה"]
-    );
-    routesList = optimalTracks.map((track) =>
-      mapScenarioTrackToRoute(track, totalAmount)
-    );
-  }
+  const totalAmount =
+    toNumber(optimalScenario?.summary?.total_principal) ||
+    sumBy(optimalTracks, (track) => track?.["סכום"]) ||
+    toNumber(payload?.amount);
+  const maxMonths = Math.max(
+    0,
+    ...optimalTracks.map((track) => toNumber(track?.["תקופה_חודשים"]))
+  );
+  const totalPayments =
+    toNumber(optimalScenario?.summary?.total_repayment) ||
+    toNumber(optimalComparison?.["סך הכל תשלומים"]);
+  const firstPayment =
+    toNumber(optimalScenario?.summary?.first_payment) ||
+    toNumber(optimalComparison?.["החזר חודשי ראשון"]);
+  const maxPayment =
+    toNumber(optimalScenario?.summary?.max_payment) ||
+    toNumber(optimalComparison?.["החזר חודשי מקסימלי"]) ||
+    firstPayment;
+  const totalInterestIndex = sumBy(
+    optimalTracks,
+    (track) => track?.["סהכ_ריבית_והצמדה"]
+  );
+  const routesList = optimalTracks.map((track) =>
+    mapScenarioTrackToRoute(track, totalAmount)
+  );
 
   const { bankName } = getBankMeta(payload);
   const mortgageData = {
@@ -459,11 +477,6 @@ export const buildBankMortgageData = (payload) => {
   const currentScenarioTracks = Array.isArray(currentScenario?.tracks)
     ? currentScenario.tracks
     : [];
-  const totalAmount = tracks.length
-    ? sumBy(tracks, (track) => getTrackOriginalAmount(track))
-    : sumBy(currentScenarioTracks, (track) => track?.["סכום"]) ||
-      toNumber(payload?.amount);
-
   const outstandingBalance =
     toNumber(currentScenario?.summary?.total_principal) ||
     sumBy(tracks, (track) => track?.loan_value) ||
@@ -474,34 +487,84 @@ export const buildBankMortgageData = (payload) => {
     toOptionalNumber(currentScenario?.summary?.first_payment) ??
     toOptionalNumber(currentComparison?.["החזר חודשי ראשון"]);
 
+  const combinedGraphMonthsRaw = currentScenario?.combined_graph?.months;
+  const termMonthsFromCombinedGraph = Array.isArray(combinedGraphMonthsRaw)
+    ? (
+        combinedGraphMonthsRaw
+          .map((value) => toOptionalNumber(value))
+          .filter((value) => value !== null && value > 0)
+          .pop() ?? null
+      )
+    : toOptionalNumber(combinedGraphMonthsRaw);
+  const termYearsFromSnpvTracks = tracks.length
+    ? Math.max(0, ...tracks.map((track) => toNumber(track?.loan_years)))
+    : 0;
+  const termMonthsFromScenarioTracks = currentScenarioTracks.length
+    ? Math.max(0, ...currentScenarioTracks.map((track) => toNumber(track?.["תקופה_חודשים"])))
+    : 0;
+  const fallbackTermYears =
+    toOptionalNumber(currentScenario?.summary?.max_term_years) ??
+    toOptionalNumber(currentComparison?.["תקופה בשנים"]) ??
+    toOptionalNumber(currentComparison?.["תקופה_בשנים"]);
+  const termYears = (termMonthsFromCombinedGraph !== null && termMonthsFromCombinedGraph > 0)
+    ? (termMonthsFromCombinedGraph / 12)
+    : termYearsFromSnpvTracks > 0
+    ? termYearsFromSnpvTracks
+    : termMonthsFromScenarioTracks > 0
+      ? termMonthsFromScenarioTracks / 12
+      : fallbackTermYears;
+
   const totalPayments =
-    toNumber(currentScenario?.summary?.total_repayment) ||
-    toNumber(currentComparison?.["סך הכל תשלומים"]);
+    toOptionalNumber(currentScenario?.summary?.total_repayment) ??
+    toOptionalNumber(currentComparison?.["סך הכל תשלומים"]);
 
   const refundPerShekel = toOptionalNumber(currentComparison?.["החזר לשקל"]);
 
+  const summaryIndexation = toOptionalNumber(currentScenario?.summary?.total_indexation);
+  const indexLinkedAmount = summaryIndexation ?? (
+    sumBy(tracks, (track) => track?.loan_value_inflation) ||
+    sumBy(currentScenarioTracks, (track) => track?.["סהכ_ריבית_והצמדה"]) ||
+    toNumber(currentComparison?.["סהכ ריבית והצמדה"]) ||
+    toNumber(currentComparison?.['סה״כ ריבית והצמדה'])
+  );
+
+  const averageScenarioRate = currentScenarioTracks.length
+    ? (() => {
+        const rates = currentScenarioTracks
+          .map((track) => toOptionalNumber(track?.["ריבית"]))
+          .filter((rate) => rate !== null);
+        if (!rates.length) return null;
+        const sumRates = rates.reduce((sum, rate) => sum + rate, 0);
+        return sumRates / rates.length;
+      })()
+    : null;
+
   const weightedRate =
+    averageScenarioRate ??
     getWeightedRateFromSnpvOriginalTracks(tracks) ??
     getWeightedRateFromScenarioTracks(currentScenarioTracks, outstandingBalance) ??
     toOptionalNumber(currentComparison?.internal_rate_of_return);
 
-  const { bankName } = getBankMeta(payload);
+  const { bankId, bankName } = getBankMeta(payload);
   return {
     name: bankName,
+    icon: BANK_LOGOS[bankId] || "",
+    color: BANK_COLORS[bankId] || "#4E8FF7",
     tag: "המשכנתא שלך",
     details: [
-      { title: "סכום", value: formatCurrency(totalAmount) },
       {
         title: "יתרה לסילוק המשכנתא",
         value: formatCurrency(outstandingBalance),
       },
+      { title: "תקופה בשנים", value: formatYearsCount(termYears) },
       { title: "תשלום חודשי", value: formatCurrency(firstPayment) },
       { title: "ריבית שנתית כוללת", value: formatRate(weightedRate) },
-      { title: 'סך הכל תשלומים', value: formatCurrency(totalPayments || outstandingBalance) },
+      { title: 'סך הכל תשלומים', value: formatCurrency(totalPayments ?? outstandingBalance) },
       {
         title: "החזר לשקל",
-        value: refundPerShekel ? `₪${refundPerShekel.toFixed(2)}` : "—",
+        value: refundPerShekel ? refundPerShekel.toFixed(2).replace(/\.00$/, "") : "—",
       },
+      { title: "הצמדה למדד", value: formatCurrency(indexLinkedAmount) },
     ],
   };
 };

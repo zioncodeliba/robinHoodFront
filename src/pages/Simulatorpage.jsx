@@ -1,4 +1,5 @@
 import React, { useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 // import { Link} from 'react-router-dom';
 import '../components/simulatorcomponents/Simulatorpage.css';
 
@@ -11,12 +12,34 @@ import UniformBasket from '../components/simulatorcomponents/UniformBasket';
 
 import ReturnsChart from '../components/commoncomponents/ReturnsChart';
 import YourRoutesMortgageDetails from '../components/commoncomponents/YourRoutesMortgageDetails';
+import useCustomerProfile from "../hooks/useCustomerProfile";
+import { NEW_MORTGAGE_TYPE, normalizeStatusForRouting } from "../utils/customerFlowRouting";
+
+const REGISTERED_STATUSES = new Set([
+  normalizeStatusForRouting("נרשם"),
+  normalizeStatusForRouting("נירשם"),
+]);
+const CHAT_STATUS = normalizeStatusForRouting("שיחה עם הצ׳אט");
 
 
 const Simulatorpage = () => {
+  const navigate = useNavigate();
+  const { userData } = useCustomerProfile();
   const [uniformBaskets, setUniformBaskets] = useState(null);
   const [periodYears, setPeriodYears] = useState(null);
   const [activeUniformBasket, setActiveUniformBasket] = useState(null);
+  const customerStatus = normalizeStatusForRouting(userData?.status);
+  const customerMortgageType = String(
+    userData?.mortgage_type || userData?.mortgageType || ""
+  ).trim();
+  const hasNoMortgageType = !customerMortgageType || customerMortgageType === "ללא מסלול";
+  const shouldShowChatButton = useMemo(() => {
+    const isRegisteredWithoutType = hasNoMortgageType && REGISTERED_STATUSES.has(customerStatus);
+    const isNewMortgageInChat =
+      customerMortgageType === NEW_MORTGAGE_TYPE &&
+      customerStatus === CHAT_STATUS;
+    return isRegisteredWithoutType || isNewMortgageInChat;
+  }, [customerMortgageType, customerStatus, hasNoMortgageType]);
 
   const handleUniformResult = (payload) => {
     if (!payload || !payload.data) {
@@ -120,7 +143,7 @@ const Simulatorpage = () => {
 
   return (
     <div className="simulator_page ">
-      <a href="/" className="prev_page_link"><img src={previcon} alt="" /></a>
+      
        <div className="wrapper">
             <MortgageCalculator onResult={handleUniformResult} />
             <div className="contents">
@@ -143,7 +166,15 @@ const Simulatorpage = () => {
                   <YourRoutesMortgageDetails data={buildRoutesData()} themeColor="#E27600" />
                 </div>
               )}
-              <button className="btn approval_btn">מעבר להגשת בקשה לאישור עקרוני</button>
+              {shouldShowChatButton && (
+                <button
+                  type="button"
+                  className="btn approval_btn"
+                  onClick={() => navigate("/aichat")}
+                >
+                  מעבר להגשת בקשה לאישור עקרוני
+                </button>
+              )}
             </div>
             <img src={simulatorImage} className="img1 desktop_img" alt="" />
        </div>

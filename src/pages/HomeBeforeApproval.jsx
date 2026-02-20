@@ -1,54 +1,77 @@
 // Homepage.jsx
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import '../components/beforeapprovalcomponents/HomeBeforeApproval.css'
 
-import hapoalimbankicon from "../assets/images/bank_hapoalim.png";
-import nationalbank from "../assets/images/national_bank.png";
-import mizrahitefahotbank from "../assets/images/mfahot_bank.png";
 import timeicon from "../assets/images/tt.png";
 import offericon from "../assets/images/offer_i.png";
 import previcon from '../assets/images/prev_icon.png';
 
 import { getGatewayBase } from "../utils/apiBase";
+import {
+    getDefaultAllowedBankIds,
+    hasSupportedMortgageType,
+} from "../utils/customerFlowRouting";
+import useCustomerProfile, { getCustomerDisplayName } from "../hooks/useCustomerProfile";
 
 // components
 import FrequentlyQuestions from '../components/beforeapprovalcomponents/FrequentlyQuestions';
 
-const DISCOUNT_BANK_LOGO_URL = "/discont.webp";
-const INTERNATIONAL_BANK_LOGO_URL = "/banks/international-logo.png";
-const MERCANTILE_BANK_LOGO_URL = "/Mercantile.svg.png";
+const BANK_LOGOS = {
+    hapoalim: "/banks/hapoalim.png",
+    leumi: "/banks/leumi.png",
+    mizrahi: "/banks/mizrahi.png",
+    discount: "/banks/discount.png",
+    international: "/banks/international.png",
+    mercantile: "/banks/mercantile.png",
+};
 
 const BANK_MAP = {
-    1: { name: "בנק מזרחי טפחות", logo: mizrahitefahotbank },
-    2: { name: "בנק לאומי", logo: nationalbank },
-    3: { name: "בנק הפועלים", logo: hapoalimbankicon },
-    4: { name: "בנק דיסקונט", logo: DISCOUNT_BANK_LOGO_URL },
-    8: { name: "בנק הבינלאומי", logo: INTERNATIONAL_BANK_LOGO_URL },
-    12: { name: "בנק מרכנתיל", logo: MERCANTILE_BANK_LOGO_URL }
+    1: { name: "בנק מזרחי טפחות", logo: BANK_LOGOS.mizrahi },
+    2: { name: "בנק לאומי", logo: BANK_LOGOS.leumi },
+    3: { name: "בנק הפועלים", logo: BANK_LOGOS.hapoalim },
+    4: { name: "בנק דיסקונט", logo: BANK_LOGOS.discount },
+    8: { name: "בנק הבינלאומי", logo: BANK_LOGOS.international },
+    12: { name: "בנק מרכנתיל", logo: BANK_LOGOS.mercantile }
 };
 
 const DEFAULT_BANK_ORDER = [3, 2, 1, 4, 8, 12];
 
-const normalizeAllowedBankIds = (ids) => {
-    if (!Array.isArray(ids)) return DEFAULT_BANK_ORDER;
+const normalizeAllowedBankIds = (ids, fallback = DEFAULT_BANK_ORDER) => {
+    if (!Array.isArray(ids)) return [...fallback];
     const allowed = new Set(ids.map((value) => Number(value)));
     return DEFAULT_BANK_ORDER.filter((id) => allowed.has(id));
+};
+
+const isRefinanceResult = (calcResult) =>
+    Array.isArray(calcResult?.comparison_table) ||
+    (calcResult?.detailed_scenarios && typeof calcResult.detailed_scenarios === "object");
+
+const isApprovalOfferResult = (calcResult) => {
+    if (!calcResult || typeof calcResult !== "object") return false;
+    if (isRefinanceResult(calcResult)) return false;
+    const proposedMix = calcResult?.proposed_mix;
+    if (!proposedMix || typeof proposedMix !== "object") return false;
+    return Boolean(
+        proposedMix?.summary ||
+        proposedMix?.metrics ||
+        proposedMix?.graph_data ||
+        (Array.isArray(proposedMix?.tracks_detail) && proposedMix.tracks_detail.length > 0)
+    );
 };
 
 const HomeBeforeApproval = () => {
     const location = useLocation();
     const navigate = useNavigate();
     const apiBase = useMemo(() => getGatewayBase(), []);
-    const userData = useMemo(() => {
-        try {
-            return JSON.parse(localStorage.getItem("user_data")) || {};
-        } catch {
-            return {};
-        }
-    }, []);
-    const displayName = userData?.firstName || userData?.first_name || userData?.name || "שם";
-    const [allowedBankIds, setAllowedBankIds] = useState(DEFAULT_BANK_ORDER);
+    const { userData } = useCustomerProfile();
+    const mortgageType = String(userData?.mortgageType || userData?.mortgage_type || "").trim();
+    const defaultAllowedBankIds = useMemo(
+        () => (hasSupportedMortgageType(mortgageType) ? getDefaultAllowedBankIds(mortgageType) : []),
+        [mortgageType]
+    );
+    const displayName = getCustomerDisplayName(userData, "שם");
+    const [allowedBankIds, setAllowedBankIds] = useState(defaultAllowedBankIds);
     const [approvedBankIds, setApprovedBankIds] = useState([]);
     const params = new URLSearchParams(location.search);
     const bankIdParam = Number(params.get("bankId"));
@@ -62,13 +85,17 @@ const HomeBeforeApproval = () => {
         declined: "הבקשה נדחתה",
         in_review: "בבדיקה"
     };
-    const handleAuthFailure = () => {
+    const handleAuthFailure = useCallback(() => {
         localStorage.removeItem("auth_token");
         localStorage.removeItem("user_data");
         localStorage.removeItem("mortgage_cycle_result");
         localStorage.removeItem("new_mortgage_submitted");
         navigate("/login", { replace: true });
-    };
+    }, [navigate]);
+
+    useEffect(() => {
+        setAllowedBankIds(defaultAllowedBankIds);
+    }, [defaultAllowedBankIds]);
 
     useEffect(() => {
         const token = localStorage.getItem("auth_token");
@@ -91,9 +118,10 @@ const HomeBeforeApproval = () => {
                 }
                 const payload = await response.json().catch(() => null);
                 if (!isMounted) return;
-                setAllowedBankIds(normalizeAllowedBankIds(payload?.allowed_bank_ids));
+                setAllowedBankIds(normalizeAllowedBankIds(payload?.allowed_bank_ids, defaultAllowedBankIds));
             } catch {
-                // Keep defaults on failure
+                if (!isMounted) return;
+                setAllowedBankIds(defaultAllowedBankIds);
             }
         };
 
@@ -102,7 +130,7 @@ const HomeBeforeApproval = () => {
         return () => {
             isMounted = false;
         };
-    }, [apiBase]);
+    }, [apiBase, defaultAllowedBankIds, handleAuthFailure]);
 
     useEffect(() => {
         const token = localStorage.getItem("auth_token");
@@ -126,7 +154,13 @@ const HomeBeforeApproval = () => {
                 const payload = await response.json().catch(() => null);
                 if (!isMounted) return;
                 const ids = Array.isArray(payload)
-                    ? payload.map((item) => Number(item?.bank_id)).filter((id) => Number.isFinite(id))
+                    ? payload
+                        .filter((item) => {
+                            const calcResult = item?.extracted_json?.calculator_result;
+                            return isApprovalOfferResult(calcResult);
+                        })
+                        .map((item) => Number(item?.bank_id))
+                        .filter((id) => Number.isFinite(id))
                     : [];
                 setApprovedBankIds(Array.from(new Set(ids)));
             } catch {
@@ -139,7 +173,7 @@ const HomeBeforeApproval = () => {
         return () => {
             isMounted = false;
         };
-    }, [apiBase]);
+    }, [apiBase, handleAuthFailure]);
 
     const bankOrder = allowedBankIds;
     const hasBanks = bankOrder.length > 0;

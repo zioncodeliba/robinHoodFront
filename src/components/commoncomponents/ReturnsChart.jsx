@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useMemo } from "react";
 import {
     LineChart,
     Line,
@@ -18,17 +18,36 @@ export default function ReturnsChart({ charttitle, interest, fund, dataSets ,
     kerenColor = "#27450E",
     rivitColor = "#E4061F"
  }) {
-    // Check if the data is structured as an object with keys (like the one with tabs)
-    const isTabbedData = dataSets && typeof dataSets === 'object' && !Array.isArray(dataSets);
-    
-    // Get the keys for the tabs, defaulting to [1, 2, 3, 4, 5, 6] if not available
-    const tabKeys = isTabbedData ? Object.keys(dataSets) : [1, 2, 3, 4, 5, 6];
+    const data = useMemo(() => {
+        if (Array.isArray(dataSets)) {
+            return dataSets;
+        }
+        if (!dataSets || typeof dataSets !== 'object') {
+            return [];
+        }
 
-    // Initialize state with the first available key or '1'
-    const [selected, setSelected] = useState(tabKeys[0] || 1);
+        const sortedKeys = Object.keys(dataSets).sort((a, b) => {
+            const aNum = Number(a);
+            const bNum = Number(b);
+            if (!Number.isNaN(aNum) && !Number.isNaN(bNum)) {
+                return aNum - bNum;
+            }
+            return a.localeCompare(b);
+        });
 
-    // Determine the data to display
-    const data = isTabbedData ? dataSets[selected] : dataSets;
+        const merged = [];
+        sortedKeys.forEach((key) => {
+            const yearData = Array.isArray(dataSets[key]) ? dataSets[key] : [];
+            yearData.forEach((point) => {
+                merged.push(point);
+            });
+        });
+
+        return merged.map((point, index) => ({
+            ...point,
+            name: String(index + 1),
+        }));
+    }, [dataSets]);
 
     return (
         <div className="chart_sec">
@@ -38,20 +57,6 @@ export default function ReturnsChart({ charttitle, interest, fund, dataSets ,
                 <div className="fund d_flex d_flex_ac"><span></span> {fund} </div>
             </div>
             <div className="chart_inner">
-                
-                {/* Tabs - only render if data is structured for tabs */}
-                {isTabbedData && (
-                    <div className="chart_tab d_flex d_flex_ac d_flex_js">
-                        {tabKeys.map((key) => (
-                            <button
-                                key={key}
-                                onClick={() => setSelected(key)}
-                                className={selected === key ? "active" : ""} >
-                                {`שנה ${key}`}
-                            </button>
-                        ))}
-                    </div>
-                )}
 
                 {/* Chart Title */}
                 <h3 className="chart_title">{charttitle}</h3>

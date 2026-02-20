@@ -6,8 +6,10 @@ import '../components/nooffercompomponents/NoofferFoundpage.css';
 import mirroricon from "../assets/images/mirror.svg";
 import prevIcon from '../assets/images/prev_icon.svg';
 
-import YourRoutesMortgageDetails from '../components/commoncomponents/YourRoutesMortgageDetails';
+import BankMortgage from '../components/mortgagecyclecomponents/BankMortgage';
+import RoutesBankMortgage from '../components/suggestionscomponents/RoutesBankMortgage';
 import {
+  buildBankMortgageData,
   buildMortgageDataFromTracks,
   loadMortgageCycleResult,
 } from "../utils/mortgageCycleResult";
@@ -23,11 +25,56 @@ const NoofferFoundpage = () => {
     () => buildMortgageDataFromTracks(bankResponse),
     [bankResponse]
   );
+  const bankMortgageData = useMemo(
+    () => buildBankMortgageData(bankResponse),
+    [bankResponse]
+  );
+  const routesFromCurrentMortgage = useMemo(() => {
+    const tracks =
+      bankResponse?.extracted_json?.calculator_result?.detailed_scenarios?.["משכנתא נוכחית"]?.tracks;
+    if (Array.isArray(tracks) && tracks.length > 0) {
+      const formatCurrency = (value) => {
+        const num = Number(value);
+        if (!Number.isFinite(num)) return "—";
+        return `₪${Math.round(num).toLocaleString("he-IL")}`;
+      };
+      const formatRate = (value) => {
+        const num = Number(value);
+        if (!Number.isFinite(num)) return "—";
+        return `${num.toFixed(2).replace(/\.00$/, "")}%`;
+      };
+      return tracks.map((track, index) => {
+        const amount = Number(
+          track?.["סכום"] ??
+          track?.amount ??
+          track?.loan_value ??
+          0
+        );
+        const months = Number(
+          track?.["תקופה_חודשים"] ??
+          track?.["תקופה (חודשים)"] ??
+          track?.months
+        );
+        return {
+          name:
+            track?.["מסלול"] ||
+            track?.["סוג_מסלול"] ||
+            track?.name ||
+            `מסלול ${index + 1}`,
+          interest: formatRate(track?.["ריבית"] ?? track?.rate),
+          balance: formatCurrency(amount),
+          amount: Number.isFinite(amount) ? amount : 0,
+          months: Number.isFinite(months) ? months : null,
+        };
+      });
+    }
+    return Array.isArray(mortgageData?.routes?.list) ? mortgageData.routes.list : [];
+  }, [bankResponse, mortgageData]);
 
 
   return (
     <div className="no_offer_found_page">
-      <a href="/recycle-loan" className="prev_page_link"><img src={prevIcon} alt="" /></a>
+      {/* <a href="/recycle-loan" className="prev_page_link"><img src={prevIcon} alt="" /></a> */}
       {/* <h1>בדיקת מחזור משכנתא</h1>
       <h2>נא לעלות את מסמכי המשכנתא הנוכחית שלכם </h2> */}
       <div className="check_nav d_flex d_flex_ac d_flex_jc">
@@ -45,7 +92,14 @@ const NoofferFoundpage = () => {
           </div>
         </div>
         <div className="left_col">
-          <YourRoutesMortgageDetails data={mortgageData} themeColor="#D92D20" />         
+          <BankMortgage data={bankMortgageData} />
+          <RoutesBankMortgage
+            color={bankMortgageData?.color || "#4E8FF7"}
+            routes={routesFromCurrentMortgage}
+            maxVisibleRoutes={5}
+            expandLabel="לצפיה בכל המסלולים"
+            collapseLabel="הסתר מסלולים"
+          />
         </div>
       </div>
     </div>  

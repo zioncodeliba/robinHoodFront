@@ -8,8 +8,7 @@ import {
   ResponsiveContainer,
 } from 'recharts';
 
-// --- Mock Data ---
-const data = [
+const fallbackData = [
   { year: 2000, value: 8500 },
   { year: 2001, value: 7800 },
   { year: 2002, value: 9100 },
@@ -58,7 +57,20 @@ const CustomTooltip = ({ active, payload, label }) => {
   return null;
 };
 
-const BarChartsavings = () => {
+const BarChartsavings = ({ data }) => {
+  const chartData = Array.isArray(data) && data.length > 0 ? data : fallbackData;
+  const chartDataWithIndex = chartData.map((item, index) => ({
+    ...item,
+    indexLabel: index + 1,
+  }));
+  const xAxisInterval = chartDataWithIndex.length > 36
+    ? 3
+    : chartDataWithIndex.length > 24
+      ? 2
+      : chartDataWithIndex.length > 14
+        ? 1
+        : 0;
+
   return (
     <>
 
@@ -66,8 +78,8 @@ const BarChartsavings = () => {
       <div className='barchart_box' >
         <ResponsiveContainer width="100%" height="100%">
           <BarChart
-            data={data}
-            margin={{ top: 20, right: 0, left: 0, bottom: 0 }}
+            data={chartDataWithIndex}
+            margin={{ top: 20, right: 0, left: 0, bottom: 10 }}
             barCategoryGap="20%"
           >
             {/* Define the gradient for the bar color */}
@@ -78,7 +90,17 @@ const BarChartsavings = () => {
               </linearGradient>
             </defs>
 
-            <XAxis dataKey="year" hide />
+            <XAxis
+              dataKey="indexLabel"
+              tickLine={false}
+              axisLine={false}
+              tick={{ fill: "#27450E", fontSize: 9 }}
+              interval={xAxisInterval}
+              tickMargin={8}
+              minTickGap={14}
+              height={30}
+              padding={{ left: 6, right: 6 }}
+            />
             {/* Domain adjusted to ensure bars don't touch the top/bottom */}
             <YAxis hide domain={['dataMin - 1000', 'dataMax + 1000']} /> 
             

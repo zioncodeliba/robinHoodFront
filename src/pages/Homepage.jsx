@@ -1,5 +1,5 @@
 // Homepage.jsx
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from 'react-router-dom';
 
 import '../components/homecomponents/homepage.css';
@@ -16,12 +16,45 @@ import {
   saveMortgageCycleResult,
 } from "../utils/mortgageCycleResult";
 import { getGatewayBase } from "../utils/apiBase";
+import {
+  clearAuthGetCache,
+  fetchBankResponsesMeCached,
+  fetchBankVisibilityMeCached,
+  fetchCustomerFilesMeCached,
+  fetchCustomerMeCached,
+} from "../utils/authGetCache";
+import {
+  REFINANCE_MORTGAGE_TYPE,
+  canRouteByBankVisibility,
+  getDefaultAllowedBankIds,
+  hasSupportedMortgageType,
+  normalizeAllowedBankIds,
+} from "../utils/customerFlowRouting";
+import useCustomerProfile, { getCustomerDisplayName } from "../hooks/useCustomerProfile";
 
+const isRefinanceResult = (calcResult) =>
+  Array.isArray(calcResult?.comparison_table) ||
+  (calcResult?.detailed_scenarios && typeof calcResult.detailed_scenarios === "object");
+
+const isApprovalOfferResult = (calcResult) => {
+  if (!calcResult || typeof calcResult !== "object") return false;
+  if (isRefinanceResult(calcResult)) return false;
+  const proposedMix = calcResult?.proposed_mix;
+  if (!proposedMix || typeof proposedMix !== "object") return false;
+  return Boolean(
+    proposedMix?.summary ||
+    proposedMix?.metrics ||
+    proposedMix?.graph_data ||
+    (Array.isArray(proposedMix?.tracks_detail) && proposedMix.tracks_detail.length > 0)
+  );
+};
 
 
 const Homepage = () => {
   const navigate = useNavigate();
   const apiBase = useMemo(() => getGatewayBase(), []);
+  const { userData } = useCustomerProfile();
+  const displayName = getCustomerDisplayName(userData, "לרובין");
   const [checkingResults, setCheckingResults] = useState(true);
   const isAuthenticated = Boolean(
     localStorage.getItem("auth_token") || localStorage.getItem("affiliate_token")
@@ -44,17 +77,38 @@ const Homepage = () => {
     void updateMortgageType(mortgageType);
   };
 
-  const handleAuthFailure = () => {
+  const handleAuthFailure = useCallback(() => {
     localStorage.removeItem("auth_token");
     localStorage.removeItem("user_data");
     localStorage.removeItem("mortgage_cycle_result");
     localStorage.removeItem("new_mortgage_submitted");
     navigate("/login", { replace: true });
-  };
+  }, [navigate]);
 
   const updateMortgageType = async (mortgageType) => {
     const token = localStorage.getItem("auth_token");
     if (!token) return;
+    const syncMortgageTypeInStorage = (nextMortgageType, nextCustomer = null) => {
+      try {
+        if (nextCustomer && typeof nextCustomer === "object") {
+          localStorage.setItem("user_data", JSON.stringify(nextCustomer));
+          return;
+        }
+        const stored = JSON.parse(localStorage.getItem("user_data") || "{}");
+        const updated = {
+          ...stored,
+          mortgageType: nextMortgageType,
+          mortgage_type: nextMortgageType,
+        };
+        localStorage.setItem("user_data", JSON.stringify(updated));
+      } catch {
+        // Ignore local storage failures.
+      }
+    };
+
+    syncMortgageTypeInStorage(mortgageType);
+    clearAuthGetCache(token);
+
     try {
       const response = await fetch(`${apiBase}/auth/v1/customers/me`, {
         method: "PATCH",
@@ -66,7 +120,14 @@ const Homepage = () => {
       });
       if (response.status === 401 || response.status === 403) {
         handleAuthFailure();
+        return;
       }
+      const payload = await response.json().catch(() => null);
+      const customerPayload = payload?.data?.customer || payload?.customer || payload;
+      if (response.ok && customerPayload && typeof customerPayload === "object") {
+        syncMortgageTypeInStorage(mortgageType, customerPayload);
+      }
+      clearAuthGetCache(token);
     } catch {
       // Silently ignore; selection isn't critical for navigation.
     }
@@ -84,11 +145,6 @@ const Homepage = () => {
         return typeof name === "string" && name.startsWith("system_signature_");
       });
 
-    const redirectToApprovalHome = () => {
-      didRedirect = true;
-      navigate("/homebeforeapproval2", { replace: true });
-    };
-
     const redirectWith = (payload) => {
       const calcResult = getCalculatorResult(payload);
       if (!isMortgageCycleCalculatorResultValid(calcResult)) {
@@ -103,11 +159,6 @@ const Homepage = () => {
       return true;
     };
 
-    const isRefinanceResult = (calcResult) =>
-      Array.isArray(calcResult?.comparison_table) ||
-      (calcResult?.detailed_scenarios &&
-        typeof calcResult.detailed_scenarios === "object");
-
     const loadLatestResult = async () => {
       const token = localStorage.getItem("auth_token");
       if (!token) {
@@ -118,11 +169,7 @@ const Homepage = () => {
       }
 
       try {
-        const customerResponse = await fetch(`${apiBase}/auth/v1/customers/me`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
+        const customerResponse = await fetchCustomerMeCached(token, { force: true });
         if (customerResponse.status === 401 || customerResponse.status === 403) {
           handleAuthFailure();
           return;
@@ -130,8 +177,56 @@ const Homepage = () => {
         if (!customerResponse.ok) {
           throw new Error("Failed to load customer profile");
         }
-        const customerPayload = await customerResponse.json().catch(() => null);
+        const customerPayload = customerResponse.data;
         const customerStatus = customerPayload?.status;
+        const customerMortgageType = String(
+          customerPayload?.mortgage_type || customerPayload?.mortgageType || ""
+        ).trim();
+        const hasDefinedMortgageType = hasSupportedMortgageType(customerMortgageType);
+        const shouldRouteByVisibility = canRouteByBankVisibility({
+          mortgageType: customerMortgageType,
+          status: customerStatus,
+        });
+        const isRefinanceFlow = customerMortgageType === REFINANCE_MORTGAGE_TYPE;
+        const defaultAllowedBankIds = hasDefinedMortgageType
+          ? getDefaultAllowedBankIds(customerMortgageType)
+          : [];
+
+        const visibilityResponse = await fetchBankVisibilityMeCached(token, { force: true });
+        if (visibilityResponse.status === 401 || visibilityResponse.status === 403) {
+          handleAuthFailure();
+          return;
+        }
+        const allowedBankIds = visibilityResponse.ok
+          ? normalizeAllowedBankIds(visibilityResponse.data?.allowed_bank_ids, defaultAllowedBankIds)
+          : [...defaultAllowedBankIds];
+
+        const bankResponsesResponse = await fetchBankResponsesMeCached(token, { force: true });
+        if (bankResponsesResponse.status === 401 || bankResponsesResponse.status === 403) {
+          handleAuthFailure();
+          return;
+        }
+        if (!bankResponsesResponse.ok) {
+          throw new Error("Failed to load mortgage cycle results");
+        }
+        const allBankResponses = Array.isArray(bankResponsesResponse.data) ? bankResponsesResponse.data : [];
+        const allowedBankSet = new Set(allowedBankIds);
+        const approvalResponses = allBankResponses.filter((response) => {
+          const bankId = Number(response?.bank_id);
+          if (!Number.isFinite(bankId) || !allowedBankSet.has(bankId)) {
+            return false;
+          }
+          const calcResult = getCalculatorResult(response);
+          return isApprovalOfferResult(calcResult);
+        });
+
+        // Bank visibility is the primary switch for both flows.
+        if (allowedBankIds.length > 0 && shouldRouteByVisibility) {
+          didRedirect = true;
+          navigate(approvalResponses.length > 0 ? "/viewoffer" : "/homebeforeapproval2", { replace: true });
+          return;
+        }
+
         if (customerStatus === "נרשם") {
           localStorage.removeItem("mortgage_cycle_result");
           localStorage.removeItem(NEW_MORTGAGE_KEY);
@@ -151,48 +246,36 @@ const Homepage = () => {
           return;
         }
 
-        if (localStorage.getItem(NEW_MORTGAGE_KEY) === "true") {
-          redirectToApprovalHome();
-          return;
+        if (!isRefinanceFlow && localStorage.getItem(NEW_MORTGAGE_KEY) === "true") {
+          // Prevent stale client flag from causing redirect loops with ProtectedRoute.
+          localStorage.removeItem(NEW_MORTGAGE_KEY);
         }
 
-        const approvalResponse = await fetch(`${apiBase}/auth/v1/customer-files/me`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
+        const approvalResponse = await fetchCustomerFilesMeCached(token);
         if (approvalResponse.status === 401 || approvalResponse.status === 403) {
           handleAuthFailure();
           return;
         }
         if (approvalResponse.ok) {
-          const approvalPayload = await approvalResponse.json().catch(() => null);
+          const approvalPayload = approvalResponse.data;
           if (hasSignatureFile(approvalPayload)) {
-            localStorage.setItem(NEW_MORTGAGE_KEY, "true");
-            redirectToApprovalHome();
-            return;
+            if (!isRefinanceFlow) {
+              localStorage.setItem(NEW_MORTGAGE_KEY, "true");
+              // Do not force redirect here; route decisions are handled above by
+              // visibility/status checks to avoid navigation loops.
+            }
           }
         }
 
-        const response = await fetch(`${apiBase}/auth/v1/bank-responses/me`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-        if (response.status === 401 || response.status === 403) {
-          handleAuthFailure();
-          return;
-        }
-        if (!response.ok) {
-          throw new Error("Failed to load mortgage cycle results");
-        }
-        const payload = await response.json().catch(() => null);
+        const payload = allBankResponses;
         if (Array.isArray(payload)) {
           const latest = payload[0] || null;
           if (latest) {
             const latestCalcResult = getCalculatorResult(latest);
-            // Refinance results are reviewed/admin-managed and should not force homepage redirects.
             if (isRefinanceResult(latestCalcResult)) {
+              if (isRefinanceFlow && redirectWith(latest)) {
+                return;
+              }
               return;
             }
             if (redirectWith(latest)) {
@@ -218,7 +301,7 @@ const Homepage = () => {
     return () => {
       isActive = false;
     };
-  }, [apiBase, navigate]);
+  }, [handleAuthFailure, navigate]);
 
   if (checkingResults) {
     return null;
@@ -227,7 +310,7 @@ const Homepage = () => {
   return (
     <div className="homepage d_flex">
       <div className="right_col">
-        <h1>ברוכים הבאים <span>לרובין</span>.</h1>
+        <h1>ברוכים הבאים <span>{displayName}</span>.</h1>
         <p>המקום שיוציא עבורכם את המשכנתא וההלוואה
           המשתלמת ביותר עם שירותי השוואה, ניתוח, ליווי
           אישי, ניטור משכנתא מתקדם וצ’אט חדשני שפשוט

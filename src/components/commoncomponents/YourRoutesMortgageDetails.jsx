@@ -2,6 +2,19 @@ import React from "react";
 import "./YourRoutesMortgageDetails.css";
 import noteicon from "../../assets/images/note_i.svg";
 
+const ROUTE_FRACTION_SUFFIX = /\(\s*\d+\s*\/\s*\d+\s*\)\s*$/;
+
+const extractRouteFraction = (value) => {
+  if (typeof value !== "string") return null;
+  const match = value.match(ROUTE_FRACTION_SUFFIX);
+  return match ? match[0].replace(/[()]/g, "").trim() : null;
+};
+
+const normalizeRouteName = (value) => {
+  if (typeof value !== "string") return value || "מסלול";
+  const normalized = value.replace(ROUTE_FRACTION_SUFFIX, "").trim();
+  return normalized || "מסלול";
+};
 
 const YourRoutesMortgageDetails = ({ data, themeColor }) => {
   // Fallback if no data is passed
@@ -78,18 +91,23 @@ const YourRoutesMortgageDetails = ({ data, themeColor }) => {
           </ul>
 
           <div className="list_routes" style={{ "--bgcolor": themeColor }}>
-            {routes.list.map((route, index) => (
-              <ul key={index}>
-                <li style={{ borderColor: themeColor }}>
-                  <span>
-                    <em>({route.percentage})</em>
-                    <span className="route_name">{route.name}</span>
-                  </span>
-                </li>
-                <li style={{ borderColor: themeColor }}>{route.interest}</li>
-                <li style={{ borderColor: themeColor }}>{route.balance}</li>
-              </ul>
-            ))}
+            {routes.list.map((route, index) => {
+              const routeFraction = extractRouteFraction(route?.name);
+              const routePercentage = route?.percentage || routeFraction;
+              const routeName = normalizeRouteName(route?.name);
+              return (
+                <ul key={index}>
+                  <li style={{ borderColor: themeColor }}>
+                    <span>
+                      {routePercentage ? <em>({routePercentage})</em> : null}
+                      <span className="route_name">{routeName}</span>
+                    </span>
+                  </li>
+                  <li style={{ borderColor: themeColor }}>{route.interest}</li>
+                  <li style={{ borderColor: themeColor }}>{route.balance}</li>
+                </ul>
+              );
+            })}
             {routes.totals && (routes.totals.indexLinked || routes.totals.overall) && (
               <div className="total" >
                 {routes.totals.indexLinked && (

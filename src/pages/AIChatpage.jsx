@@ -1,10 +1,10 @@
 // AIChatpage.jsx
 import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import CustomRangeInput from '../components/simulatorcomponents/CustomRangeInput';
 import '../components/simulatorcomponents/Simulatorpage.css';
-import previcon from '../assets/images/prev_icon.png';
 import bouticon from '../assets/images/bout.png';
+import removeIcon from '../assets/images/remove.png';
 import viewicon from '../assets/images/pdf_view.svg';
 import sendicon from '../assets/images/send.svg';
 import { getGatewayBase } from "../utils/apiBase";
@@ -15,6 +15,36 @@ const DEFAULT_STEP_AMOUNT = 10000;
 const DEFAULT_MIN_TERM = 5;
 const DEFAULT_MAX_TERM = 30;
 const DEFAULT_STEP_TERM = 1;
+const FALLBACK_COUNTRIES = [
+  'ישראל',
+  'ארצות הברית',
+  'בריטניה',
+  'צרפת',
+  'גרמניה',
+  'איטליה',
+  'ספרד',
+  'רוסיה',
+  'אוקראינה',
+  'קנדה',
+  'אוסטרליה',
+  'הודו',
+  'סין',
+  'יפן',
+  'ברזיל',
+  'ארגנטינה',
+  'דרום אפריקה',
+  'טורקיה',
+  'יוון',
+  'קפריסין',
+];
+const BANK_LOGO_BY_KEY = {
+  poalim: '/banks/hapoalim.png',
+  leumi: '/banks/leumi.png',
+  mizrahi: '/banks/mizrahi.png',
+  discont: '/banks/discount.png',
+  international: '/banks/international.png',
+  mercantil: '/banks/mercantile.png',
+};
 
 const AIChatpage = () => {
   const conversationId = 1;
@@ -36,6 +66,7 @@ const AIChatpage = () => {
   const [hasHistory, setHasHistory] = useState(false);
   const [pinnedBlockKey, setPinnedBlockKey] = useState(null);
   const [buttonBlocks, setButtonBlocks] = useState({});
+  const [buttonAnswersByMessageId, setButtonAnswersByMessageId] = useState({});
   const [mortgageBlocks, setMortgageBlocks] = useState({});
   const [activeBlockToken, setActiveBlockToken] = useState(0);
   const [signatureReady, setSignatureReady] = useState(false);
@@ -44,7 +75,13 @@ const AIChatpage = () => {
   const [coSignatureReady, setCoSignatureReady] = useState(false);
   const [coSignatureSaved, setCoSignatureSaved] = useState(false);
   const [needsCoBorrowerSignature, setNeedsCoBorrowerSignature] = useState(false);
+  const [isSignatureDocsOpen, setIsSignatureDocsOpen] = useState(false);
+  const [signatureTemplates, setSignatureTemplates] = useState([]);
+  const [signatureTemplatesLoading, setSignatureTemplatesLoading] = useState(false);
+  const [signatureTemplatesError, setSignatureTemplatesError] = useState('');
+  const [signatureTemplateDownloadingKey, setSignatureTemplateDownloadingKey] = useState('');
   const [debugFilling, setDebugFilling] = useState(false);
+  const [isCountryDropdownOpen, setIsCountryDropdownOpen] = useState(false);
 
   const authToken = useMemo(() => localStorage.getItem('auth_token'), []);
   const isDebugAutofill = useMemo(() => process.env.NODE_ENV !== 'production', []);
@@ -57,13 +94,39 @@ const AIChatpage = () => {
   const hasHistoryRef = useRef(false);
   const historyAnswerByBlockRef = useRef(new Map());
   const mortgageBlocksRef = useRef({});
+  const chatInputRef = useRef(null);
   const dateInputRef = useRef(null);
+  const countryInputWrapperRef = useRef(null);
+  const liveMessageCounterRef = useRef(0);
+  const optionsCacheRef = useRef(new Map());
+  const optionsInFlightRef = useRef(new Map());
+  const sessionInitRef = useRef(false);
+  const signatureTemplatesLoadedRef = useRef(false);
 
   useEffect(() => {
     mortgageBlocksRef.current = mortgageBlocks;
   }, [mortgageBlocks]);
 
   const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+  const createLiveMessageId = (prefix, blockKey = '') => {
+    liveMessageCounterRef.current += 1;
+    return `${prefix}-${blockKey || 'message'}-${Date.now()}-${liveMessageCounterRef.current}`;
+  };
+
+  const upsertButtonAnswerForMessage = (messageId, updates) => {
+    if (!messageId) return;
+    setButtonAnswersByMessageId((prev) => {
+      const existing = prev[messageId] || {};
+      return {
+        ...prev,
+        [messageId]: {
+          ...existing,
+          ...updates,
+        },
+      };
+    });
+  };
 
   const request = async (path, init = {}) => {
     if (!authToken) {
@@ -85,6 +148,48 @@ const AIChatpage = () => {
     return data;
   };
 
+  const requestAuthJson = async (path, init = {}) => {
+    if (!authToken) {
+      throw new Error('צריך להתחבר כדי להתחיל שיחה');
+    }
+    const headers = {
+      ...(init.headers || {}),
+      Authorization: `Bearer ${authToken}`,
+    };
+    if (init.body && !headers['Content-Type']) {
+      headers['Content-Type'] = 'application/json';
+    }
+    const response = await fetch(`${apiBase}/auth/v1${path}`, { ...init, headers });
+    const data = await response.json().catch(() => null);
+    if (!response.ok) {
+      const message = data?.detail || data?.message || 'שגיאה בשליפת המסמכים';
+      throw new Error(message);
+    }
+    return data;
+  };
+
+  const fetchBlockOptions = async (blockKey) => {
+    if (!blockKey) return [];
+    const cached = optionsCacheRef.current.get(blockKey);
+    if (cached) return cached;
+    const inFlight = optionsInFlightRef.current.get(blockKey);
+    if (inFlight) return inFlight;
+
+    const promise = request(`/blocks/${blockKey}/options`)
+      .then((blockOptions) => {
+        optionsCacheRef.current.set(blockKey, blockOptions);
+        optionsInFlightRef.current.delete(blockKey);
+        return blockOptions;
+      })
+      .catch((err) => {
+        optionsInFlightRef.current.delete(blockKey);
+        throw err;
+      });
+
+    optionsInFlightRef.current.set(blockKey, promise);
+    return promise;
+  };
+
   const getActiveSessionId = async () => {
     const sessions = await request('/sessions/by-user');
     const activeSession = sessions.find((s) => s.is_active);
@@ -93,14 +198,10 @@ const AIChatpage = () => {
 
   const appendBotMessage = (block) => {
     setMessages((prev) => {
-      const last = prev[prev.length - 1];
-      if (last && last.role === 'bot' && last.blockKey === block.block_key) {
-        return prev;
-      }
       return [
         ...prev,
         {
-          id: `block-${block.block_key}`,
+          id: createLiveMessageId('block', block.block_key),
           role: 'bot',
           text: block.message,
           blockKey: block.block_key,
@@ -122,7 +223,13 @@ const AIChatpage = () => {
   const upsertButtonBlock = (blockKey, updates) => {
     if (!blockKey) return;
     setButtonBlocks((prev) => {
-      const existing = prev[blockKey] || { options: [], selectedId: null, answered: false };
+      const existing = prev[blockKey] || {
+        options: [],
+        selectedId: null,
+        selectedToken: null,
+        answered: false,
+        answeredToken: null,
+      };
       return {
         ...prev,
         [blockKey]: {
@@ -188,35 +295,24 @@ const AIChatpage = () => {
   const isButtonBlockKey = (blockKey) =>
     getButtonOptionsForBlock(blockKey).some((option) => option.option_type === 'button');
 
-  const resolveHistorySelection = (blockKey, optionsList) => {
-    if (!blockKey) return null;
-    const historyEntry = historyAnswerByBlockRef.current.get(blockKey);
-    if (!historyEntry) return null;
-    let selectedId = historyEntry.optionId;
-    if (!selectedId && historyEntry.label) {
-      const match = optionsList.find((option) => option.label === historyEntry.label);
-      if (match) {
-        selectedId = match.id;
-      }
-    }
-    return selectedId || null;
-  };
-
   const loadHistory = async (sessionIdValue) => {
     const history = await request(`/sessions/${sessionIdValue}/history-for-chat`);
     const historyMessages = [];
+    const historyButtonAnswers = {};
     let firstBlockKey = null;
     const historyAnswers = new Map();
     const historyMortgageBlocks = new Map();
     let hasCoBorrowerAnswer = false;
     let hasCoBorrowerYes = false;
     history.forEach((item) => {
+      let botMessageId = null;
       if (item.block_message) {
         if (!firstBlockKey) {
           firstBlockKey = item.block_key;
         }
+        botMessageId = `history-${item.id}-bot`;
         historyMessages.push({
-          id: `history-${item.id}-bot`,
+          id: botMessageId,
           role: 'bot',
           text: item.block_message,
           blockKey: item.block_key,
@@ -225,11 +321,20 @@ const AIChatpage = () => {
       }
       const answerText = item.user_input || item.option_label;
       if (answerText) {
+        if (botMessageId) {
+          historyButtonAnswers[botMessageId] = {
+            selectedId: item.option_id ?? null,
+            selectedLabel: item.option_label || item.user_input || '',
+            answered: true,
+          };
+        }
         if (item.block_key) {
-          historyAnswers.set(item.block_key, {
-            label: item.option_label || item.user_input || '',
-            optionId: item.option_id ?? null,
-          });
+          const hasOptionAnswer = item.option_id !== null && item.option_id !== undefined
+            ? true
+            : Boolean(item.option_label);
+          if (hasOptionAnswer) {
+            historyAnswers.set(item.block_key, true);
+          }
           if (isCoBorrowerQuestionText(item.block_message)) {
             hasCoBorrowerAnswer = true;
             if (String(answerText).includes('כן')) {
@@ -251,6 +356,7 @@ const AIChatpage = () => {
       }
     });
     setMessages(historyMessages);
+    setButtonAnswersByMessageId(historyButtonAnswers);
     const hasItems = historyMessages.length > 0;
     hasHistoryRef.current = hasItems;
     setHasHistory(hasItems);
@@ -277,13 +383,13 @@ const AIChatpage = () => {
   };
 
   const primeButtonBlocksFromHistory = async () => {
-    const entries = Array.from(historyAnswerByBlockRef.current.entries());
-    if (entries.length === 0) return;
+    const blockKeys = Array.from(historyAnswerByBlockRef.current.keys());
+    if (blockKeys.length === 0) return;
 
-    const results = await Promise.all(entries.map(async ([blockKey, answer]) => {
+    const results = await Promise.all(blockKeys.map(async (blockKey) => {
       try {
-        const blockOptions = await request(`/blocks/${blockKey}/options`);
-        return { blockKey, options: blockOptions, answer };
+        const blockOptions = await fetchBlockOptions(blockKey);
+        return { blockKey, options: blockOptions };
       } catch {
         return null;
       }
@@ -295,19 +401,16 @@ const AIChatpage = () => {
         if (!result) return;
         const buttonOptions = result.options.filter((option) => option.option_type === 'button');
         if (buttonOptions.length === 0) return;
-        let selectedId = result.answer?.optionId ?? null;
-        if (!selectedId && result.answer?.label) {
-          const match = buttonOptions.find((option) => option.label === result.answer.label);
-          if (match) {
-            selectedId = match.id;
-          }
-        }
-        const existing = next[result.blockKey] || { options: [], selectedId: null, answered: false };
+        const existing = next[result.blockKey] || {
+          options: [],
+          selectedId: null,
+          selectedToken: null,
+          answered: false,
+          answeredToken: null,
+        };
         next[result.blockKey] = {
           ...existing,
           options: result.options,
-          selectedId,
-          answered: Boolean(selectedId),
         };
       });
       return next;
@@ -317,7 +420,7 @@ const AIChatpage = () => {
   const loadBlock = async (sessionIdValue, blockKey) => {
     const [block, blockOptions] = await Promise.all([
       request(`/blocks/by-key/${blockKey}?session_id=${sessionIdValue}`),
-      request(`/blocks/${blockKey}/options`),
+      fetchBlockOptions(blockKey),
     ]);
     setCurrentBlock(block);
     setOptions(blockOptions);
@@ -327,10 +430,9 @@ const AIChatpage = () => {
     }
     const hasButtons = blockOptions.some((option) => option.option_type === 'button');
     if (hasButtons) {
-      const historySelectedId = resolveHistorySelection(block.block_key, blockOptions);
       upsertButtonBlock(block.block_key, {
         options: blockOptions,
-        ...(historySelectedId ? { selectedId: historySelectedId, answered: true } : {}),
+        answeredToken: null,
       });
     }
     setInputValue('');
@@ -405,18 +507,110 @@ const AIChatpage = () => {
       setIsLoading(false);
       return;
     }
+    if (sessionInitRef.current) {
+      return;
+    }
+    sessionInitRef.current = true;
     loadSession();
-  }, []);
+  }, [authToken]);
 
   useEffect(() => {
     if (!currentBlock?.block_key) return;
     setActiveBlockToken((prev) => prev + 1);
   }, [currentBlock?.block_key]);
 
+  useEffect(() => {
+    if (!isSignatureDocsOpen) return undefined;
+    const handleKeyDown = (event) => {
+      if (event.key === 'Escape') {
+        setIsSignatureDocsOpen(false);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isSignatureDocsOpen]);
+
   const inputOption = options.find((option) => option.option_type !== 'button');
   const buttonOptions = options.filter((option) => option.option_type === 'button');
   const isMortgageParameters = currentBlock?.type === 'mortgage_parameters';
   const isDateInput = inputOption?.option_type === 'date';
+  const isPriceAmountInput = useMemo(() => {
+    if (!inputOption || isDateInput || inputOption.option_type !== 'input') {
+      return false;
+    }
+    const label = String(inputOption?.label || '').replace(/\s+/g, ' ').trim();
+    const message = String(currentBlock?.message || '').replace(/\s+/g, ' ').trim();
+    const combinedText = `${label} ${message}`.toLowerCase();
+    const amountKeywords = ['מחיר', 'שווי', 'סכום', 'עלות', 'הכנסה', 'הכנסות', 'שכר', 'יתרה'];
+    return amountKeywords.some((keyword) => combinedText.includes(keyword));
+  }, [inputOption, isDateInput, currentBlock?.message]);
+  const isIdentityNumberInput = useMemo(() => {
+    if (!inputOption || isDateInput || inputOption.option_type !== 'input') {
+      return false;
+    }
+    const label = String(inputOption?.label || '').replace(/\s+/g, ' ').trim();
+    const message = String(currentBlock?.message || '').replace(/\s+/g, ' ').trim();
+    const normalized = `${label} ${message}`.toLowerCase().replace(/["'״׳.\-_/\\]/g, '');
+    return normalized.includes('תז') || normalized.includes('תעודת זהות');
+  }, [inputOption, isDateInput, currentBlock?.message]);
+  const isPhoneNumberInput = useMemo(() => {
+    if (!inputOption || isDateInput || inputOption.option_type !== 'input') {
+      return false;
+    }
+    const label = String(inputOption?.label || '').replace(/\s+/g, ' ').trim();
+    const message = String(currentBlock?.message || '').replace(/\s+/g, ' ').trim();
+    const normalized = `${label} ${message}`.toLowerCase().replace(/["'״׳.\-_/\\]/g, '');
+    return normalized.includes('טלפון') || normalized.includes('פלאפון') || normalized.includes('נייד');
+  }, [inputOption, isDateInput, currentBlock?.message]);
+  const isCountrySelectionInput = useMemo(() => {
+    if (!inputOption || isDateInput || inputOption.option_type !== 'scroll') {
+      return false;
+    }
+    const label = String(inputOption?.label || '').replace(/\s+/g, ' ').trim();
+    const message = String(currentBlock?.message || '').replace(/\s+/g, ' ').trim();
+    const normalized = `${label} ${message}`.toLowerCase();
+    return normalized.includes('ארץ') || normalized.includes('מדינה');
+  }, [inputOption, isDateInput, currentBlock?.message]);
+  const countryOptions = useMemo(() => {
+    try {
+      if (typeof Intl === 'undefined' || typeof Intl.DisplayNames !== 'function') {
+        return FALLBACK_COUNTRIES;
+      }
+      const displayNames = new Intl.DisplayNames(['he', 'en'], { type: 'region' });
+      const regionCodes = typeof Intl.supportedValuesOf === 'function'
+        ? Intl.supportedValuesOf('region')
+        : [];
+      const resolved = regionCodes
+        .map((code) => displayNames.of(code))
+        .filter((name) => typeof name === 'string')
+        .map((name) => name.trim())
+        .filter(Boolean);
+      const unique = Array.from(new Set([...FALLBACK_COUNTRIES, ...resolved]));
+      unique.sort((a, b) => a.localeCompare(b, 'he'));
+      const israelIndex = unique.indexOf('ישראל');
+      if (israelIndex > 0) {
+        unique.splice(israelIndex, 1);
+        unique.unshift('ישראל');
+      } else if (israelIndex === -1) {
+        unique.unshift('ישראל');
+      }
+      return unique;
+    } catch {
+      return FALLBACK_COUNTRIES;
+    }
+  }, []);
+  const filteredCountryOptions = useMemo(() => {
+    if (!isCountrySelectionInput) {
+      return [];
+    }
+    const normalizedQuery = String(inputValue || '').trim().toLowerCase();
+    if (!normalizedQuery) {
+      return countryOptions;
+    }
+    return countryOptions.filter((country) => country.toLowerCase().includes(normalizedQuery));
+  }, [isCountrySelectionInput, countryOptions, inputValue]);
 
   useLayoutEffect(() => {
     const container = scrollRef.current;
@@ -497,10 +691,18 @@ const AIChatpage = () => {
     [buttonOptions, shouldShowSignature, signatureConfirmOption],
   );
 
+  const toDateInputValue = (date) => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+
   const getDefaultDateValue = () => {
     if (currentBlock?.id === 40) {
-      const today = new Date();
-      return today.toISOString().slice(0, 10);
+      const oneYearAgo = new Date();
+      oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
+      return toDateInputValue(oneYearAgo);
     }
     return '1990-01-01';
   };
@@ -512,6 +714,35 @@ const AIChatpage = () => {
       return getDefaultDateValue();
     });
   }, [isDateInput, currentBlock?.id]);
+
+  useEffect(() => {
+    if (!isCountrySelectionInput) return;
+    setInputValue((prev) => {
+      if (prev) return prev;
+      return 'ישראל';
+    });
+  }, [isCountrySelectionInput, currentBlock?.id]);
+
+  useEffect(() => {
+    if (isCountrySelectionInput) return;
+    setIsCountryDropdownOpen(false);
+  }, [isCountrySelectionInput, currentBlock?.id]);
+
+  useEffect(() => {
+    if (!isCountryDropdownOpen) return undefined;
+    const handleOutsidePointer = (event) => {
+      const wrapper = countryInputWrapperRef.current;
+      if (wrapper && !wrapper.contains(event.target)) {
+        setIsCountryDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleOutsidePointer);
+    document.addEventListener('touchstart', handleOutsidePointer);
+    return () => {
+      document.removeEventListener('mousedown', handleOutsidePointer);
+      document.removeEventListener('touchstart', handleOutsidePointer);
+    };
+  }, [isCountryDropdownOpen]);
 
   const handleDateInputActivate = (event) => {
     if (!isDateInput) return;
@@ -545,8 +776,48 @@ const AIChatpage = () => {
     input.click();
   };
 
+  const handleInputWrapperClick = () => {
+    if (isDateInput) {
+      handleDateInputWrapperClick();
+      return;
+    }
+    if (isCountrySelectionInput) {
+      setIsCountryDropdownOpen(true);
+    }
+  };
+
+  const handleInputFocus = () => {
+    if (isCountrySelectionInput) {
+      setIsCountryDropdownOpen(true);
+    }
+  };
+
+  const handleCountrySelect = (country) => {
+    setInputValue(country);
+    setIsCountryDropdownOpen(false);
+  };
+
   const formatNumber = (value) =>
     new Intl.NumberFormat('he-IL').format(Number.isFinite(value) ? value : 0);
+  const stripToDigits = (value) => String(value || '').replace(/[^\d]/g, '');
+  const formatDigitsWithCommas = (value) => {
+    const digits = stripToDigits(value).replace(/^0+(?=\d)/, '');
+    if (!digits) return '';
+    return digits.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+  };
+  const handleInputValueChange = (event) => {
+    const nextValue = event.target.value;
+    if (isPriceAmountInput) {
+      const digitsOnly = stripToDigits(nextValue);
+      setInputValue(formatDigitsWithCommas(digitsOnly));
+      return;
+    }
+    if (isIdentityNumberInput || isPhoneNumberInput) {
+      setInputValue(stripToDigits(nextValue));
+      return;
+    }
+    setInputValue(nextValue);
+  };
 
   const formatMessageTime = (value) => {
     if (!value) return '';
@@ -676,9 +947,23 @@ const AIChatpage = () => {
       setError('נא להזין ערך');
       return;
     }
-    const formattedValue =
-      inputOption.option_type === 'date' ? formatDateToSlashes(trimmed) : trimmed;
-    await sendAnswer(inputOption, formattedValue, formattedValue);
+    const isNumericTextInput = isPriceAmountInput || isIdentityNumberInput || isPhoneNumberInput;
+    const digitsOnlyValue = isNumericTextInput ? stripToDigits(trimmed) : '';
+    if (isNumericTextInput && !digitsOnlyValue) {
+      setError('נא להזין מספר תקין');
+      return;
+    }
+    const formattedValue = inputOption.option_type === 'date'
+      ? formatDateToSlashes(trimmed)
+      : isNumericTextInput
+        ? digitsOnlyValue
+        : trimmed;
+    const displayValue = isPriceAmountInput
+      ? formatDigitsWithCommas(digitsOnlyValue)
+      : isIdentityNumberInput || isPhoneNumberInput
+        ? digitsOnlyValue
+        : formattedValue;
+    await sendAnswer(inputOption, formattedValue, displayValue);
   };
 
   const sendAnswer = async (option, value, displayText, { appendUserMessage = true } = {}) => {
@@ -689,7 +974,7 @@ const AIChatpage = () => {
       setMessages((prev) => [
         ...prev,
         {
-          id: `user-${Date.now()}`,
+          id: createLiveMessageId('user', currentBlock?.block_key),
           role: 'user',
           text: displayText || option.label,
           timestamp: new Date().toISOString(),
@@ -768,18 +1053,108 @@ const AIChatpage = () => {
   const handleCoPointerUp = (event) =>
     handleSignaturePointerUp(event, coSignatureCanvasRef, coSignatureCtxRef, isCoDrawingRef);
 
-  const handleSignatureClear = () => {
-    const clearCanvas = (canvasRef, ctxRef, setReady, setSaved) => {
-      const canvas = canvasRef.current;
-      const ctx = ctxRef.current;
-      if (!canvas || !ctx) return;
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      setReady(false);
-      if (setSaved) setSaved(false);
-    };
-    clearCanvas(signatureCanvasRef, signatureCtxRef, setSignatureReady, setSignatureSaved);
-    if (needsCoBorrowerSignature) {
-      clearCanvas(coSignatureCanvasRef, coSignatureCtxRef, setCoSignatureReady, setCoSignatureSaved);
+  const clearSignaturePad = (canvasRef, ctxRef, drawingRef, setReady, setSaved) => {
+    const canvas = canvasRef.current;
+    const ctx = ctxRef.current;
+    if (!canvas || !ctx) return;
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.beginPath();
+    drawingRef.current = false;
+    setReady(false);
+    if (setSaved) {
+      setSaved(false);
+    }
+    setError('');
+  };
+
+  const handlePrimarySignatureClear = () =>
+    clearSignaturePad(signatureCanvasRef, signatureCtxRef, isDrawingRef, setSignatureReady, setSignatureSaved);
+
+  const handleCoSignatureClear = () =>
+    clearSignaturePad(coSignatureCanvasRef, coSignatureCtxRef, isCoDrawingRef, setCoSignatureReady, setCoSignatureSaved);
+
+  const loadSignatureTemplates = async () => {
+    if (signatureTemplatesLoadedRef.current || signatureTemplatesLoading) return;
+    setSignatureTemplatesLoading(true);
+    setSignatureTemplatesError('');
+    try {
+      const templates = await requestAuthJson('/bank-signature/templates');
+      setSignatureTemplates(Array.isArray(templates) ? templates : []);
+      signatureTemplatesLoadedRef.current = true;
+    } catch (err) {
+      setSignatureTemplatesError(err?.message || 'שגיאה בטעינת רשימת המסמכים');
+    } finally {
+      setSignatureTemplatesLoading(false);
+    }
+  };
+
+  const handleOpenSignatureDocs = async () => {
+    setIsSignatureDocsOpen(true);
+    await loadSignatureTemplates();
+  };
+
+  const handleCloseSignatureDocs = () => {
+    setIsSignatureDocsOpen(false);
+  };
+
+  const extractFilenameFromContentDisposition = (value, fallback) => {
+    if (!value) return fallback;
+    const utfMatch = value.match(/filename\*=UTF-8''([^;]+)/i);
+    if (utfMatch?.[1]) {
+      try {
+        return decodeURIComponent(utfMatch[1]);
+      } catch {
+        return utfMatch[1];
+      }
+    }
+    const plainMatch = value.match(/filename="?([^";]+)"?/i);
+    if (plainMatch?.[1]) {
+      return plainMatch[1];
+    }
+    return fallback;
+  };
+
+  const handleOpenSignatureTemplate = async (bankKey, templateType, fallbackName) => {
+    if (!authToken || !bankKey || !templateType) return;
+    const requestKey = `${bankKey}:${templateType}`;
+    setSignatureTemplateDownloadingKey(requestKey);
+    setSignatureTemplatesError('');
+    try {
+      const response = await fetch(
+        `${apiBase}/auth/v1/bank-signature/templates/${encodeURIComponent(bankKey)}/${encodeURIComponent(templateType)}`,
+        {
+          method: 'GET',
+          headers: {
+            Authorization: `Bearer ${authToken}`,
+          },
+        },
+      );
+      if (!response.ok) {
+        const payload = await response.json().catch(() => null);
+        throw new Error(payload?.detail || payload?.message || 'שגיאה בפתיחת המסמך');
+      }
+      const blob = await response.blob();
+      const fileName = extractFilenameFromContentDisposition(
+        response.headers.get('content-disposition'),
+        fallbackName || `${bankKey}-${templateType}.pdf`,
+      );
+      const objectUrl = window.URL.createObjectURL(blob);
+      const previewWindow = window.open(objectUrl, '_blank', 'noopener,noreferrer');
+      if (!previewWindow) {
+        const link = document.createElement('a');
+        link.href = objectUrl;
+        link.download = fileName;
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+      }
+      window.setTimeout(() => {
+        window.URL.revokeObjectURL(objectUrl);
+      }, 60000);
+    } catch (err) {
+      setSignatureTemplatesError(err?.message || 'שגיאה בפתיחת המסמך');
+    } finally {
+      setSignatureTemplateDownloadingKey('');
     }
   };
 
@@ -831,11 +1206,13 @@ const AIChatpage = () => {
         setSignatureSaved(true);
       }
       if (confirmOption) {
-        await sendAnswer(confirmOption, null, confirmOption.label);
-        return;
+        const confirmSaved = await sendAnswer(confirmOption, null, confirmOption.label);
+        if (!confirmSaved) {
+          return;
+        }
       }
       localStorage.setItem('new_mortgage_submitted', 'true');
-      navigate('/homebeforeapproval2');
+      navigate('/', { replace: true });
     } catch (err) {
       setError(err?.message || 'שגיאה בשמירת החתימה');
     } finally {
@@ -865,7 +1242,22 @@ const AIChatpage = () => {
     buttonList.some((option) => option.label.length > 28);
 
   const shouldShowInputBar =
-    Boolean(inputOption) && !isMortgageParameters && !currentBlock?.is_terminal;
+    !isLoading && Boolean(inputOption) && !isMortgageParameters && !currentBlock?.is_terminal;
+  const shouldAutoFocusInput =
+    shouldShowInputBar &&
+    inputOption?.option_type === 'input' &&
+    !isDateInput;
+  const isBlockingOverlayVisible = isLoading || signatureSaving;
+
+  useEffect(() => {
+    if (!shouldAutoFocusInput || isSending || isBlockingOverlayVisible) return undefined;
+    const input = chatInputRef.current;
+    if (!input) return undefined;
+    const timer = window.setTimeout(() => {
+      input.focus({ preventScroll: true });
+    }, 80);
+    return () => window.clearTimeout(timer);
+  }, [shouldAutoFocusInput, isSending, isBlockingOverlayVisible, currentBlock?.block_key]);
 
   const buttonBlockIndex = useMemo(() => {
     const order = [];
@@ -879,28 +1271,41 @@ const AIChatpage = () => {
     return new Map(order.map((blockKey, index) => [blockKey, index]));
   }, [messages, buttonBlocks, currentBlock?.block_key, options]);
 
-  const handleButtonOptionClick = async (blockKey, option) => {
+  const latestBotMessageIndexByBlockKey = useMemo(() => {
+    const indexByBlock = new Map();
+    messages.forEach((message, index) => {
+      if (message.role !== 'bot' || !message.blockKey) return;
+      indexByBlock.set(message.blockKey, index);
+    });
+    return indexByBlock;
+  }, [messages]);
+
+  const handleButtonOptionClick = async (messageId, blockKey, option) => {
     const blockState = buttonBlocks[blockKey];
-    if (!blockKey || isSending) return;
-    if (blockState?.answeredToken === activeBlockToken) return;
+    const messageAnswer = buttonAnswersByMessageId[messageId];
+    if (!messageId || !blockKey || isSending) return;
+    if (messageAnswer?.answeredToken === activeBlockToken || blockState?.answeredToken === activeBlockToken) return;
     if (currentBlock?.block_key === blockKey && isCoBorrowerQuestionText(currentBlock?.message)) {
       const label = String(option.label || '');
       if (label.includes('כן')) {
         setNeedsCoBorrowerSignature(true);
       } else if (label.includes('לא')) {
-        setNeedsCoBorrowerSignature((prev) => prev);
+        setNeedsCoBorrowerSignature(false);
       }
     }
-    upsertButtonBlock(blockKey, { selectedId: option.id });
+    upsertButtonAnswerForMessage(messageId, {
+      selectedId: option.id,
+      selectedLabel: option.label,
+    });
     const success = await sendAnswer(option, null, option.label, { appendUserMessage: false });
     if (success) {
+      upsertButtonAnswerForMessage(messageId, { answered: true, answeredToken: activeBlockToken });
       upsertButtonBlock(blockKey, { answered: true, answeredToken: activeBlockToken });
     }
   };
 
   return (
     <div className="aichat_page">
-      <Link to="/" className="prev_page_link"><img src={previcon} alt="" /></Link>
       <div className="wrapper">
         <div className="title">
           <h1>צא’ט הגשת בקשה לאישור עקרוני</h1>
@@ -921,20 +1326,28 @@ const AIChatpage = () => {
           <div className="had d_flex d_flex_jc d_flex_ac">
             <img src={bouticon} alt="" /> <span>רובין העוזר האישי שלך למשכנתא</span>
           </div>
+          {isBlockingOverlayVisible && (
+            <div className="ai_chat_loading_overlay" role="status" aria-live="polite">
+              <div className="ai_chat_loading_box">
+                <span className="ai_chat_loading_spinner" aria-hidden="true" />
+                <span>{signatureSaving ? 'שומר את הנתונים...' : 'טוען את היסטוריית השיחה...'}</span>
+              </div>
+            </div>
+          )}
           <div className="inner" ref={scrollRef}>
-            {isLoading && <div className="ai_chat_status">טוען שיחה...</div>}
             {!isLoading && messages.length === 0 && (
               <div className="ai_chat_status">אין הודעות עדיין.</div>
             )}
-            {messages.map((message) => {
+            {messages.map((message, index) => {
               const isBot = message.role === 'bot';
-              const isActiveBlock = isBot && message.blockKey === currentBlock?.block_key;
+              const isLatestForBlock = isBot && latestBotMessageIndexByBlockKey.get(message.blockKey) === index;
+              const isActiveBlock = isBot && isLatestForBlock && message.blockKey === currentBlock?.block_key;
               const isPinnedMessage = isBot && pinnedBlockKey && message.blockKey === pinnedBlockKey;
               const isButtonBlockMessage = isBot && isButtonBlockKey(message.blockKey);
               const buttonOptionsForMessage = isButtonBlockMessage
                 ? getButtonOptionsForBlock(message.blockKey).filter((option) => option.option_type === 'button')
                 : [];
-              const blockState = buttonBlocks[message.blockKey] || {};
+              const messageAnswer = buttonAnswersByMessageId[message.id] || {};
               const buttonPosition = buttonBlockIndex.get(message.blockKey) ?? 0;
               const mortgageBlock = mortgageBlocks[message.blockKey];
               const isMortgageBlockMessage = isBot && mortgageBlock;
@@ -1043,9 +1456,21 @@ const AIChatpage = () => {
                         {buttonOptionsForMessage.map((option) => (
                           <button
                             key={option.id}
-                            onClick={() => handleButtonOptionClick(message.blockKey, option)}
-                            disabled={isSending || !isActiveBlock || blockState.answeredToken === activeBlockToken}
-                            className={blockState.selectedId === option.id ? 'active' : ''}
+                            onClick={() => handleButtonOptionClick(message.id, message.blockKey, option)}
+                            disabled={isSending || !isActiveBlock || messageAnswer.answeredToken === activeBlockToken}
+                            className={
+                              (messageAnswer.selectedId !== null &&
+                                messageAnswer.selectedId !== undefined &&
+                                messageAnswer.selectedId !== '' &&
+                                messageAnswer.selectedId === option.id) ||
+                              ((messageAnswer.selectedId === null ||
+                                messageAnswer.selectedId === undefined ||
+                                messageAnswer.selectedId === '') &&
+                                messageAnswer.selectedLabel &&
+                                messageAnswer.selectedLabel === option.label)
+                                ? 'active'
+                                : ''
+                            }
                           >
                             {option.label}
                           </button>
@@ -1065,6 +1490,15 @@ const AIChatpage = () => {
                     <div className="signature_label">חתימת הלווה הראשי</div>
                     <div className="signature signature_pad">
                       {!signatureReady && <span>נא לחתום כאן</span>}
+                      <button
+                        type="button"
+                        className={`signature_clear_icon ${signatureReady ? 'is-visible' : ''}`}
+                        onClick={handlePrimarySignatureClear}
+                        disabled={signatureSaving}
+                        aria-label="נקה חתימה"
+                      >
+                        <img src={removeIcon} alt="" />
+                      </button>
                       <canvas
                         ref={signatureCanvasRef}
                         className="signature_canvas"
@@ -1080,6 +1514,15 @@ const AIChatpage = () => {
                       <div className="signature_label">חתימת לווה נוסף</div>
                       <div className="signature signature_pad">
                         {!coSignatureReady && <span>נא לחתום כאן</span>}
+                        <button
+                          type="button"
+                          className={`signature_clear_icon ${coSignatureReady ? 'is-visible' : ''}`}
+                          onClick={handleCoSignatureClear}
+                          disabled={signatureSaving}
+                          aria-label="נקה חתימת לווה נוסף"
+                        >
+                          <img src={removeIcon} alt="" />
+                        </button>
                         <canvas
                           ref={coSignatureCanvasRef}
                           className="signature_canvas"
@@ -1095,9 +1538,9 @@ const AIChatpage = () => {
                     <button
                       type="button"
                       className="view"
-                      onClick={handleSignatureClear}
+                      onClick={handleOpenSignatureDocs}
                       disabled={signatureSaving}
-                      aria-label="נקה חתימה"
+                      aria-label="הצג מסמכים לחתימה"
                     >
                       <img src={viewicon} alt="" />
                     </button>
@@ -1120,6 +1563,98 @@ const AIChatpage = () => {
                     </button>
                   </div>
                 </form>
+                {isSignatureDocsOpen && (
+                  <div
+                    className="signature_docs_modal_overlay"
+                    role="presentation"
+                    onClick={handleCloseSignatureDocs}
+                  >
+                    <div
+                      className="signature_docs_modal"
+                      role="dialog"
+                      aria-modal="true"
+                      aria-labelledby="signature-docs-title"
+                      onClick={(event) => event.stopPropagation()}
+                    >
+                      <div className="signature_docs_modal_header d_flex d_flex_jb d_flex_ac">
+                        <h5 id="signature-docs-title">מסמכים לחתימה</h5>
+                        <button
+                          type="button"
+                          className="signature_docs_close"
+                          onClick={handleCloseSignatureDocs}
+                          aria-label="סגור חלון מסמכים"
+                        >
+                          ×
+                        </button>
+                      </div>
+                      <p className="signature_docs_intro">
+                        לפני האישור ניתן לעיין במסמכי החתימה לכל בנק.
+                      </p>
+                      {signatureTemplatesLoading && (
+                        <div className="signature_docs_status">טוען מסמכים...</div>
+                      )}
+                      {!signatureTemplatesLoading && signatureTemplates.length === 0 && (
+                        <div className="signature_docs_status">לא נמצאו מסמכי חתימה זמינים.</div>
+                      )}
+                      {!signatureTemplatesLoading && signatureTemplates.length > 0 && (
+                        <div className="signature_docs_list">
+                          {signatureTemplates.map((bank) => {
+                            const bankLogo = BANK_LOGO_BY_KEY[bank.bank_key] || '';
+                            return (
+                            <div className="signature_docs_bank" key={bank.bank_key}>
+                              <div className="signature_docs_bank_header d_flex d_flex_ac">
+                                {bankLogo && (
+                                  <img src={bankLogo} alt={bank.bank_name} className="signature_docs_bank_logo" />
+                                )}
+                                <h6>{bank.bank_name}</h6>
+                              </div>
+                              <div className="signature_docs_links">
+                                {bank.power_of_attorney_filename ? (
+                                  <button
+                                    type="button"
+                                    onClick={() => handleOpenSignatureTemplate(
+                                      bank.bank_key,
+                                      'power-of-attorney',
+                                      bank.power_of_attorney_filename,
+                                    )}
+                                    disabled={signatureTemplateDownloadingKey === `${bank.bank_key}:power-of-attorney`}
+                                  >
+                                    {signatureTemplateDownloadingKey === `${bank.bank_key}:power-of-attorney`
+                                      ? 'פותח...'
+                                      : 'ייפוי כוח'}
+                                  </button>
+                                ) : (
+                                  <span className="signature_docs_missing">ייפוי כוח לא זמין</span>
+                                )}
+                                {bank.credit_card_authorization_filename ? (
+                                  <button
+                                    type="button"
+                                    onClick={() => handleOpenSignatureTemplate(
+                                      bank.bank_key,
+                                      'credit-card-authorization',
+                                      bank.credit_card_authorization_filename,
+                                    )}
+                                    disabled={signatureTemplateDownloadingKey === `${bank.bank_key}:credit-card-authorization`}
+                                  >
+                                    {signatureTemplateDownloadingKey === `${bank.bank_key}:credit-card-authorization`
+                                      ? 'פותח...'
+                                      : 'הרשאה לכרטיסי אשראי'}
+                                  </button>
+                                ) : (
+                                  <span className="signature_docs_missing">הרשאה לכרטיסי אשראי לא זמינה</span>
+                                )}
+                              </div>
+                            </div>
+                            );
+                          })}
+                        </div>
+                      )}
+                      {signatureTemplatesError && (
+                        <div className="signature_docs_error">{signatureTemplatesError}</div>
+                      )}
+                    </div>
+                  </div>
+                )}
               </div>
             )}
 
@@ -1133,15 +1668,18 @@ const AIChatpage = () => {
           </div>
           {shouldShowInputBar && (
             <div className="send_message d_flex d_flex_ac d_flex_jb">
-              <div className="form_input" onClick={isDateInput ? handleDateInputWrapperClick : undefined}>
+              <div className="form_input" ref={countryInputWrapperRef} onClick={handleInputWrapperClick}>
                 <input
                   type={isDateInput ? 'date' : 'text'}
                   className="in"
                   placeholder={inputOption?.label || 'נא להקליד כאן...'}
                   value={inputValue}
-                  onChange={(e) => setInputValue(e.target.value)}
+                  onChange={handleInputValueChange}
+                  onFocus={handleInputFocus}
                   disabled={isSending}
-                  ref={isDateInput ? dateInputRef : undefined}
+                  inputMode={isPriceAmountInput || isIdentityNumberInput || isPhoneNumberInput ? 'numeric' : undefined}
+                  pattern={isPriceAmountInput ? '[0-9,]*' : (isIdentityNumberInput || isPhoneNumberInput) ? '[0-9]*' : undefined}
+                  ref={isDateInput ? dateInputRef : chatInputRef}
                   onClick={isDateInput ? handleDateInputActivate : undefined}
                   onKeyDown={(e) => {
                     if (e.key === 'Enter') {
@@ -1149,6 +1687,25 @@ const AIChatpage = () => {
                     }
                   }}
                 />
+                {isCountrySelectionInput && isCountryDropdownOpen && (
+                  <div className="ai_country_dropdown" role="listbox" aria-label="רשימת מדינות">
+                    {filteredCountryOptions.length > 0 ? (
+                      filteredCountryOptions.map((country) => (
+                        <button
+                          key={country}
+                          type="button"
+                          className="ai_country_option"
+                          onMouseDown={(event) => event.preventDefault()}
+                          onClick={() => handleCountrySelect(country)}
+                        >
+                          {country}
+                        </button>
+                      ))
+                    ) : (
+                      <div className="ai_country_empty">לא נמצאו מדינות</div>
+                    )}
+                  </div>
+                )}
               </div>
               <button className="send" onClick={handleSendInput} disabled={isSending}>
                 <img src={sendicon} alt="" />

@@ -5,8 +5,8 @@ import nationalbank from '../../assets/images/national_bank.png';
 
 
 const BankMortgageCard = ({bankData}) => {
-    const fallbackImage = bankData?.name_en === 'Mizrahi-Tefahot' ? mizrahitefahotbank : nationalbank;
-    const bankImage = bankData?.bankLogo || fallbackImage;
+   
+    const bankImage = bankData?.bankLogo;
 
     const formatMoney = (value) => {
         const num = Number(value);

@@ -22,8 +22,8 @@ const ExplanationScreen2 = () => {
                   <li className="active"></li>
                   <li className="active"></li>
                 </ul>
-                <h3>ייעוץ משכנתא מותאם אישית</h3>
-                <p>מתכוונים לקנות בקרוב נכס? רגע לפני אולי  כדאי שפשוט תשוו, תבדקו, תעשו סימולציה ובעיקר, תנו לרובין להשיג בשבילכם יותר.</p>
+                <h3>בדיקת משכנתא קיימת וניטור מתקדם</h3>
+                <p>תנו לרובין לבדוק עבורכם בחינם האם אתם יכולים לחסוך במשכנתא, מעבר לזה, רובין ממשיך לנטר בשבילכם את המשכנתא ובכל פעם שתהיה הזדמנות לחיסכון תקבלו עדכון מיידי.</p>
                 <div className="btn_col d_flex d_flex_ac d_flex_jb">
                   <Link to="/explanation-screen" className="prev">&lt; הקודם </Link>
                   <Link to="/login" className="next">הבא &gt; </Link>

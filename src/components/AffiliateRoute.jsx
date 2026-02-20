@@ -6,6 +6,7 @@ const AffiliateRoute = ({ children }) => {
   const location = useLocation();
   const apiBase = useMemo(() => getGatewayBase(), []);
   const token = localStorage.getItem('affiliate_token');
+  const isDesktop = typeof window !== 'undefined' ? window.innerWidth >= 1024 : false;
   const [status, setStatus] = useState(() => (token ? 'checking' : 'unauthenticated'));
 
   useEffect(() => {
@@ -56,7 +57,13 @@ const AffiliateRoute = ({ children }) => {
   }
 
   if (status !== 'authenticated') {
-    return <Navigate to="/login" state={{ from: location }} replace />;
+    return (
+      <Navigate
+        to={isDesktop ? '/' : '/login'}
+        state={isDesktop ? undefined : { from: location }}
+        replace
+      />
+    );
   }
 
   return children;

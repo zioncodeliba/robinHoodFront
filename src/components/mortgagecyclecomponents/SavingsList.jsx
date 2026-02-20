@@ -1,8 +1,7 @@
 import React from "react";
 
-const SavingsList = () => {
-  // Example JSON data (could come from API or file)
-  const savingsData = [
+const SavingsList = ({ data }) => {
+  const savingsData = Array.isArray(data) && data.length > 0 ? data : [
     { id: 1, label: "חיסכון חודשי", value: "1,200 ש\"ח" },
     { id: 2, label: "חיסכון באחוזים", value: "23%" },
     { id: 3, label: "החזר חודשי צפוי", value: "9,350 ש\"ח" },

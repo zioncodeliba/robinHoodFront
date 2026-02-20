@@ -5,22 +5,23 @@ import '../components/suggestionscomponents/Suggestionspage.css';
 // images 
 import notei from '../assets/images/note_i.svg';
 import nextprevarrow from "../assets/images/np_arrow.svg";
-import previcon from '../assets/images/prev_icon.svg';
-import hapoalimbankicon from "../assets/images/hapoalimbank-icon.svg";
-import nationalbank from "../assets/images/national_bank.png";
-import mizrahitefahotbank from "../assets/images/mfahot_bank.png";
 
 // components 
 import BankMortgageCard from '../components/suggestionscomponents/BankMortgageCard';
-import InternationalSuggestionCard from '../components/suggestionscomponents/InternationalSuggestionCard';
+// import InternationalSuggestionCard from '../components/suggestionscomponents/InternationalSuggestionCard';
 import RoutesBankMortgage from '../components/suggestionscomponents/RoutesBankMortgage';
 import ReturnsChart from '../components/commoncomponents/ReturnsChart';
 import NotePopup from '../components/suggestionscomponents/NotePopup';
 import { getGatewayBase } from "../utils/apiBase";
 
-const DISCOUNT_BANK_LOGO_URL = "/discont.webp";
-const INTERNATIONAL_BANK_LOGO_URL = "/banks/international-logo.png";
-const MERCANTILE_BANK_LOGO_URL = "/Mercantile.svg.png";
+const BANK_LOGOS = {
+    hapoalim: "/banks/hapoalim.png",
+    leumi: "/banks/leumi.png",
+    mizrahi: "/banks/mizrahi.png",
+    discount: "/banks/discount.png",
+    international: "/banks/international.png",
+    mercantile: "/banks/mercantile.png",
+};
 
 const BANK_META = {
   1: {
@@ -28,42 +29,42 @@ const BANK_META = {
     name: "בנק מזרחי טפחות",
     name_en: "Mizrahi-Tefahot",
     color: "#F5821F",
-    bankLogo: mizrahitefahotbank,
+    bankLogo: BANK_LOGOS.mizrahi,
   },
   2: {
     id: 2,
     name: "בנק לאומי",
     name_en: "National Bank",
     color: "#007BFF",
-    bankLogo: nationalbank,
+    bankLogo: BANK_LOGOS.leumi,
   },
   3: {
     id: 3,
     name: "בנק הפועלים",
     name_en: "Hapoalim",
     color: "#D92D20",
-    bankLogo: hapoalimbankicon,
+    bankLogo: BANK_LOGOS.hapoalim,
   },
   4: {
     id: 4,
     name: "בנק דיסקונט",
     name_en: "Discount",
     color: "#27450E",
-    bankLogo: DISCOUNT_BANK_LOGO_URL,
+    bankLogo: BANK_LOGOS.discount,
   },
   8: {
     id: 8,
     name: "בנק הבינלאומי",
     name_en: "International",
     color: "#FDB726",
-    bankLogo: INTERNATIONAL_BANK_LOGO_URL,
+    bankLogo: BANK_LOGOS.international,
   },
   12: {
     id: 12,
     name: "בנק מרכנתיל",
     name_en: "Mercantile",
     color: "#27450E",
-    bankLogo: MERCANTILE_BANK_LOGO_URL,
+    bankLogo: BANK_LOGOS.mercantile,
   },
 };
 
@@ -171,18 +172,120 @@ const Suggestionspage = () => {
     return Number.isFinite(numeric) ? numeric : null;
   };
 
-  const toPositiveInt = (value) => {
-    const num = Math.round(toNumber(value) ?? 0);
-    return Number.isFinite(num) && num > 0 ? num : 0;
+  const formatCurrency = (value) => {
+    const num = toNumber(value);
+    if (!Number.isFinite(num)) return '—';
+    return `₪${num.toLocaleString('he-IL')}`;
   };
 
-  const getMetrics = (response) =>
-    response?.extracted_json?.calculator_result?.optimal_mix?.metrics ||
+  const formatPercent = (value) => {
+    const num = toNumber(value);
+    if (!Number.isFinite(num)) return null;
+    const normalized = Math.round(num * 10) / 10;
+    return `${normalized.toString().replace(/\.0$/, '')}%`;
+  };
+
+  const getDurationMonths = (monthsValue) => {
+    if (Array.isArray(monthsValue)) {
+      const numericMonths = monthsValue
+        .map((item) => toNumber(item))
+        .filter((item) => item !== null && item > 0);
+      if (!numericMonths.length) return null;
+      return numericMonths[numericMonths.length - 1];
+    }
+    return toNumber(monthsValue);
+  };
+
+  const getSummary = (response) =>
+    response?.extracted_json?.calculator_result?.proposed_mix?.summary ||
     response?.extracted_json?.calculator_result?.proposed_mix?.metrics ||
+    response?.extracted_json?.calculator_result?.optimal_mix?.metrics ||
     null;
+
+  const getYears = (response, summary) => {
+    const months = getDurationMonths(response?.extracted_json?.calculator_result?.proposed_mix?.graph_data?.months);
+    if (months !== null && months > 0) {
+      const years = Math.round((months / 12) * 10) / 10;
+      return String(years).replace(/\.0$/, '');
+    }
+    const fallbackYears =
+      summary?.['תקופה_מקסימלית'] ??
+      summary?.['תקופה_בשנים'] ??
+      summary?.['תקופה'];
+    if (fallbackYears === null || fallbackYears === undefined || fallbackYears === '') return '—';
+    return String(fallbackYears);
+  };
 
   const getRoutes = (response) => {
     const calc = response?.extracted_json?.calculator_result || null;
+    const tracksDetail =
+      calc?.proposed_mix?.tracks_detail ||
+      calc?.optimal_mix?.tracks_detail ||
+      null;
+    if (Array.isArray(tracksDetail) && tracksDetail.length > 0) {
+      const mappedTracks = tracksDetail.map((track) => {
+        const amount = toNumber(
+          track?.['סכום'] ??
+          track?.amount ??
+          track?.loan_value ??
+          track?.balance
+        ) || 0;
+        const rawPercent = toNumber(
+          track?.['אחוז'] ??
+          track?.['אחוז מסכום ההלוואה'] ??
+          track?.percentage ??
+          track?.['שיעור']
+        );
+        const rawInterest = toNumber(
+          track?.['ריבית'] ??
+          track?.['שיעור_ריבית'] ??
+          track?.['ריבית שנתית'] ??
+          track?.interest ??
+          track?.rate
+        );
+        const rawMonthlyPayment = toNumber(
+          track?.['החזר_חודשי'] ??
+          track?.monthly_payment ??
+          track?.payment
+        );
+        const name =
+          track?.['סוג_מסלול'] ||
+          track?.['שם'] ||
+          track?.['מסלול'] ||
+          track?.loan_type_name ||
+          'מסלול';
+        return {
+          label: name,
+          name,
+          amount,
+          rawPercent,
+          rawInterest,
+          rawMonthlyPayment,
+        };
+      });
+      const total = mappedTracks.reduce((sum, item) => sum + item.amount, 0);
+      return mappedTracks.map((item) => ({
+        label: item.label,
+        name: item.name,
+        amount: item.amount,
+        percent:
+          item.rawPercent !== null
+            ? item.rawPercent
+            : total
+              ? Math.round((item.amount / total) * 100)
+              : 0,
+        percentage: formatPercent(
+          item.rawPercent !== null
+            ? item.rawPercent
+            : total
+              ? (item.amount / total) * 100
+              : 0
+        ),
+        interest: formatPercent(item.rawInterest) || '—',
+        balance: formatCurrency(item.rawMonthlyPayment ?? item.amount),
+      }));
+    }
+
     const table =
       calc?.optimal_mix?.table ||
       calc?.proposed_mix?.table ||
@@ -197,74 +300,44 @@ const Suggestionspage = () => {
       const percent = total ? Math.round((amount / total) * 100) : 0;
       return {
         label: row?.['סוג_מסלול'] || row?.['שם'] || row?.['מסלול'] || 'מסלול',
+        name: row?.['סוג_מסלול'] || row?.['שם'] || row?.['מסלול'] || 'מסלול',
         amount,
         percent,
+        percentage: formatPercent(percent) || '0%',
+        interest: formatPercent(row?.['ריבית']) || '—',
+        balance: formatCurrency(row?.['החזר_חודשי'] ?? amount),
       };
     });
   };
 
-  const computeGraphFromTable = (table) => {
-    if (!Array.isArray(table) || table.length === 0) return null;
-    const routes = table
-      .map((row) => {
-        const amount = toNumber(row?.['סכום']) ?? 0;
-        const months = toPositiveInt(row?.['תקופה_חודשים'] ?? row?.['תקופה (חודשים)']);
-        const ratePct = toNumber(row?.['ריבית']) ?? 0;
-        const payment = toNumber(row?.['החזר_חודשי']);
-        if (!amount || !months) return null;
-        return { amount, months, ratePct, payment };
-      })
-      .filter(Boolean);
+  const buildChartDataFromGraph = (graph) => {
+    if (!graph || typeof graph !== 'object') return null;
+    const months = Array.isArray(graph.months) ? graph.months : [];
+    const interest = Array.isArray(graph.interest_payment) ? graph.interest_payment : [];
+    const principal = Array.isArray(graph.principal_repayment) ? graph.principal_repayment : [];
+    const length = Math.min(months.length || 0, interest.length || 0, principal.length || 0);
+    if (length === 0) return null;
 
-    if (!routes.length) return null;
-
-    const maxMonths = Math.max(...routes.map((route) => route.months));
-    if (!maxMonths) return null;
-    const principalArr = new Array(maxMonths).fill(0);
-    const interestArr = new Array(maxMonths).fill(0);
-
-    routes.forEach((route) => {
-      const monthlyRate = route.ratePct ? route.ratePct / 100 / 12 : 0;
-      const payment =
-        route.payment && route.payment > 0
-          ? route.payment
-          : monthlyRate === 0
-            ? route.amount / route.months
-            : (route.amount * monthlyRate) / (1 - Math.pow(1 + monthlyRate, -route.months));
-      let balance = route.amount;
-      for (let i = 0; i < route.months; i += 1) {
-        if (balance <= 0) break;
-        const interest = monthlyRate ? balance * monthlyRate : 0;
-        let principal = payment - interest;
-        if (principal < 0) principal = 0;
-        if (principal > balance) principal = balance;
-        balance -= principal;
-        principalArr[i] += principal;
-        interestArr[i] += interest;
+    const byYear = {};
+    for (let i = 0; i < length; i += 1) {
+      const monthValue = Number(months[i]) || i + 1;
+      const yearIndex = Math.floor((monthValue - 1) / 12) + 1;
+      const monthInYear = ((monthValue - 1) % 12) + 1;
+      if (!byYear[yearIndex]) {
+        byYear[yearIndex] = [];
       }
-    });
-
-    const years = Math.max(1, Math.ceil(maxMonths / 12));
-    const dataByYear = {};
-    for (let year = 0; year < years; year += 1) {
-      const yearData = [];
-      const startIndex = year * 12;
-      for (let month = 0; month < 12; month += 1) {
-        const idx = startIndex + month;
-        yearData.push({
-          name: String(month + 1),
-          keren: principalArr[idx] ?? 0,
-          rivit: interestArr[idx] ?? 0,
-        });
-      }
-      dataByYear[String(year + 1)] = yearData;
+      byYear[yearIndex].push({
+        name: String(monthInYear),
+        rivit: Number(interest[i]) || 0,
+        keren: Number(principal[i]) || 0,
+      });
     }
-    return dataByYear;
+    return byYear;
   };
 
   const getChartData = (response) => {
-    const table = response?.extracted_json?.calculator_result?.optimal_mix?.table || null;
-    return computeGraphFromTable(table);
+    const graphData = response?.extracted_json?.calculator_result?.proposed_mix?.graph_data || null;
+    return buildChartDataFromGraph(graphData);
   };
 
   const visibleOffers = useMemo(() => {
@@ -298,9 +371,9 @@ const Suggestionspage = () => {
       .map((response) => {
       const bankId = Number(response?.bank_id);
       const meta = BANK_META[bankId] || {};
-      const metrics = getMetrics(response);
+      const summary = getSummary(response);
       const bankTitle = response?.extracted_json?.data?.bank_title;
-      const amount = toNumber(metrics?.['סכום_הלוואה']) ?? response?.amount ?? null;
+      const amount = toNumber(summary?.['סכום_הלוואה']) ?? response?.amount ?? null;
       return {
         id: bankId,
         name: meta.name || bankTitle || `בנק ${bankId}`,
@@ -309,10 +382,10 @@ const Suggestionspage = () => {
         color: meta.color || "#27450E",
         status: { type: "conditional" },
         amount,
-        years: metrics?.['תקופה_מקסימלית'] ?? '—',
-        maxMonthlyPayment: toNumber(metrics?.['החזר_חודשי_מקסימלי']),
-        firstMonthlyPayment: toNumber(metrics?.['החזר_חודשי_ראשון']),
-        totalPayments: toNumber(metrics?.['סהכ_החזר_כולל']),
+        years: getYears(response, summary),
+        maxMonthlyPayment: toNumber(summary?.['החזר_חודשי_ראשון']),
+        firstMonthlyPayment: toNumber(summary?.['החזר_חודשי_ראשון']),
+        totalPayments: toNumber(summary?.['סהכ_החזר_משוער']),
         routes: getRoutes(response),
         simulatorchartdata: getChartData(response),
       };
@@ -349,7 +422,6 @@ const Suggestionspage = () => {
 
   return (
     <div className="suggestions_page">
-      <a href="/" className="prev_page_link"><img src={previcon} alt="" /></a>
       <div className="title">
         <h1>ההצעות של רובין.</h1>
         <p>לפניכם מגוון הצעות שיאפשרו לכם להוציא יותר מהכסף שלכם</p>
@@ -363,25 +435,26 @@ const Suggestionspage = () => {
           <div className="wrapper d_flex d_flex_jb">
               {pagedOffers.map(offer => (
                   <div className="colin" key={offer.id}>
-                      {offer.id === 8 ? (
-                        <InternationalSuggestionCard bankData={offer} />
+                      {/* {offer.id === 8 ? (
+                      <InternationalSuggestionCard bankData={offer} />
                       ) : (
                         <BankMortgageCard bankData={offer} />
-                      )}
+                      )} */}
+                      <BankMortgageCard bankData={offer} />
                       <div className="baskets_list">
                         <ul className="d_flex">
                           <li>סל אחיד 1</li>
-                          <li>סל אחיד 2</li>
-                          <li>סל אחיד 3</li>
                         </ul>
                       </div>
                       <div className="note" onClick={() => openPopup(offer.id)}>
                         <img src={notei} alt="" />
                         <p>הסבר על המסלולים</p>
                       </div>
-                      {offer.routes && offer.routes.length > 0 ? (
+                      <RoutesBankMortgage color={offer.color} routes={offer.routes} />
+                      {/* {offer.routes && offer.routes.length > 0 ? (
                         <RoutesBankMortgage color={offer.color} routes={offer.routes} />
-                      ) : null}
+                      ) : null} */}
+                      
                       {offer.simulatorchartdata ? (
                         <ReturnsChart 
                            charttitle={'החזרים'} 

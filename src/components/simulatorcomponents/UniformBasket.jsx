@@ -2,7 +2,8 @@ import React, { useEffect, useMemo, useState } from 'react';
 
 const formatMoney = (value) => {
   if (value === null || value === undefined || Number.isNaN(Number(value))) return '-';
-  return `${Number(value).toLocaleString('he-IL', { maximumFractionDigits: 2 })} ש״ח`;
+  const formatted = Number(value).toLocaleString('he-IL', { maximumFractionDigits: 0 });
+  return `${formatted} ₪`;
 };
 
 const formatPercent = (value) => {
@@ -121,10 +122,10 @@ const UniformBasket = ({ baskets, periodYears, onActiveChange }) => {
         <div className="tab_wrap">
           <ul className='d_flex'>
             <li><span>סכום</span><span>{active.values.amount}</span></li>
-            <li><span>תשלום חודשי מקסימלי צפוי</span><span>{active.values.maxMonthly}</span></li>
-            <li><span>סך חודשי ראשון</span><span>{active.values.firstPayment}</span></li>
             <li><span>תקופה</span><span>{active.values.period}</span></li>
+            <li><span>תשלום חודשי מקסימלי</span><span>{active.values.maxMonthly}</span></li>
             <li><span>סך הכל תשלומים</span><span>{active.values.totalPayments}</span></li>
+            <li><span>סך חודשי ראשון</span><span>{active.values.firstPayment}</span></li>
             <li><span>ריבית כוללת חזויה</span><span>{active.values.interest}</span></li>
           </ul>
         </div>

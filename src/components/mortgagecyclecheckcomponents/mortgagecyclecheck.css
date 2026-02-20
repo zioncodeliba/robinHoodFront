@@ -84,3 +84,17 @@
 
 }
 
+/* Improve desktop browser responsive-mode select popup size without affecting real mobile */
+@media (max-width: 767px) and (hover: hover) and (pointer: fine),
+       (max-width: 767px) and (any-hover: hover) and (any-pointer: fine) {
+    .mortgage_finaldetails select.in {
+        font-size: 16px;
+        height: 48px;
+        line-height: 48px;
+    }
+
+    .mortgage_finaldetails select.in option {
+        font-size: 16px;
+    }
+}
+

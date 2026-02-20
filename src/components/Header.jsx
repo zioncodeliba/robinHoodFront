@@ -1,13 +1,18 @@
 import React,{useState ,useEffect} from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import brand from '../assets/images/brand.svg';
 import brandWhite from '../assets/images/brand_w.svg';
 import whatsapp from '../assets/images/whatsapp.svg';
 import hambergericon from '../assets/images/hamberger_icon.svg';
 import noficationIcon from '../assets/images/nofication_i.svg';
+import previcon from '../assets/images/prev_icon.svg';
 import panmemuImage from '../assets/images/pan_memu.png';
-import { getGatewayBase } from '../utils/apiBase';
 import { getGatewayApiBase } from '../utils/apiBase';
+import {
+  clearAuthGetCache,
+} from '../utils/authGetCache';
+import { useNavState } from '../context/NavStateContext';
+import useCustomerProfile, { getCustomerDisplayName } from '../hooks/useCustomerProfile';
 
 import HomeIcon from '../assets/images/m_home.svg';
 import NotificationIcon from '../assets/images/m_notification.svg';
@@ -21,19 +26,22 @@ import LoginPopup from './homecomponents/LoginPopup';
 
 const Header = () => {
   const location = useLocation();
-  const isLoginPage = location.pathname.includes("login");
-  const isbrokerpage = location.pathname.includes("brokerhomepage");
+  const navigate = useNavigate();
+  const normalizedPath = (location.pathname || "/").toLowerCase().replace(/\/+$/, "") || "/";
+  const isLoginPage = normalizedPath.includes("login");
+  const isbrokerpage = normalizedPath.includes("brokerhomepage");
+  const shouldShowMobileBackButton = ["/suggestionspage", "/aichat", "/aichat-static","/simulatorpage","/recycle-loan"].includes(normalizedPath);
   const authToken = localStorage.getItem("auth_token");
   const affiliateToken = localStorage.getItem("affiliate_token");
   const isAuthenticated = Boolean(authToken || affiliateToken);
   const isDesktop = window.innerWidth >= 1024;
-  const userData = JSON.parse(localStorage.getItem("user_data")) || {};
+  const { userData } = useCustomerProfile();
+  const displayName = getCustomerDisplayName(userData, '');
   // popup visibility state
   const [showRegistrationPopup, setShowRegistrationPopup] = useState(false);
   const [showloginPopup, setShowloginPopup] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
-  const [unreadCount, setUnreadCount] = useState(0);
-  const [hasSuggestions, setHasSuggestions] = useState(false);
+  const { unreadCount, hasSuggestions } = useNavState();
 
   const togglePopuprg = (e) => {
     e.preventDefault();
@@ -92,114 +100,6 @@ const Header = () => {
     };
   }, []);
 
-  const hasVisibleSuggestions = (responses) => {
-    if (!Array.isArray(responses) || !responses.length) {
-      return false;
-    }
-    const latestByBank = new Map();
-    responses.forEach((response) => {
-      const bankId = Number(response?.bank_id);
-      if (!Number.isFinite(bankId)) {
-        return;
-      }
-      const previous = latestByBank.get(bankId);
-      if (!previous) {
-        latestByBank.set(bankId, response);
-        return;
-      }
-      const prevDate = new Date(previous?.uploaded_at || 0).getTime();
-      const nextDate = new Date(response?.uploaded_at || 0).getTime();
-      if (nextDate >= prevDate) {
-        latestByBank.set(bankId, response);
-      }
-    });
-
-    return Array.from(latestByBank.values()).some((response) => {
-      const calcResult = response?.extracted_json?.calculator_result || null;
-      const isRefinance =
-        Array.isArray(calcResult?.comparison_table) ||
-        (calcResult?.detailed_scenarios &&
-          typeof calcResult.detailed_scenarios === 'object');
-      if (isRefinance) return false;
-      return true;
-    });
-  };
-
-  useEffect(() => {
-    let isMounted = true;
-    const loadUnreadCount = async () => {
-      const token = localStorage.getItem("auth_token");
-      if (!token) {
-        if (isMounted) setUnreadCount(0);
-        return;
-      }
-      try {
-        const response = await fetch(`${getGatewayBase()}/auth/v1/notifications/me`, {
-          headers: {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json',
-            'Authorization': `Bearer ${token}`,
-          },
-        });
-        const data = await response.json().catch(() => null);
-        if (!response.ok) {
-          if (isMounted) setUnreadCount(0);
-          return;
-        }
-        const unread = Array.isArray(data) ? data.filter((n) => !n.read_at).length : 0;
-        if (isMounted) setUnreadCount(unread);
-      } catch (error) {
-        if (isMounted) setUnreadCount(0);
-      }
-    };
-
-    const handler = () => loadUnreadCount();
-    loadUnreadCount();
-    window.addEventListener('notifications:updated', handler);
-    return () => {
-      isMounted = false;
-      window.removeEventListener('notifications:updated', handler);
-    };
-  }, []);
-
-  useEffect(() => {
-    let isMounted = true;
-    const token = localStorage.getItem("auth_token");
-    if (!token) {
-      setHasSuggestions(false);
-      return () => {
-        isMounted = false;
-      };
-    }
-
-    const loadSuggestionsState = async () => {
-      try {
-        const response = await fetch(`${getGatewayBase()}/auth/v1/bank-responses/me`, {
-          headers: {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json',
-            'Authorization': `Bearer ${token}`,
-          },
-        });
-        const data = await response.json().catch(() => null);
-        if (!isMounted) return;
-        if (!response.ok) {
-          setHasSuggestions(false);
-          return;
-        }
-        setHasSuggestions(hasVisibleSuggestions(Array.isArray(data) ? data : []));
-      } catch (error) {
-        if (isMounted) setHasSuggestions(false);
-      }
-    };
-
-    loadSuggestionsState();
-
-    return () => {
-      isMounted = false;
-    };
-  }, [location.pathname]);
-
   const badgeText = unreadCount > 99 ? '99+' : `${unreadCount}`;
   const notificationsDisabled = isAuthenticated && unreadCount === 0;
   const suggestionsDisabled = isAuthenticated && !hasSuggestions;
@@ -248,8 +148,17 @@ const Header = () => {
     localStorage.removeItem("affiliate_data");
     localStorage.removeItem("mortgage_cycle_result");
     localStorage.removeItem("new_mortgage_submitted");
+    clearAuthGetCache(token);
     window.location.assign("/");
   }
+
+  const handleHeaderBackClick = () => {
+    if (typeof window !== 'undefined' && window.history.length > 1) {
+      navigate(-1);
+      return;
+    }
+    navigate('/', { replace: true });
+  };
 
   return (
     <>
@@ -347,7 +256,7 @@ const Header = () => {
         <div className="bg" onClick={() => setIsOpen(false)}></div>
         <div className="mobile_menu">
           <Link to="/" className="mob_brand" onClick={() => setIsOpen(false)}> <img src={brandWhite} alt="brand" /> </Link>
-          <h2>ברוך הבא, {userData?.firstName || ''}</h2>
+          <h2>ברוך הבא, {displayName}</h2>
             <ul>
                 <li><Link to="/" onClick={() => setIsOpen(false)}><img src={HomeIcon} alt="" /> דף הבית</Link></li>
                 <li>
@@ -379,7 +288,7 @@ const Header = () => {
 
         {isAuthenticated ? (
           <>
-            <div className="username">ברוך הבא, {userData?.firstName || ''}</div>
+            <div className="username">ברוך הבא, {displayName}</div>
             <button onClick={handleLogout} className='btn exit_btn'>יציאה</button>
           </>
         ) : isDesktop ? (
@@ -397,6 +306,11 @@ const Header = () => {
         <Link to="/" className="brand">
           <img src={brand} alt="brand" />
         </Link>
+        {shouldShowMobileBackButton && (
+          <button type="button" className="header_back_btn" onClick={handleHeaderBackClick} aria-label="חזרה">
+            <img src={previcon} alt="" />
+          </button>
+        )}
         {isbrokerpage && (
           <button className='notification'><img src={noficationIcon} alt="" /></button>
         )}
