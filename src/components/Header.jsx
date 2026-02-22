@@ -83,22 +83,26 @@ const Header = () => {
   const [isFixed, setIsFixed] = useState(false);
 
   useEffect(() => {
-    const scrollElement = document.querySelector(".main");
+    const scrollElement =
+      document.querySelector(".ai_chat_box .inner") ||
+      document.querySelector(".main");
+
+    if (!scrollElement) {
+      setIsFixed(false);
+      return undefined;
+    }
 
     const handleScroll = () => {
       setIsFixed(scrollElement.scrollTop > 20);
     };
 
-    if (scrollElement) {
-      scrollElement.addEventListener("scroll", handleScroll);
-    }
+    handleScroll();
+    scrollElement.addEventListener("scroll", handleScroll);
 
     return () => {
-      if (scrollElement) {
-        scrollElement.removeEventListener("scroll", handleScroll);
-      }
+      scrollElement.removeEventListener("scroll", handleScroll);
     };
-  }, []);
+  }, [normalizedPath]);
 
   const badgeText = unreadCount > 99 ? '99+' : `${unreadCount}`;
   const notificationsDisabled = isAuthenticated && unreadCount === 0;

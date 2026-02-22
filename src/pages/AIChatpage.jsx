@@ -80,11 +80,9 @@ const AIChatpage = () => {
   const [signatureTemplatesLoading, setSignatureTemplatesLoading] = useState(false);
   const [signatureTemplatesError, setSignatureTemplatesError] = useState('');
   const [signatureTemplateDownloadingKey, setSignatureTemplateDownloadingKey] = useState('');
-  const [debugFilling, setDebugFilling] = useState(false);
   const [isCountryDropdownOpen, setIsCountryDropdownOpen] = useState(false);
 
   const authToken = useMemo(() => localStorage.getItem('auth_token'), []);
-  const isDebugAutofill = useMemo(() => process.env.NODE_ENV !== 'production', []);
   const signatureCanvasRef = useRef(null);
   const signatureCtxRef = useRef(null);
   const isDrawingRef = useRef(false);
@@ -776,7 +774,33 @@ const AIChatpage = () => {
     input.click();
   };
 
+  const hasChoiceOptions = visibleButtonOptions.length > 0;
+  const isInputModeAvailable =
+    Boolean(inputOption) &&
+    !hasChoiceOptions &&
+    !isMortgageParameters &&
+    !shouldShowSignature &&
+    !currentBlock?.is_terminal;
+  const isSendAreaDisabled = isLoading || isSending || !isInputModeAvailable;
+  const inputPlaceholder = useMemo(() => {
+    if (isLoading) return 'טוען שיחה...';
+    if (currentBlock?.is_terminal) return 'השיחה הסתיימה';
+    if (isMortgageParameters) return 'יש לבחור פרטי משכנתא למעלה';
+    if (shouldShowSignature) return 'יש להשלים חתימה כדי להמשיך';
+    if (hasChoiceOptions) return 'יש לבחור אחת מהאפשרויות למעלה';
+    if (!inputOption) return 'אין שדה קלט בשלב זה';
+    return inputOption?.label || 'נא להקליד כאן...';
+  }, [
+    isLoading,
+    currentBlock?.is_terminal,
+    isMortgageParameters,
+    shouldShowSignature,
+    hasChoiceOptions,
+    inputOption,
+  ]);
+
   const handleInputWrapperClick = () => {
+    if (isSendAreaDisabled) return;
     if (isDateInput) {
       handleDateInputWrapperClick();
       return;
@@ -787,6 +811,7 @@ const AIChatpage = () => {
   };
 
   const handleInputFocus = () => {
+    if (isSendAreaDisabled) return;
     if (isCountrySelectionInput) {
       setIsCountryDropdownOpen(true);
     }
@@ -1220,31 +1245,13 @@ const AIChatpage = () => {
     }
   };
 
-  const handleDebugAutofill = async () => {
-    if (!sessionId || debugFilling) return;
-    setDebugFilling(true);
-    setError('');
-    try {
-      await request(`/sessions/${sessionId}/debug-autofill`, { method: 'POST' });
-      await loadHistory(sessionId);
-      const sessionData = await request(`/sessions/${sessionId}`);
-      await loadBlock(sessionId, sessionData.current_block_key);
-    } catch (err) {
-      setError(err?.message || 'שגיאה במילוי אוטומטי');
-    } finally {
-      setDebugFilling(false);
-    }
-  };
-
   const getIsFullWidthButtons = (buttonList) =>
     buttonList.length === 1 ||
     buttonList.length === 3 ||
     buttonList.some((option) => option.label.length > 28);
 
-  const shouldShowInputBar =
-    !isLoading && Boolean(inputOption) && !isMortgageParameters && !currentBlock?.is_terminal;
   const shouldAutoFocusInput =
-    shouldShowInputBar &&
+    isInputModeAvailable &&
     inputOption?.option_type === 'input' &&
     !isDateInput;
   const isBlockingOverlayVisible = isLoading || signatureSaving;
@@ -1311,17 +1318,6 @@ const AIChatpage = () => {
           <h1>צא’ט הגשת בקשה לאישור עקרוני</h1>
           <p>הגשת בקשה לאישור עקרוני לכלל הבנקים בחינם לגמרי!</p>
         </div>
-        {isDebugAutofill && (
-          <div className="ai_chat_toolbar">
-            <button
-              className="ai_chat_debug"
-              onClick={handleDebugAutofill}
-              disabled={debugFilling || isSending || isLoading}
-            >
-              {debugFilling ? 'ממלא אוטומטית...' : 'בדיקת מילוי אוטומטי'}
-            </button>
-          </div>
-        )}
         <div className="ai_chat_box">
           <div className="had d_flex d_flex_jc d_flex_ac">
             <img src={bouticon} alt="" /> <span>רובין העוזר האישי שלך למשכנתא</span>
@@ -1666,52 +1662,51 @@ const AIChatpage = () => {
               visibleButtonOptions.length === 0 &&
               !inputOption && <div className="ai_chat_status">אין אפשרויות זמינות.</div>}
           </div>
-          {shouldShowInputBar && (
-            <div className="send_message d_flex d_flex_ac d_flex_jb">
-              <div className="form_input" ref={countryInputWrapperRef} onClick={handleInputWrapperClick}>
-                <input
-                  type={isDateInput ? 'date' : 'text'}
-                  className="in"
-                  placeholder={inputOption?.label || 'נא להקליד כאן...'}
-                  value={inputValue}
-                  onChange={handleInputValueChange}
-                  onFocus={handleInputFocus}
-                  disabled={isSending}
-                  inputMode={isPriceAmountInput || isIdentityNumberInput || isPhoneNumberInput ? 'numeric' : undefined}
-                  pattern={isPriceAmountInput ? '[0-9,]*' : (isIdentityNumberInput || isPhoneNumberInput) ? '[0-9]*' : undefined}
-                  ref={isDateInput ? dateInputRef : chatInputRef}
-                  onClick={isDateInput ? handleDateInputActivate : undefined}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') {
-                      handleSendInput();
-                    }
-                  }}
-                />
-                {isCountrySelectionInput && isCountryDropdownOpen && (
-                  <div className="ai_country_dropdown" role="listbox" aria-label="רשימת מדינות">
-                    {filteredCountryOptions.length > 0 ? (
-                      filteredCountryOptions.map((country) => (
-                        <button
-                          key={country}
-                          type="button"
-                          className="ai_country_option"
-                          onMouseDown={(event) => event.preventDefault()}
-                          onClick={() => handleCountrySelect(country)}
-                        >
-                          {country}
-                        </button>
-                      ))
-                    ) : (
-                      <div className="ai_country_empty">לא נמצאו מדינות</div>
-                    )}
-                  </div>
-                )}
-              </div>
-              <button className="send" onClick={handleSendInput} disabled={isSending}>
-                <img src={sendicon} alt="" />
-              </button>
+          <div className="send_message d_flex d_flex_ac d_flex_jb">
+            <div className="form_input" ref={countryInputWrapperRef} onClick={handleInputWrapperClick}>
+              <input
+                type={isDateInput ? 'date' : 'text'}
+                className="in"
+                placeholder={inputPlaceholder}
+                value={inputValue}
+                onChange={handleInputValueChange}
+                onFocus={handleInputFocus}
+                disabled={isSendAreaDisabled}
+                inputMode={isPriceAmountInput || isIdentityNumberInput || isPhoneNumberInput ? 'numeric' : undefined}
+                pattern={isPriceAmountInput ? '[0-9,]*' : (isIdentityNumberInput || isPhoneNumberInput) ? '[0-9]*' : undefined}
+                ref={isDateInput ? dateInputRef : chatInputRef}
+                onClick={isDateInput ? handleDateInputActivate : undefined}
+                onKeyDown={(e) => {
+                  if (isSendAreaDisabled) return;
+                  if (e.key === 'Enter') {
+                    handleSendInput();
+                  }
+                }}
+              />
+              {isCountrySelectionInput && isCountryDropdownOpen && !isSendAreaDisabled && (
+                <div className="ai_country_dropdown" role="listbox" aria-label="רשימת מדינות">
+                  {filteredCountryOptions.length > 0 ? (
+                    filteredCountryOptions.map((country) => (
+                      <button
+                        key={country}
+                        type="button"
+                        className="ai_country_option"
+                        onMouseDown={(event) => event.preventDefault()}
+                        onClick={() => handleCountrySelect(country)}
+                      >
+                        {country}
+                      </button>
+                    ))
+                  ) : (
+                    <div className="ai_country_empty">לא נמצאו מדינות</div>
+                  )}
+                </div>
+              )}
             </div>
-          )}
+            <button className="send" onClick={handleSendInput} disabled={isSendAreaDisabled}>
+              <img src={sendicon} alt="" />
+            </button>
+          </div>
         </div>
       </div>
     </div>
