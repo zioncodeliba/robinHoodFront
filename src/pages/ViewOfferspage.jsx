@@ -9,8 +9,8 @@ import timeicon from "../assets/images/tt.svg";
 import sandicon from "../assets/images/sandicon.png";
 import noteIcon from "../assets/images/note_i_o.svg";
 
-import { getGatewayBase } from "../utils/apiBase";
 import useCustomerProfile, { getCustomerDisplayName } from "../hooks/useCustomerProfile";
+import { useNavState } from "../context/NavStateContext";
 
 // page components
 import YourRoutesMortgageDetails from '../components/commoncomponents/YourRoutesMortgageDetails';
@@ -90,11 +90,11 @@ const isApprovalOfferResult = (calcResult) => {
 const ViewOfferspage = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const apiBase = useMemo(() => getGatewayBase(), []);
+  const { bankVisibility, bankResponses: navBankResponses, isLoaded: navStateLoaded } = useNavState();
   const [allowedBankIds, setAllowedBankIds] = useState([]);
   const [visibilityLoaded, setVisibilityLoaded] = useState(false);
   const [bankResponses, setBankResponses] = useState([]);
-  const [offersLoading, setOffersLoading] = useState(false);
+  const [offersLoading, setOffersLoading] = useState(true);
   const [offersLoaded, setOffersLoaded] = useState(false);
   const [activeOfferIndex, setActiveOfferIndex] = useState(0);
   const [pendingOfferIndex, setPendingOfferIndex] = useState(null);
@@ -107,96 +107,30 @@ const ViewOfferspage = () => {
   const { userData } = useCustomerProfile();
   const displayName = getCustomerDisplayName(userData, "שם");
 
-  const handleAuthFailure = () => {
-    localStorage.removeItem("auth_token");
-    localStorage.removeItem("user_data");
-    localStorage.removeItem("mortgage_cycle_result");
-    localStorage.removeItem("new_mortgage_submitted");
-    navigate("/login", { replace: true });
-  };
+  useEffect(() => {
+    if (!navStateLoaded) {
+      setVisibilityLoaded(false);
+      return;
+    }
+    setAllowedBankIds(normalizeAllowedBankIds(bankVisibility, DEFAULT_BANK_IDS));
+    setVisibilityLoaded(true);
+  }, [bankVisibility, navStateLoaded]);
 
   useEffect(() => {
-    const token = localStorage.getItem("auth_token");
-    if (!token || !apiBase) return;
-    let isMounted = true;
-
-    const loadVisibility = async () => {
-      try {
-        const response = await fetch(`${apiBase}/auth/v1/customers/me/bank-visibility`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-        if (response.status === 401 || response.status === 403) {
-          handleAuthFailure();
-          return;
-        }
-        if (!response.ok) {
-          throw new Error("Failed to load bank visibility");
-        }
-        const payload = await response.json().catch(() => null);
-        if (!isMounted) return;
-        setAllowedBankIds(normalizeAllowedBankIds(payload?.allowed_bank_ids, DEFAULT_BANK_IDS));
-      } catch {
-        if (!isMounted) return;
-        setAllowedBankIds(DEFAULT_BANK_IDS);
-      } finally {
-        if (isMounted) {
-          setVisibilityLoaded(true);
-        }
-      }
-    };
-
-    loadVisibility();
-
-    return () => {
-      isMounted = false;
-    };
-  }, [apiBase]);
-
-  useEffect(() => {
-    const token = localStorage.getItem("auth_token");
-    if (!token || !apiBase) return;
-    let isMounted = true;
-    setOffersLoading(true);
-
-    const loadBankResponses = async () => {
-      try {
-        const response = await fetch(`${apiBase}/auth/v1/bank-responses/me`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-        if (response.status === 401 || response.status === 403) {
-          handleAuthFailure();
-          return;
-        }
-        if (!response.ok) {
-          throw new Error("Failed to load bank responses");
-        }
-        const payload = await response.json().catch(() => null);
-        if (!isMounted) return;
-        const responses = (Array.isArray(payload) ? payload : []).filter((item) => {
-          const calcResult = item?.extracted_json?.calculator_result;
-          return isApprovalOfferResult(calcResult);
-        });
-        setBankResponses(responses);
-        setOffersLoaded(true);
-      } catch {
-        // Keep defaults on failure
-      } finally {
-        if (isMounted) {
-          setOffersLoading(false);
-        }
-      }
-    };
-
-    loadBankResponses();
-
-    return () => {
-      isMounted = false;
-    };
-  }, [apiBase]);
+    if (!navStateLoaded) {
+      setOffersLoading(true);
+      setOffersLoaded(false);
+      setBankResponses([]);
+      return;
+    }
+    const responses = (Array.isArray(navBankResponses) ? navBankResponses : []).filter((item) => {
+      const calcResult = item?.extracted_json?.calculator_result;
+      return isApprovalOfferResult(calcResult);
+    });
+    setBankResponses(responses);
+    setOffersLoading(false);
+    setOffersLoaded(true);
+  }, [navBankResponses, navStateLoaded]);
 
   const approvedBanks = useMemo(() => {
     if (allowedBankIds.length === 0) return [];

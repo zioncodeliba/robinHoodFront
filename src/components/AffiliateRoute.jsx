@@ -1,10 +1,9 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
-import { getGatewayBase } from '../utils/apiBase';
+import { fetchAuthGet } from '../utils/authGetCache';
 
 const AffiliateRoute = ({ children }) => {
   const location = useLocation();
-  const apiBase = useMemo(() => getGatewayBase(), []);
   const token = localStorage.getItem('affiliate_token');
   const isDesktop = typeof window !== 'undefined' ? window.innerWidth >= 1024 : false;
   const [status, setStatus] = useState(() => (token ? 'checking' : 'unauthenticated'));
@@ -16,16 +15,9 @@ const AffiliateRoute = ({ children }) => {
       return undefined;
     }
 
-    const controller = new AbortController();
-
     const verifySession = async () => {
       try {
-        const response = await fetch(`${apiBase}/auth/v1/affiliate-is-authenticated`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-          signal: controller.signal,
-        });
+        const response = await fetchAuthGet('/auth/v1/affiliate-is-authenticated', token);
 
         if (!isMounted) return;
 
@@ -48,9 +40,8 @@ const AffiliateRoute = ({ children }) => {
 
     return () => {
       isMounted = false;
-      controller.abort();
     };
-  }, [apiBase, token, location.pathname]);
+  }, [token]);
 
   if (status === 'checking') {
     return null;

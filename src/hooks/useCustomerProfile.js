@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { fetchCustomerMeCached } from "../utils/authGetCache";
+import { useNavState } from "../context/NavStateContext";
 
 const readStoredUserData = () => {
   try {
@@ -21,52 +21,39 @@ export const getCustomerDisplayName = (userData, fallback = "שם") =>
   userData?.firstName || userData?.first_name || userData?.name || fallback;
 
 const useCustomerProfile = () => {
+  const { customerProfile, isLoaded, refreshCustomerProfile } = useNavState();
   const [userData, setUserData] = useState(readStoredUserData);
   const token = localStorage.getItem("auth_token");
 
-  const syncCustomerProfile = useCallback(async (force = true) => {
+  const syncCustomerProfile = useCallback(async ({ force = false } = {}) => {
     if (!token) {
       setUserData(readStoredUserData());
-      return;
+      return { ok: false, status: 401, data: null };
     }
     try {
-      const response = await fetchCustomerMeCached(token, { force });
+      const response = await refreshCustomerProfile({ force });
       if (!response.ok || !response.data || typeof response.data !== "object") {
-        return;
+        return response;
       }
       setUserData(response.data);
       persistUserData(response.data);
+      return response;
     } catch {
       // Keep last known profile on transient errors.
+      return { ok: false, status: 500, data: null };
     }
-  }, [token]);
+  }, [refreshCustomerProfile, token]);
 
   useEffect(() => {
-    setUserData(readStoredUserData());
-  }, [token]);
-
-  useEffect(() => {
-    if (!token) return;
-    void syncCustomerProfile(true);
-
-    const handleFocus = () => {
-      void syncCustomerProfile(true);
-    };
-
-    const handleVisibilityChange = () => {
-      if (document.visibilityState === "visible") {
-        void syncCustomerProfile(true);
-      }
-    };
-
-    window.addEventListener("focus", handleFocus);
-    document.addEventListener("visibilitychange", handleVisibilityChange);
-
-    return () => {
-      window.removeEventListener("focus", handleFocus);
-      document.removeEventListener("visibilitychange", handleVisibilityChange);
-    };
-  }, [syncCustomerProfile, token]);
+    if (customerProfile && typeof customerProfile === "object") {
+      setUserData(customerProfile);
+      persistUserData(customerProfile);
+      return;
+    }
+    if (!token || isLoaded) {
+      setUserData(readStoredUserData());
+    }
+  }, [customerProfile, isLoaded, token]);
 
   return {
     userData,

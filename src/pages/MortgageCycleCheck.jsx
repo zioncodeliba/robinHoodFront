@@ -6,8 +6,6 @@ import '../components/mortgagecyclecheckcomponents/mortgagecyclecheck.css';
 import MortgageUploadfiles from '../components/mortgagecyclecheckcomponents/MortgageUploadfiles';
 import MortgageFinaldetails from '../components/mortgagecyclecheckcomponents/MortgageFinaldetails';
 
-import prevIcon from '../assets/images/prev_icon.svg';
-
 import {
   getCalculatorResult,
   hasCalculatorOffer,
@@ -16,6 +14,7 @@ import {
 } from "../utils/mortgageCycleResult";
 import { getGatewayBase } from "../utils/apiBase";
 import { clearAuthGetCache } from "../utils/authGetCache";
+import { useNavState } from "../context/NavStateContext";
 
 const DEFAULT_BANK_IDS = [3, 2, 1, 4, 8, 12];
 
@@ -48,6 +47,7 @@ const MortgageCycleCheck = () => {
   const [amount, setAmount] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const navigate = useNavigate();
+  const { refreshNavState } = useNavState();
 
   const apiBase = useMemo(() => getGatewayBase(), []);
 
@@ -144,32 +144,25 @@ const MortgageCycleCheck = () => {
         clearAuthGetCache(token);
       }
 
-      const visibilityResponse = await fetch(`${apiBase}/auth/v1/customers/me/bank-visibility`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      if (visibilityResponse.status === 401 || visibilityResponse.status === 403) {
+      const navSnapshot = await refreshNavState({ force: true });
+      const statusCodes = [
+        navSnapshot?.customerStatusCode,
+        navSnapshot?.visibilityStatus,
+        navSnapshot?.bankResponsesStatus,
+      ];
+      if (statusCodes.some((code) => code === 401 || code === 403)) {
         throw new Error("יש להתחבר מחדש");
       }
-      const visibilityPayload = await visibilityResponse.json().catch(() => null);
-      const allowedBankIds = visibilityResponse.ok
-        ? normalizeAllowedBankIds(visibilityPayload?.allowed_bank_ids, [])
+      const allowedBankIds = Array.isArray(navSnapshot?.bankVisibility)
+        ? normalizeAllowedBankIds(navSnapshot.bankVisibility, [])
         : [];
 
       if (allowedBankIds.length > 0) {
-        const responsesResponse = await fetch(`${apiBase}/auth/v1/bank-responses/me`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-        if (responsesResponse.status === 401 || responsesResponse.status === 403) {
-          throw new Error("יש להתחבר מחדש");
-        }
-        const responsesPayload = await responsesResponse.json().catch(() => null);
+        const responsesPayload = Array.isArray(navSnapshot?.bankResponses)
+          ? navSnapshot.bankResponses
+          : [];
         const allowedBankSet = new Set(allowedBankIds);
-        const approvalResponses = (Array.isArray(responsesPayload) ? responsesPayload : [])
-          .filter((item) => {
+        const approvalResponses = responsesPayload.filter((item) => {
             const bankIdNumeric = Number(item?.bank_id);
             if (!Number.isFinite(bankIdNumeric) || !allowedBankSet.has(bankIdNumeric)) {
               return false;

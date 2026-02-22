@@ -1,6 +1,8 @@
-import React,{useEffect, useState} from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import '../components/notificationcomponents/notifications.css';
 import { getGatewayBase } from "../utils/apiBase";
+import { useNavState } from "../context/NavStateContext";
 
 import notifiIcon from '../assets/images/notifi.png';
 import removeIcon from '../assets/images/remove.png';
@@ -9,9 +11,9 @@ import robinman from '../assets/images/robin_man.png';
 
 
 const Notificationspage = () => {
-
-  const [notifications, setNotifications] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
+  const apiBase = useMemo(() => getGatewayBase(), []);
+  const { notifications, isLoaded: navStateLoaded, refreshNavState } = useNavState();
   const [activeNotification, setActiveNotification] = useState(null);
 
   const formatDateTime = (value) => {
@@ -23,69 +25,42 @@ const Notificationspage = () => {
     return `${datePart} ${timePart}`;
   };
 
+  const handleAuthFailure = useCallback(() => {
+    localStorage.removeItem("auth_token");
+    localStorage.removeItem("user_data");
+    localStorage.removeItem("mortgage_cycle_result");
+    localStorage.removeItem("new_mortgage_submitted");
+    navigate("/login", { replace: true });
+  }, [navigate]);
+
   useEffect(() => {
     const token = localStorage.getItem("auth_token");
-    const apiBase = getGatewayBase();
-    if (!token || !apiBase) {
-      setLoading(false);
+    if (!token) {
+      handleAuthFailure();
       return;
     }
+    void refreshNavState({ forceNotifications: true });
+  }, [handleAuthFailure, refreshNavState]);
 
-    let isMounted = true;
-    const loadNotifications = async () => {
-      try {
-        const response = await fetch(`${apiBase}/auth/v1/notifications/me`, {
-          headers: {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json',
-            'Authorization': `Bearer ${token}`,
-          },
-        });
-        let data = null;
-        try {
-          data = await response.json();
-        } catch {
-          data = null;
-        }
-        if (!response.ok) {
-          const message =
-            data?.detail ||
-            data?.message ||
-            (typeof data === 'string' ? data : null) ||
-            'שגיאה בטעינת התראות';
-          throw new Error(message);
-        }
-        if (isMounted) {
-          setNotifications(Array.isArray(data) ? data : []);
-          window.dispatchEvent(new CustomEvent('notifications:updated'));
-        }
-      } catch (error) {
-        if (isMounted) {
-          setNotifications([]);
-        }
-        console.error(error);
-      } finally {
-        if (isMounted) {
-          setLoading(false);
-        }
-      }
-    };
+  useEffect(() => {
+    if (!activeNotification?.id) return;
+    const latest = (Array.isArray(notifications) ? notifications : []).find(
+      (item) => item.id === activeNotification.id,
+    );
+    if (!latest) {
+      setActiveNotification(null);
+      return;
+    }
+    setActiveNotification(latest);
+  }, [activeNotification?.id, notifications]);
 
-    loadNotifications();
-    return () => {
-      isMounted = false;
-    };
-  }, []);
+  const notificationsList = Array.isArray(notifications) ? notifications : [];
+  const loading = !navStateLoaded;
 
   const removeNotification = async (id) => {
     const token = localStorage.getItem("auth_token");
-    const apiBase = getGatewayBase();
     if (!token || !apiBase) {
-      setNotifications((prev) => prev.filter((item) => item.id !== id));
-      window.dispatchEvent(new CustomEvent('notifications:updated'));
-      if (activeNotification?.id === id) {
-        setActiveNotification(null);
-      }
+      handleAuthFailure();
       return;
     }
     try {
@@ -111,11 +86,8 @@ const Notificationspage = () => {
           'שגיאה במחיקת התראה';
         throw new Error(message);
       }
-      setNotifications((prev) => prev.filter((item) => item.id !== id));
-      window.dispatchEvent(new CustomEvent('notifications:updated'));
-      if (activeNotification?.id === id) {
-        setActiveNotification(null);
-      }
+      if (activeNotification?.id === id) setActiveNotification(null);
+      await refreshNavState({ forceNotifications: true });
     } catch (error) {
       console.error(error);
     }
@@ -123,8 +95,10 @@ const Notificationspage = () => {
 
   const markAllAsRead = async () => {
     const token = localStorage.getItem("auth_token");
-    const apiBase = getGatewayBase();
-    if (!token || !apiBase) return;
+    if (!token || !apiBase) {
+      handleAuthFailure();
+      return;
+    }
     try {
       const response = await fetch(`${apiBase}/auth/v1/notifications/me/read-all`, {
         method: 'PATCH',
@@ -143,21 +117,14 @@ const Notificationspage = () => {
           'שגיאה בעדכון התראות';
         throw new Error(message);
       }
-      if (Array.isArray(data)) {
-        setNotifications(data);
-      } else {
-        setNotifications((prev) =>
-          prev.map((n) => ({ ...n, read_at: n.read_at || new Date().toISOString() }))
-        );
-      }
-      window.dispatchEvent(new CustomEvent('notifications:updated'));
+      await refreshNavState({ forceNotifications: true });
     } catch (error) {
       console.error(error);
     }
   };
 
-  const unreadCount = notifications.filter((n) => !n.read_at).length;
-  const approvalNotification = notifications.find((item) => {
+  const unreadCount = notificationsList.filter((n) => !n.read_at).length;
+  const approvalNotification = notificationsList.find((item) => {
     const title = item?.template_name || '';
     const message = item?.message || '';
     return `${title} ${message}`.includes('אישור עקרוני');
@@ -166,8 +133,10 @@ const Notificationspage = () => {
   const markAsRead = async (item) => {
     if (!item || item.read_at) return;
     const token = localStorage.getItem("auth_token");
-    const apiBase = getGatewayBase();
-    if (!token || !apiBase) return;
+    if (!token || !apiBase) {
+      handleAuthFailure();
+      return;
+    }
     try {
       const response = await fetch(`${apiBase}/auth/v1/notifications/${item.id}/read`, {
         method: 'PATCH',
@@ -191,13 +160,12 @@ const Notificationspage = () => {
           'שגיאה בעדכון התראה';
         throw new Error(message);
       }
-      setNotifications((prev) =>
-        prev.map((n) => (n.id === item.id ? { ...n, read_at: data?.read_at || new Date().toISOString() } : n))
-      );
-      setActiveNotification((prev) =>
-        prev?.id === item.id ? { ...prev, read_at: data?.read_at || new Date().toISOString() } : prev
-      );
-      window.dispatchEvent(new CustomEvent('notifications:updated'));
+      setActiveNotification((prev) => (
+        prev?.id === item.id
+          ? { ...prev, read_at: data?.read_at || new Date().toISOString() }
+          : prev
+      ));
+      await refreshNavState({ forceNotifications: true });
     } catch (error) {
       console.error(error);
     }
@@ -218,8 +186,8 @@ const Notificationspage = () => {
         <div className="notifi_list d_flex d_flex_jb">
            {loading ? (
             <p className="no_notifications">טוען התראות...</p>
-          ) : notifications.length > 0 ? (
-            notifications.map((item) => (
+          ) : notificationsList.length > 0 ? (
+            notificationsList.map((item) => (
               <div className="notifi_col" key={item.id}>
                 <img src={notifiIcon} className="icon" alt="" />
                 <button
@@ -254,7 +222,7 @@ const Notificationspage = () => {
             <a href="/" className="btn view_certificates">לחץ כאן לצפיה באישורים</a>
           </div>
         ) : null}
-       {notifications.length > 0 ? (
+       {notificationsList.length > 0 ? (
             <>
               <img
                 src={notificationsman}

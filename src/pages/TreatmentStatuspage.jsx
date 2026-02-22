@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "../components/treatmentstatuscomponents/treatmentstatuspage.css";
 
@@ -6,7 +6,7 @@ import noteicon from "../assets/images/note_i.svg";
 import yesicon from "../assets/images/yes.svg";
 import treatmentstatusImage from "../assets/images/treatmentstatus_img.png";
 import treatmentstatusImagemob from "../assets/images/treatmentstatus_img_mobile.png";
-import { getGatewayBase } from "../utils/apiBase";
+import { useNavState } from "../context/NavStateContext";
 
 const stepsData = [
   "אישור עקרוני",
@@ -56,7 +56,7 @@ const getStepFromCustomerStatus = (status) => {
 
 const TreatmentStatuspage = () => {
   const navigate = useNavigate();
-  const apiBase = useMemo(() => getGatewayBase(), []);
+  const { customerProfile, isLoaded: navStateLoaded, refreshCustomerProfile } = useNavState();
   const [customerStatus, setCustomerStatus] = useState("");
   const [loadingStatus, setLoadingStatus] = useState(true);
 
@@ -69,35 +69,41 @@ const TreatmentStatuspage = () => {
   }, [navigate]);
 
   useEffect(() => {
+    if (customerProfile && typeof customerProfile === "object") {
+      setCustomerStatus(customerProfile.status || "");
+      setLoadingStatus(false);
+      return;
+    }
+    if (navStateLoaded) {
+      setCustomerStatus("");
+      setLoadingStatus(false);
+    }
+  }, [customerProfile, navStateLoaded]);
+
+  useEffect(() => {
     const token = localStorage.getItem("auth_token");
-    if (!apiBase) return;
     if (!token) {
       handleAuthFailure();
       return;
     }
-
+    if (customerProfile && typeof customerProfile === "object") {
+      return;
+    }
     let isMounted = true;
 
     const loadCustomerStatus = async () => {
       try {
-        const response = await fetch(`${apiBase}/auth/v1/customers/me`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-
-        if (response.status === 401 || response.status === 403) {
+        const response = await refreshCustomerProfile({ force: false });
+        if (!isMounted) return;
+        if (response?.status === 401 || response?.status === 403) {
           handleAuthFailure();
           return;
         }
-
-        if (!response.ok) {
-          throw new Error("Failed to load customer profile");
+        if (response?.ok) {
+          setCustomerStatus(response?.data?.status || "");
+          return;
         }
-
-        const payload = await response.json().catch(() => null);
-        if (!isMounted) return;
-        setCustomerStatus(payload?.status || "");
+        setCustomerStatus("");
       } catch {
         if (isMounted) {
           setCustomerStatus("");
@@ -109,12 +115,12 @@ const TreatmentStatuspage = () => {
       }
     };
 
-    loadCustomerStatus();
+    void loadCustomerStatus();
 
     return () => {
       isMounted = false;
     };
-  }, [apiBase, handleAuthFailure]);
+  }, [customerProfile, handleAuthFailure, refreshCustomerProfile]);
 
   const currentStep = loadingStatus ? 0 : getStepFromCustomerStatus(customerStatus);
 

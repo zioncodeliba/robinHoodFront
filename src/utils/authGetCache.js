@@ -1,6 +1,6 @@
 import { getGatewayBase } from './apiBase';
 
-const CACHE_TTL_MS = 15000;
+const CACHE_TTL_MS = 60000;
 const inflightRequests = new Map();
 const cachedResponses = new Map();
 
@@ -17,7 +17,7 @@ const getCached = (key, force) => {
   return entry.value;
 };
 
-const fetchAuthGet = async (path, token, { force = false } = {}) => {
+export const fetchAuthGet = async (path, token, { force = false } = {}) => {
   if (!token) {
     return { ok: false, status: 401, data: null };
   }
@@ -68,6 +68,9 @@ export const fetchCustomerFilesMeCached = (token, options) =>
 
 export const fetchBankVisibilityMeCached = (token, options) =>
   fetchAuthGet('/auth/v1/customers/me/bank-visibility', token, options);
+
+export const fetchIsAuthenticatedCached = (token, options) =>
+  fetchAuthGet('/auth/v1/is-authenticated', token, options);
 
 export const clearAuthGetCache = (token) => {
   const prefix = token ? `${token}:` : '';

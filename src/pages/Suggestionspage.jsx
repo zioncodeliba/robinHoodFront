@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from 'react-router-dom';
 import '../components/suggestionscomponents/Suggestionspage.css';
 
@@ -12,7 +12,7 @@ import BankMortgageCard from '../components/suggestionscomponents/BankMortgageCa
 import RoutesBankMortgage from '../components/suggestionscomponents/RoutesBankMortgage';
 import ReturnsChart from '../components/commoncomponents/ReturnsChart';
 import NotePopup from '../components/suggestionscomponents/NotePopup';
-import { getGatewayBase } from "../utils/apiBase";
+import { useNavState } from "../context/NavStateContext";
 
 const BANK_LOGOS = {
     hapoalim: "/banks/hapoalim.png",
@@ -70,9 +70,9 @@ const BANK_META = {
 
 const Suggestionspage = () => {
   const navigate = useNavigate();
-  const apiBase = useMemo(() => getGatewayBase(), []);
+  const { bankResponses: navBankResponses, isLoaded: navStateLoaded } = useNavState();
   const [bankResponses, setBankResponses] = useState([]);
-  const [offersLoading, setOffersLoading] = useState(false);
+  const [offersLoading, setOffersLoading] = useState(true);
   const [offersLoaded, setOffersLoaded] = useState(false);
   const [pageIndex, setPageIndex] = useState(0);
   const [isMobile, setIsMobile] = useState(() =>
@@ -109,61 +109,33 @@ const Suggestionspage = () => {
     };
   }, []);
 
-  const handleAuthFailure = () => {
+  const handleAuthFailure = useCallback(() => {
     localStorage.removeItem("auth_token");
     localStorage.removeItem("user_data");
     localStorage.removeItem("mortgage_cycle_result");
     localStorage.removeItem("new_mortgage_submitted");
     navigate("/login", { replace: true });
-  };
+  }, [navigate]);
 
   useEffect(() => {
-    const token = localStorage.getItem("auth_token");
-    if (!apiBase) return;
-    if (!token) {
+    if (!localStorage.getItem("auth_token")) {
       handleAuthFailure();
+      return undefined;
+    }
+    return undefined;
+  }, [handleAuthFailure]);
+
+  useEffect(() => {
+    if (!navStateLoaded) {
+      setOffersLoading(true);
+      setOffersLoaded(false);
+      setBankResponses([]);
       return;
     }
-    let isMounted = true;
-    setOffersLoading(true);
-
-    const loadBankResponses = async () => {
-      try {
-        const response = await fetch(`${apiBase}/auth/v1/bank-responses/me`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-        if (response.status === 401 || response.status === 403) {
-          handleAuthFailure();
-          return;
-        }
-        if (!response.ok) {
-          throw new Error("Failed to load bank responses");
-        }
-        const payload = await response.json().catch(() => null);
-        if (!isMounted) return;
-        const responses = Array.isArray(payload) ? payload : [];
-        setBankResponses(responses);
-        setOffersLoaded(true);
-      } catch {
-        if (isMounted) {
-          setBankResponses([]);
-          setOffersLoaded(true);
-        }
-      } finally {
-        if (isMounted) {
-          setOffersLoading(false);
-        }
-      }
-    };
-
-    loadBankResponses();
-
-    return () => {
-      isMounted = false;
-    };
-  }, [apiBase]);
+    setBankResponses(Array.isArray(navBankResponses) ? navBankResponses : []);
+    setOffersLoaded(true);
+    setOffersLoading(false);
+  }, [navBankResponses, navStateLoaded]);
 
   const toNumber = (value) => {
     if (value === null || value === undefined || value === '') return null;

@@ -169,7 +169,7 @@ const Homepage = () => {
       }
 
       try {
-        const customerResponse = await fetchCustomerMeCached(token, { force: true });
+        const customerResponse = await fetchCustomerMeCached(token);
         if (customerResponse.status === 401 || customerResponse.status === 403) {
           handleAuthFailure();
           return;
@@ -192,7 +192,7 @@ const Homepage = () => {
           ? getDefaultAllowedBankIds(customerMortgageType)
           : [];
 
-        const visibilityResponse = await fetchBankVisibilityMeCached(token, { force: true });
+        const visibilityResponse = await fetchBankVisibilityMeCached(token);
         if (visibilityResponse.status === 401 || visibilityResponse.status === 403) {
           handleAuthFailure();
           return;
@@ -201,7 +201,7 @@ const Homepage = () => {
           ? normalizeAllowedBankIds(visibilityResponse.data?.allowed_bank_ids, defaultAllowedBankIds)
           : [...defaultAllowedBankIds];
 
-        const bankResponsesResponse = await fetchBankResponsesMeCached(token, { force: true });
+        const bankResponsesResponse = await fetchBankResponsesMeCached(token);
         if (bankResponsesResponse.status === 401 || bankResponsesResponse.status === 403) {
           handleAuthFailure();
           return;

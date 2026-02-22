@@ -1,9 +1,9 @@
 import React from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
-import { getGatewayBase } from '../utils/apiBase';
 import {
   fetchBankVisibilityMeCached,
   fetchCustomerMeCached,
+  fetchIsAuthenticatedCached,
 } from '../utils/authGetCache';
 import {
   canRouteByBankVisibility,
@@ -20,7 +20,6 @@ const BANK_VISIBILITY_PAGES = new Set([
 
 const ProtectedRoute = ({ children }) => {
   const location = useLocation();
-  const apiBase = React.useMemo(() => getGatewayBase(), []);
   const token = localStorage.getItem('auth_token');
   const isDesktop = typeof window !== 'undefined' ? window.innerWidth >= 1024 : false;
   const [status, setStatus] = React.useState(() => (token ? 'checking' : 'unauthenticated'));
@@ -34,7 +33,6 @@ const ProtectedRoute = ({ children }) => {
       return undefined;
     }
 
-    const controller = new AbortController();
     const currentPath = (location.pathname || '/').toLowerCase().replace(/\/+$/, '') || '/';
 
     setStatus('checking');
@@ -42,12 +40,7 @@ const ProtectedRoute = ({ children }) => {
 
     const verifySession = async () => {
       try {
-        const response = await fetch(`${apiBase}/auth/v1/is-authenticated`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-          signal: controller.signal,
-        });
+        const response = await fetchIsAuthenticatedCached(token);
 
         if (!isMounted) return;
 
@@ -61,7 +54,7 @@ const ProtectedRoute = ({ children }) => {
 
         if (BANK_VISIBILITY_PAGES.has(currentPath)) {
           // Always revalidate this flow-critical routing data.
-          const customerResponse = await fetchCustomerMeCached(token, { force: true });
+          const customerResponse = await fetchCustomerMeCached(token);
           if (customerResponse.status === 401 || customerResponse.status === 403) {
             localStorage.removeItem('auth_token');
             localStorage.removeItem('user_data');
@@ -77,7 +70,7 @@ const ProtectedRoute = ({ children }) => {
             ).trim();
             const customerStatus = customerResponse.data?.status || '';
 
-            const visibilityResponse = await fetchBankVisibilityMeCached(token, { force: true });
+            const visibilityResponse = await fetchBankVisibilityMeCached(token);
             if (visibilityResponse.status === 401 || visibilityResponse.status === 403) {
               localStorage.removeItem('auth_token');
               localStorage.removeItem('user_data');
@@ -120,9 +113,8 @@ const ProtectedRoute = ({ children }) => {
 
     return () => {
       isMounted = false;
-      controller.abort();
     };
-  }, [apiBase, token, location.pathname]);
+  }, [token, location.pathname]);
 
   if (status === 'checking') {
     return null;
