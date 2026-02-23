@@ -9,6 +9,7 @@
 .no_offer_found_page .right_col::after{content:'';position: absolute;top: -25px;right: 0;width:197%;height: calc(100% + 50px);background-color: #CEDFCE;box-shadow:20px 0 30px #0000001A;}
 .no_offer_found_page .left_col{width:791px;position: relative;z-index: 2;}
 .no_offer_found_page .routes_mortgage_sec { margin-top: 0; }
+.no_offer_found_page .no_offer_mobile_bank_card{display:none;}
 
 .no_offer_found_page .mirror_col{padding:65px 73px 100px 38px;position: relative;z-index: 1;}
 .no_offer_found_page .mirror_col h2{text-align: right;margin-top: 35px;font-size: 22px;line-height: 24px;}
@@ -40,7 +41,41 @@
     .no_offer_found_page .mirror_col h2 { text-align: center; margin-bottom: 10px; margin-top:15px; font-weight: 700; }
     .no_offer_found_page .mirror_col { padding: 0 0 0px; }
     .no_offer_found_page .left_col{margin-top: 109.5px;}
-    .no_offer_found_page .routes_mortgage_sec h2 { font-size: 20px; font-weight: 700; position: absolute; top: -71px; left: 0; right: 0; }
+    .no_offer_found_page .no_offer_card_desktop{display:none;}
+    .no_offer_found_page .no_offer_mobile_bank_card{display:block;}
+    .no_offer_found_page .no_offer_mobile_bank_card .bank_mortgage_sec { border: 2px solid var(--color, #4E8FF7); border-radius: 15px; padding: 28px 25px 9px; max-width: calc(100% - 60px); margin: 0 auto 19px; position: relative; background: linear-gradient(180deg, rgba(255, 255, 255, 1) 0%, rgba(225, 240, 223, 1) 100%); }
+    .no_offer_found_page .no_offer_mobile_bank_card .bank_mortgage_sec h2 { font-size: 18px; line-height: 24px; padding: 0; text-align: right; font-weight: 400; margin-bottom: 11px; }
+    .no_offer_found_page .no_offer_mobile_bank_card .bank_mortgage_sec .bank_icon { width: 55px; height: 55px; right: 20px; top: -33px; position: absolute; border-radius: 50%; box-shadow: 0 5px 5px #00000040; }
+    .no_offer_found_page .no_offer_mobile_bank_card .bank_mortgage_sec .bank_icon img{width:100%;height:100%;object-fit:cover;object-position:center;border-radius:50%;}
+    .no_offer_found_page .no_offer_mobile_bank_card .bank_mortgage_sec .tag { font-size: 14px; line-height: 36px; padding: 0 24px; left: 33px; top: 0; position: absolute; background-color: var(--color, #4E8FF7); color: var(--white); border-radius: 0 0 10px 10px; }
+    .no_offer_found_page .no_offer_mobile_bank_card .bank_mortgage_sec ul li .detail_title { font-size: 12px; line-height: 14px; white-space: nowrap; color: var(--green); }
+    .no_offer_found_page .no_offer_mobile_bank_card .bank_mortgage_sec ul li .detail_value { font-size: 18px; line-height: 24px; color: var(--green); }
+    .no_offer_found_page .no_offer_mobile_bank_card .bank_mortgage_sec ul li.detail_item { border: none !important; margin: 0 !important; padding: 0 !important; width: 100%; text-align: center; }
+    .no_offer_found_page .no_offer_mobile_bank_card .bank_mortgage_sec ul li.detail_1,
+    .no_offer_found_page .no_offer_mobile_bank_card .bank_mortgage_sec ul li.detail_2 { width: 50% !important; padding-bottom: 8px !important; border-bottom: 1px dashed #27450E !important; margin-bottom: 8px !important; }
+    .no_offer_found_page .no_offer_mobile_bank_card .bank_mortgage_sec ul li.detail_1 .detail_title,
+    .no_offer_found_page .no_offer_mobile_bank_card .bank_mortgage_sec ul li.detail_2 .detail_title { font-size: 11px; }
+    .no_offer_found_page .no_offer_mobile_bank_card .bank_mortgage_sec ul li.detail_1 { border-left: 1px dashed #27450E36 !important; }
+    .no_offer_found_page .no_offer_mobile_bank_card .bank_mortgage_sec ul li.detail_3,
+    .no_offer_found_page .no_offer_mobile_bank_card .bank_mortgage_sec ul li.detail_4,
+    .no_offer_found_page .no_offer_mobile_bank_card .bank_mortgage_sec ul li.detail_5 { width: 33.333% !important; margin: 0 !important; padding: 0 !important; }
+    .no_offer_found_page .no_offer_mobile_bank_card .bank_mortgage_sec ul li.detail_3,
+    .no_offer_found_page .no_offer_mobile_bank_card .bank_mortgage_sec ul li.detail_4 { border-left: 1px dashed #27450E36 !important; }
+    .no_offer_found_page .no_offer_mobile_bank_card .bank_mortgage_sec ul li.detail_3 .detail_title,
+    .no_offer_found_page .no_offer_mobile_bank_card .bank_mortgage_sec ul li.detail_4 .detail_title,
+    .no_offer_found_page .no_offer_mobile_bank_card .bank_mortgage_sec ul li.detail_5 .detail_title { font-size: 9px; line-height: 12px; }
+    .no_offer_found_page .no_offer_mobile_bank_card .bank_mortgage_sec ul li.detail_3 .detail_value,
+    .no_offer_found_page .no_offer_mobile_bank_card .bank_mortgage_sec ul li.detail_4 .detail_value,
+    .no_offer_found_page .no_offer_mobile_bank_card .bank_mortgage_sec ul li.detail_5 .detail_value { font-size: 16px; line-height: 20px; }
+    .no_offer_found_page .no_offer_mobile_bank_card .bank_mortgage_sec ul li.detail_6,
+    .no_offer_found_page .no_offer_mobile_bank_card .bank_mortgage_sec ul li.detail_7 { border-top: 1px dashed #27450E !important; padding-top: 8px !important; margin-top: 8px !important; }
+    .no_offer_found_page .no_offer_mobile_bank_card .bank_mortgage_sec ul li.detail_6 { width: 45% !important; border-left: 1px dashed #27450E36 !important; text-align: right !important; padding-right: 8px !important; }
+    .no_offer_found_page .no_offer_mobile_bank_card .bank_mortgage_sec ul li.detail_6 .detail_title,
+    .no_offer_found_page .no_offer_mobile_bank_card .bank_mortgage_sec ul li.detail_6 .detail_value { text-align: right; width: 100%; }
+    .no_offer_found_page .no_offer_mobile_bank_card .bank_mortgage_sec ul li.detail_6 .detail_value { font-size: 18px; line-height: 22px; }
+    .no_offer_found_page .no_offer_mobile_bank_card .bank_mortgage_sec ul li.detail_7 { width: 55% !important; }
+    .no_offer_found_page .no_offer_mobile_bank_card .bank_mortgage_sec ul li.detail_6 .detail_title,
+    .no_offer_found_page .no_offer_mobile_bank_card .bank_mortgage_sec ul li.detail_7 .detail_title { font-size: 11px; }
     .no_offer_found_page .routes_mobile{border:2px solid var(--bgcolor);}
     .no_offer_found_page .routes_mobile::after{bottom: -1px;}
 

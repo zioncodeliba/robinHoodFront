@@ -4,10 +4,8 @@ import { useLocation } from "react-router-dom";
 import '../components/nooffercompomponents/NoofferFoundpage.css';
 
 import mirroricon from "../assets/images/mirror.svg";
-import prevIcon from '../assets/images/prev_icon.svg';
 
-import BankMortgage from '../components/mortgagecyclecomponents/BankMortgage';
-import RoutesBankMortgage from '../components/suggestionscomponents/RoutesBankMortgage';
+import NoOfferMortgageDetails from '../components/nooffercompomponents/NoOfferMortgageDetails';
 import {
   buildBankMortgageData,
   buildMortgageDataFromTracks,
@@ -71,7 +69,6 @@ const NoofferFoundpage = () => {
     return Array.isArray(mortgageData?.routes?.list) ? mortgageData.routes.list : [];
   }, [bankResponse, mortgageData]);
 
-
   return (
     <div className="no_offer_found_page">
       {/* <a href="/recycle-loan" className="prev_page_link"><img src={prevIcon} alt="" /></a> */}
@@ -92,14 +89,17 @@ const NoofferFoundpage = () => {
           </div>
         </div>
         <div className="left_col">
-          <BankMortgage data={bankMortgageData} />
-          <RoutesBankMortgage
-            color={bankMortgageData?.color || "#4E8FF7"}
-            routes={routesFromCurrentMortgage}
-            maxVisibleRoutes={5}
-            expandLabel="לצפיה בכל המסלולים"
-            collapseLabel="הסתר מסלולים"
-          />
+          {/* <BankMortgage data={bankMortgageData} /> */}
+          {mortgageData ? (
+            <NoOfferMortgageDetails
+              data={mortgageData}
+              themeColor={bankMortgageData?.color || "#4E8FF7"}
+              routesFromCurrentMortgage={routesFromCurrentMortgage}
+              bankLogo={bankMortgageData?.icon}
+              bankName={bankMortgageData?.name}
+              bankCardData={bankMortgageData}
+            />
+          ) : null}
         </div>
       </div>
     </div>  
