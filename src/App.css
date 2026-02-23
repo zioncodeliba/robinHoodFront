@@ -296,7 +296,7 @@ textarea{overflow:auto;}
 
 a,.in,.sub,img,button{transition: 0.4s ease all;}
 
-body{background-repeat: no-repeat;background-size: cover;overflow-x: hidden;overflow-y: auto;}
+  body{background-repeat: no-repeat;background-size: cover;overflow: hidden;}
 .wrapper{margin: 0 auto;position: relative;}
 .bg{background-position: center;background-repeat: no-repeat;background-size: cover;position: absolute;top: 0;left: 0;width: 100%;height: 100%;}
 
@@ -310,7 +310,7 @@ body{background-repeat: no-repeat;background-size: cover;overflow-x: hidden;over
 ::-webkit-scrollbar-thumb:hover { background: #555; }
 
 
-.main{background-image: url(../src/assets/images/bg_layer.jpg);background-repeat: no-repeat; background-size: cover; background-attachment: scroll; min-height: 100vh; padding-top: 113px; overflow-x: clip; overflow-y: visible; background-position: top center;width:100%;}
+  .main{background-image: url(../src/assets/images/bg_layer.jpg);background-repeat: no-repeat; background-size: cover; height: 100vh; padding-top: 113px; overflow: auto; background-position: top center;width:100%;    overflow-x: clip; overflow-y: auto;}
 .main .l_left {position: absolute; left: 0; top: 19%; }
 .main .l_right{position: absolute; right:0; bottom: -100px;}
 
@@ -734,23 +734,8 @@ header .left_col>div>.btn.registration:hover{background-color: var(--orange);}
 /* 414 */
 
 @media (max-width:767px) {
-  header{background: none;overflow: hidden;}
-  /* iOS: blur on a dedicated layer (::after) so backdrop-filter applies reliably */
-  header::after{
-    content: '';
-    position: absolute;
-    left: 0;top: 0;right: 0;bottom: 0;
-    width: 100%;height: 100%;
-    background: rgba(193, 233, 185, 0.9);
-    -webkit-backdrop-filter: blur(12px);
-    backdrop-filter: blur(12px);
-    z-index: -1;
-    opacity: 0;
-    transition: opacity 0.25s ease;
-    -webkit-transform: translateZ(0);
-    transform: translateZ(0);
-  }
-  header.fixed::after{opacity: 1;}
+    /* header { backdrop-filter: none; } */
+    header.fixed{backdrop-filter: blur(10px);}
   .hamberger { position: absolute; top: 24px; right:36px; }
   header .left_col .exit_btn{display: none;}
   header .left_col .username{display: none;}
@@ -760,6 +745,10 @@ header .left_col>div>.btn.registration:hover{background-color: var(--orange);}
   header .brand { max-width: 168px; margin: 0 auto;position: relative; right: 28px;}
   header .notification{position: absolute;left:34px;top: 24px;background-color: transparent;border: none;padding: 0;}
   header .header_back_btn{display:block;position:absolute;left:34px;top:24px;z-index:2;}
+  
+    header{background: none;}
+    /* header::after{content:'';position: absolute;left: 0;top: 0;width: 100%;height: 100%;background: #C1E9B9; background: linear-gradient(0deg, #C1E9B9 100%, rgba(255, 255, 255, 1) 0%); border-bottom: 1px solid #27450E96;opacity: 0;transition: 0.2s ease all;z-index: -1;}
+    header.fixed::after{opacity: 1;} */
   .mobile_menu ul li a { font-size: 16px; }
   .mobile_menu { padding: 52px 50px 50px 0px; }
   .desktop_img{display: none;}
@@ -841,9 +830,9 @@ header .left_col>div>.btn.registration:hover{background-color: var(--orange);}
   .aichat_page .title p { font-size: 14px; line-height: 20px; margin-bottom: 20px; }
 
 
-   /* new - main scrolls with page so background moves normally on mobile */
-   .main { padding-top: 78px; display: block; position: relative; min-height: 100vh; }
-  .registration_page .reglogo { margin: 0 auto 22px; max-width: 230px;}
+     /* new */
+     .main { padding-top: 78px;display: block; position: fixed;top: 0;left: 0;}
+    .registration_page .reglogo { margin: 0 auto 22px; max-width: 180px;}
   .registration_page .agree_check { margin-top: 20px; }
   .registration_page .btn_col { max-width: 352px; margin: 20px auto 0; }
   .registration_page.comman_loginpopup .link { line-height: 42px; }
