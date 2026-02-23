@@ -3,7 +3,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { useLocation, useNavigate } from "react-router-dom";
 import '../components/viewofferscomponents/ViewOfferspage.css';
 
-import offer_i from "../assets/images/offer_i.png";
+import offer_i from "../assets/images/offer_i.svg";
 import nextprevarrow from "../assets/images/np_arrow.svg";
 import timeicon from "../assets/images/tt.svg";
 import sandicon from "../assets/images/sandicon.png";

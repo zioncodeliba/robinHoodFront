@@ -21,9 +21,9 @@
 
 
 @media (max-width:767px) {
+    .status_summary_sec{width: 100%;}
     .status_summary_sec ul li { width: 182px; }
-    .status_summary_sec ul li+li { width: calc(100% - 182px); padding-left: 30px; }
-
+    .status_summary_sec ul li+li { width: calc(100% - 182px); padding-left: 0; }
 
 
 
