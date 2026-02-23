@@ -83,24 +83,58 @@ const Header = () => {
   const [isFixed, setIsFixed] = useState(false);
 
   useEffect(() => {
-    const scrollElement =
-      document.querySelector(".ai_chat_box .inner") ||
-      document.querySelector(".main");
-
-    if (!scrollElement) {
-      setIsFixed(false);
-      return undefined;
-    }
+    let activeScrollElement = null;
 
     const handleScroll = () => {
-      setIsFixed(scrollElement.scrollTop > 20);
+      if (!activeScrollElement) {
+        setIsFixed(false);
+        return;
+      }
+      setIsFixed(activeScrollElement.scrollTop > 20);
     };
 
-    handleScroll();
-    scrollElement.addEventListener("scroll", handleScroll);
+    const bindScrollElement = () => {
+      const nextScrollElement =
+        document.querySelector(".ai_chat_box .inner") ||
+        document.querySelector(".main");
+
+      if (nextScrollElement === activeScrollElement) {
+        handleScroll();
+        return;
+      }
+
+      if (activeScrollElement) {
+        activeScrollElement.removeEventListener("scroll", handleScroll);
+      }
+
+      activeScrollElement = nextScrollElement;
+
+      if (!activeScrollElement) {
+        setIsFixed(false);
+        return;
+      }
+
+      activeScrollElement.addEventListener("scroll", handleScroll);
+      handleScroll();
+    };
+
+    bindScrollElement();
+
+    const observer = new MutationObserver(() => {
+      bindScrollElement();
+    });
+    if (document.body) {
+      observer.observe(document.body, { childList: true, subtree: true });
+    }
+
+    window.addEventListener("resize", bindScrollElement);
 
     return () => {
-      scrollElement.removeEventListener("scroll", handleScroll);
+      observer.disconnect();
+      window.removeEventListener("resize", bindScrollElement);
+      if (activeScrollElement) {
+        activeScrollElement.removeEventListener("scroll", handleScroll);
+      }
     };
   }, [normalizedPath]);
 
@@ -163,14 +197,6 @@ const Header = () => {
     }
     navigate('/', { replace: true });
   };
-
-  useEffect(() => {
-    if (location.pathname.includes("/aichat")) {
-      document.querySelector("header").classList.add("fixed");
-    } else {
-      document.querySelector("header").classList.remove("fixed");
-    }
-  }, [location]);
 
   return (
     <>

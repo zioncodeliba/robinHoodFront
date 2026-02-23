@@ -73,7 +73,7 @@
 .note_popup { position: absolute; top: -15px; width: 100%; padding: 26px 28px 15px 37px; background-color: #24242475; border-radius: 20px; backdrop-filter: blur(70px); z-index: 2; right: 0; height:89%;transition: 0.4s ease all;visibility: hidden;opacity: 0;}
 .note_popup.open{visibility: visible;opacity: 1;}
 .note_popup .close{position: absolute; left:24px; top:29px;cursor: pointer;}
-.note_popup .inner{overflow-y: scroll;height: 100%;}
+/* .note_popup .inner{overflow-y: scroll;height: 100%;} */
 .note_popup .col{margin-bottom: 24px;}
 .note_popup h2{color: var(--white);font-size: 20px;line-height: 24px;}
 .note_popup h3{color: var(--white);font-size: 16px;line-height: 24px;font-weight: 900;}
