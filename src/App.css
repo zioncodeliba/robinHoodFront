@@ -330,6 +330,7 @@ header{position: fixed;top: 0;left: 0;width: 100%;z-index: 99;border-top: 13px s
   padding: 9px 135px 18px;
   /* backdrop-filter: blur(10px); */
 }
+header.fixed{ backdrop-filter: blur(10px);}
 header ul{position: relative;top: 5px;}
 header ul li:not(:last-child){margin-left: 40px;}
 header ul li a{font-weight: 300;display: flex;align-items: center;}
@@ -675,16 +676,18 @@ header .left_col>div>.btn.registration:hover{background-color: var(--orange);}
   
   }
   .main:has( .simulator_page),
-  .main:has( .mortgagecyclecheck_page){  background-image: none !important;padding-top: 0px;}
+  .main:has( .mortgagecyclecheck_page),
+  .main:has( .mortgage_cycle_page),
+  .main:has( .viewoffers_page){  background-image: none !important;padding-top: 0px;}
   .simulator_page,
-  .mortgagecyclecheck_page{ background-image: url(../src/assets/images/broker_mobile_bg2.jpg) !important; padding-top: 98px !important; background-size: 101% auto; background-position: top 0 center; background-repeat: no-repeat; }
+  .mortgagecyclecheck_page,
+  .viewoffers_page,
+  .mortgage_cycle_page{ background-image: url(../src/assets/images/broker_mobile_bg2.jpg) !important; padding-top: 98px !important; background-size: 101% auto; background-position: top 0 center; background-repeat: no-repeat; }
 
 
 
 
   .hamberger{display: block;}
-
-  header ~ .main:has( .aichat_page){background-color: red !important;}
 
   header {border-top: 22px solid var(--orange);border-bottom: none;}
   header nav{position: fixed;top: 0;width: 100%;right: 0;height: 100vh;transform: translateX(100%);transition: 0.4s ease all;z-index: 999;}
