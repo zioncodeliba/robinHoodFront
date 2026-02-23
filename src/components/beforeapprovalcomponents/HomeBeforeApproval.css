@@ -42,7 +42,7 @@
 .homebefore_approval_page .sandicon{margin: -18px auto 0;}
 .homebefore_approval_page .status_summary_sec{margin-top: 18px;}
 
-.homebefore_approval_page .prev_page_link{display: block;position: fixed;top: 110px;right: 25px;z-index: 999;pointer-events: auto;cursor: pointer;background: transparent;border: none;padding: 0;line-height: 0;}
+.homebefore_approval_page .prev_page_link{display: block;position: fixed;top: 136px;right: 133px;z-index: 999;pointer-events: auto;cursor: pointer;background: transparent;border: none;padding: 0;line-height: 0;}
 .homebefore_approval_page .left_col .frequently_questions_sec{display: none;} 
 
 .awaiting_approval_box .next_prev_box{position: absolute;width: 100%;bottom: auto;top: 45px;pointer-events: auto;z-index: 2;}
@@ -62,7 +62,7 @@
 .awaiting_approval_box .notification{display: none;}
 @media (max-width:767px){
     .homebefore_approval_page { padding: 22px 13px 178px; }
-    .homebefore_approval_page .prev_page_link { left: 25px; right: auto; top: 110px; }
+    .homebefore_approval_page .prev_page_link {        left: 27px; right: auto; top: 29px; }
     .homebefore_approval_page h1 { margin-bottom: 40px; font-weight: 300; }
     .homebefore_approval_page .inner { background-color: transparent; border-radius: 0; box-shadow: none; padding: 0; margin-top: 46px;}
     .homebefore_approval_page .inner>div { width: 100%; }
@@ -122,3 +122,5 @@
     
 
 }
+
+

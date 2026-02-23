@@ -672,17 +672,19 @@ header .left_col>div>.btn.registration:hover{background-color: var(--orange);}
   .main{
     /* background-image: url(../src/assets/images/broker_mobile_bg.jpg) !important;
     background-image: url(../src/assets/images/broker_mobile_bg1.jpg) !important; */
-    background-image: url(../src/assets/images/broker_mobile_bg2.jpg) !important; padding-top: 98px; background-size: 101% auto; background-position: top 0 center; 
-  
-  }
+    background-image: url(../src/assets/images/broker_mobile_bg2.jpg) !important; padding-top: 98px; background-size: 101% auto; background-position: top 0 center; }
   .main:has( .simulator_page),
   .main:has( .mortgagecyclecheck_page),
   .main:has( .mortgage_cycle_page),
-  .main:has( .viewoffers_page){  background-image: none !important;padding-top: 0px;}
+  .main:has( .viewoffers_page),
+  .main:has( .homebefore_approval_page),
+  .main:has( .suggestions_page){  background-image: none !important;padding-top: 0px;}
   .simulator_page,
   .mortgagecyclecheck_page,
   .viewoffers_page,
-  .mortgage_cycle_page{ background-image: url(../src/assets/images/broker_mobile_bg2.jpg) !important; padding-top: 98px !important; background-size: 101% auto; background-position: top 0 center; background-repeat: no-repeat; }
+  .mortgage_cycle_page,
+  .homebefore_approval_page,
+  .suggestions_page { background-image: url(../src/assets/images/broker_mobile_bg2.jpg) !important; padding-top: 98px !important; background-size: 101% auto; background-position: top 0 center; background-repeat: no-repeat; }
 
 
 
@@ -697,6 +699,13 @@ header .left_col>div>.btn.registration:hover{background-color: var(--orange);}
   header .left_col>.btn { top: 2px;}
   header .username { top: 2px; }
   .main .l_left, .main .l_right{display: none;}
+
+  header{pointer-events: none;}
+  header .hamberger,
+  header nav,
+  header .brand,
+  header .header_back_btn{pointer-events:all;}
+
 
   header nav>ul{display: none !important;}
   .mobile_menu .pan_menu,.mobile_menu .mob_brand,header nav .bg,.mobile_menu h2{display: block;}
