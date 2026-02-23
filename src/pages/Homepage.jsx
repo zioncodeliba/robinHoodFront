@@ -28,6 +28,7 @@ import {
   canRouteByBankVisibility,
   getDefaultAllowedBankIds,
   hasSupportedMortgageType,
+  isNewMortgagePrincipalApproval,
   normalizeAllowedBankIds,
 } from "../utils/customerFlowRouting";
 import useCustomerProfile, { getCustomerDisplayName } from "../hooks/useCustomerProfile";
@@ -47,6 +48,14 @@ const isApprovalOfferResult = (calcResult) => {
     proposedMix?.graph_data ||
     (Array.isArray(proposedMix?.tracks_detail) && proposedMix.tracks_detail.length > 0)
   );
+};
+
+const parseSelectedDisplayChoice = (rawValue) => {
+  if (rawValue === null || rawValue === undefined || rawValue === "") return null;
+  if (rawValue === "selected_offer") return "selected_offer";
+  const numericValue = Number(rawValue);
+  if (Number.isInteger(numericValue)) return numericValue;
+  return null;
 };
 
 
@@ -200,6 +209,15 @@ const Homepage = () => {
         const allowedBankIds = visibilityResponse.ok
           ? normalizeAllowedBankIds(visibilityResponse.data?.allowed_bank_ids, defaultAllowedBankIds)
           : [...defaultAllowedBankIds];
+        const selectedDisplayChoice = parseSelectedDisplayChoice(
+          visibilityResponse.data?.selected_display_choice
+        );
+        const hasSelectedBankChoice =
+          Number.isInteger(selectedDisplayChoice) && allowedBankIds.includes(selectedDisplayChoice);
+        const canOpenSelectedBankPage = isNewMortgagePrincipalApproval({
+          mortgageType: customerMortgageType,
+          status: customerStatus,
+        });
 
         const bankResponsesResponse = await fetchBankResponsesMeCached(token);
         if (bankResponsesResponse.status === 401 || bankResponsesResponse.status === 403) {
@@ -219,6 +237,12 @@ const Homepage = () => {
           const calcResult = getCalculatorResult(response);
           return isApprovalOfferResult(calcResult);
         });
+
+        if (hasSelectedBankChoice && canOpenSelectedBankPage) {
+          didRedirect = true;
+          navigate(`/new-loan?bankId=${selectedDisplayChoice}`, { replace: true });
+          return;
+        }
 
         // Bank visibility is the primary switch for both flows.
         if (allowedBankIds.length > 0 && shouldRouteByVisibility) {

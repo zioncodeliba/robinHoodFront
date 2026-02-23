@@ -1,5 +1,6 @@
 
-import React from "react";
+import React, { useMemo } from "react";
+import { useLocation } from "react-router-dom";
 import '../components/newmortgagecomponents/newmortgagepage.css';
 import HomeImage from '../assets/images/h_img1.png';
 import offer_i from '../assets/images/offer_i.png';
@@ -14,7 +15,25 @@ import RoutesExplanation from '../components/newmortgagecomponents/RoutesExplana
 import ReturnsChart from '../components/commoncomponents/ReturnsChart';
 import StatusSummary from '../components/commoncomponents/StatusSummary';
 
+const BANK_NAME_BY_ID = {
+  1: "בנק מזרחי טפחות",
+  2: "בנק לאומי",
+  3: "בנק הפועלים",
+  4: "בנק דיסקונט",
+  8: "בנק הבינלאומי",
+  12: "בנק מרכנתיל",
+};
+
 const MortgagePage = () => {
+  const location = useLocation();
+  const selectedBankName = useMemo(() => {
+    const params = new URLSearchParams(location.search || "");
+    const bankId = Number(params.get("bankId"));
+    if (Number.isInteger(bankId) && BANK_NAME_BY_ID[bankId]) {
+      return BANK_NAME_BY_ID[bankId];
+    }
+    return "בנק הפועלים";
+  }, [location.search]);
 
   const mortgagechartdata ={
       "1": [
@@ -83,7 +102,7 @@ const MortgagePage = () => {
         <h2>הבנק שנבחר לצורך המשכנתא</h2>
         <div className="bank_title">
           <span></span>
-          <h3>בנק הפועלים</h3>
+          <h3>{selectedBankName}</h3>
         </div>
       </div>
       <div className="wrapper d_flex">
