@@ -164,6 +164,14 @@ const Header = () => {
     navigate('/', { replace: true });
   };
 
+  useEffect(() => {
+    if (location.pathname.includes("/aichat")) {
+      document.querySelector("header").classList.add("fixed");
+    } else {
+      document.querySelector("header").classList.remove("fixed");
+    }
+  }, [location]);
+
   return (
     <>
     <header className={`d_flex d_flex_ac d_flex_jb ${isFixed ? "fixed" : ""}`}>

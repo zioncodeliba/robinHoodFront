@@ -122,6 +122,7 @@
 .calculator_box .monthly_repayment{line-height: 28px;display: flex;align-items: center;margin-top: 11px;color: #1E1E1E;font-size: 15px;font-weight: 400;}
 .calculator_box .monthly_repayment span{font-size: 20px;margin-right: 5px;}
 .calculator_box .btn_box{width: 100%;}
+
 /* Chat-only slider size
 .aichat_page .calculator_box{width:310px;margin-top: 14px;}
 .aichat_page .calculator_box h3{font-size:16px;}
@@ -318,7 +319,7 @@ body{background-repeat: no-repeat;background-size: cover;overflow: hidden;}
 .main.hidepan .l_right{display: none !important;}
 
 
-.btn{font-size: 22px;font-weight: 300;background-color: var(--orange);padding:14px 37px 16px;color: var(--white);border-radius: 50px;box-shadow: 0 4px 40px #00000040;cursor: pointer;transition: 0.4s ease all;    outline: none; border: none;}
+.btn{font-size: 22px;font-weight: 300;background-color: var(--orange);padding:14px 37px 16px;color: var(--white);border-radius: 50px;box-shadow: 0 4px 40px #E2760052;cursor: pointer;transition: 0.4s ease all;    outline: none; border: none;}
 .btn:hover{background-color: var(--green);color: var(--white);}
 
 
@@ -327,7 +328,7 @@ header{position: fixed;top: 0;left: 0;width: 100%;z-index: 99;border-top: 13px s
   background: linear-gradient(0deg, #C1E9B9 100%, rgba(255, 255, 255, 1) 0%); */
   border-bottom: 1px solid #27450E96;
   padding: 9px 135px 18px;
-  backdrop-filter: blur(10px);
+  /* backdrop-filter: blur(10px); */
 }
 header ul{position: relative;top: 5px;}
 header ul li:not(:last-child){margin-left: 40px;}
@@ -667,8 +668,24 @@ header .left_col>div>.btn.registration:hover{background-color: var(--orange);}
 .mobile_menu{display: none;}
 .mobile_menu .pan_menu,.mobile_menu .mob_brand,header nav .bg,.mobile_menu h2{display: none;}
 @media (max-width:1023px) {
-  .main{background-image: url(../src/assets/images/broker_mobile_bg.jpg) !important;background-size: 100% 100%;background-position: top center;padding-top: 98px;}
+  .main{
+    /* background-image: url(../src/assets/images/broker_mobile_bg.jpg) !important;
+    background-image: url(../src/assets/images/broker_mobile_bg1.jpg) !important; */
+    background-image: url(../src/assets/images/broker_mobile_bg2.jpg) !important; padding-top: 98px; background-size: 101% auto; background-position: top 0 center; 
+  
+  }
+  .main:has( .simulator_page),
+  .main:has( .mortgagecyclecheck_page){  background-image: none !important;padding-top: 0px;}
+  .simulator_page,
+  .mortgagecyclecheck_page{ background-image: url(../src/assets/images/broker_mobile_bg2.jpg) !important; padding-top: 98px !important; background-size: 101% auto; background-position: top 0 center; background-repeat: no-repeat; }
+
+
+
+
   .hamberger{display: block;}
+
+  header ~ .main:has( .aichat_page){background-color: red !important;}
+
   header {border-top: 22px solid var(--orange);border-bottom: none;}
   header nav{position: fixed;top: 0;width: 100%;right: 0;height: 100vh;transform: translateX(100%);transition: 0.4s ease all;z-index: 999;}
   header nav.open{transform: translateX(0);}

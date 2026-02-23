@@ -137,6 +137,10 @@
     .range_box .minmax_text span.text-right{text-align: right;}
     .uniform_basket_sec .tab { padding: 0 20px 0 0;margin-bottom: 10px;}
     .uniform_basket_sec .tab li{margin-left: 9px; background-color: transparent; }
+    .mortgage_calculator_sec .range_box .range_wrap{z-index: 1;}
+    .mortgage_calculator_sec .range_box .minmax_text { max-width: calc(100% - 30px); margin-right: 26px;z-index: 0; }
+    .mortgage_calculator_sec .range_box .minmax_text span.text-left { left: 0; right: auto; }
+
 
     
 }
