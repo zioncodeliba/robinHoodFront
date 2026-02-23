@@ -12,9 +12,9 @@
 .routes_explanation .title_routes li{font-size: 18px;font-weight: 600;color: #1e1e1e;}
 .routes_explanation .list_routes{background-color: var(--white);box-shadow: 0 4px 50px #E2760029;position: relative;margin-bottom: 72px;}
 .routes_explanation .list_routes ul{display: flex;align-items: center;}
-.routes_explanation .list_routes::after{content:'';position: absolute;width:96px;background-color: #E4061F;border-radius: 15px;box-shadow: 0 4px 50px #582FFF2E;height: calc(100% - 16px);top: 8px;right:87px;}
+.routes_explanation .list_routes::after{content:'';position: absolute;width:96px;background-color: var(--routes-color, #E4061F);border-radius: 15px;box-shadow: 0 4px 50px #582FFF2E;height: calc(100% - 16px);top: 8px;right:87px;}
 .routes_explanation .list_routes ul li{color: #1E1E1E;font-size: 18px;font-weight: 500;line-height: 26px;position: relative;padding: 11px 0;}
-.routes_explanation .list_routes ul:not(:first-child) li{border-top: 1px dashed #E4061F;}
+.routes_explanation .list_routes ul:not(:first-child) li{border-top: 1px dashed var(--routes-color, #E4061F);}
 .routes_explanation .list_routes ul li:nth-child(2),
 .routes_explanation .list_routes ul li:nth-child(3){text-align: center;}
 .routes_explanation .list_routes ul li:first-child::after{}
