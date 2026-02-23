@@ -6,7 +6,7 @@ import '../components/viewofferscomponents/ViewOfferspage.css';
 import offer_i from "../assets/images/offer_i.svg";
 import nextprevarrow from "../assets/images/np_arrow.svg";
 import timeicon from "../assets/images/tt.svg";
-import sandicon from "../assets/images/sandicon.png";
+import sandicon from "../assets/images/sandicon.svg";
 import noteIcon from "../assets/images/note_i_o.svg";
 
 import useCustomerProfile, { getCustomerDisplayName } from "../hooks/useCustomerProfile";
@@ -18,7 +18,7 @@ import AffordableOffer from '../components/viewofferscomponents/AffordableOffer'
 import StatusSummary from '../components/commoncomponents/StatusSummary';
 
 const BANK_LOGOS = {
-  hapoalim: "/banks/hapoalim.png",
+  hapoalim: "/banks/hapoalim.svg",
   leumi: "/banks/leumi.png",
   mizrahi: "/banks/mizrahi.png",
   discount: "/banks/discount.png",
