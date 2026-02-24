@@ -133,6 +133,11 @@
 .aichat_page .calculator_box .range_box .tooltip{width:84px;min-width:84px;font-size:12px;line-height:18px;transform:translateX(42px);}
 .aichat_page .calculator_box .range_box .arrow:after{height:58px;top:-7px;width:12px;right:-10px;} */
 
+/* aichat only: scale the arrow and place it on the bar; tooltip unchanged */
+.aichat_page .calculator_box .range_box .arrow{top: 68px;margin-top: -44px;transform: scale(0.6);transform-origin: center bottom;}
+/* tooltip only: extend green box down so it sits on the arrow (no gap) */
+.aichat_page .calculator_box .range_box .tooltip{box-sizing: border-box;}
+
 @media (max-width:1850px) {
   .aichat_page { padding: 0 20px 0; }
   .ai_chat_box { height: calc(100vh - 255px); height: calc(100dvh - 255px); }
@@ -457,7 +462,7 @@ header .left_col>div>.btn.registration:hover{background-color: var(--orange);}
 .explanation_screen .inner .btn_col button.prev:hover{color: var(--orange);}
 .explanation_screen .dots{margin-bottom: 11px;}
 .explanation_screen .dots li{width: 27px;height: 27px;border-radius: 50%;border: 1px solid var(--white);background-color: #D7F1D1;z-index: 2;position: relative;}
-.explanation_screen .dots li.active{background-color: var(--orange);}
+.explanation_screen .dots li.active{background-color: var(--orange);box-shadow: 0 4px 30px 0 rgba(226, 118, 0, 0.23);}
 .explanation_screen .dots li:not(:last-child){margin-left: 21px;}
 .explanation_screen .dots li:not(:last-child)::after{content:'';position: absolute;top: 0;bottom: 0;right:calc(100% + 1px);height: 5px;background-color: #D7F1D1;width: 100%;z-index: 0;margin: auto;}
 .explanation_screen .dots li:first-child::before{content:'';position: absolute;top: 0;bottom: 0;right:calc(100% + 1px);height: 5px;background-color: var(--orange);width: 100%;z-index: 1;margin: auto;transform: scaleX(0);transform-origin: right center;transition: transform .35s ease;}
@@ -473,7 +478,7 @@ header .left_col>div>.btn.registration:hover{background-color: var(--orange);}
 .otp_screen .img{margin: 0 auto;width: fit-content;margin-bottom: 23px;}
 .otp_screen h1{color: var(--orange);font-size: 32px;font-weight: 600;margin-bottom: 8px;}
 .otp_screen p{color: var(--green);font-size:22px;font-weight:400;margin-bottom: 18px;}
-.otp_screen .form_input{max-width: 320px;margin: 0 auto;margin-bottom: 59px;}
+.otp_screen .form_input{max-width: 320px;margin: 0 auto;margin-bottom: 19px;}
 .otp_screen .form_input .phone{width: 100%;height: 42px;background-color: var(--white);border-radius: 50px;border: 1px solid var(--white);padding: 0 25px;color:var(--green);font-size: 14px;font-weight: 500;letter-spacing: 0.5px;}
 .otp_screen .form_input .error_text{display: block;color:#ff0000;line-height: 18px;font-size: 14px;font-weight: 400;margin-top: 2px;}
 .otp_screen .btn{ font-size: 20px; font-weight: 500; padding: 16px 60px 18px;border: none;}
@@ -748,6 +753,7 @@ header .left_col>div>.btn.registration:hover{background-color: var(--orange);}
 /* 414 */
 
 @media (max-width:767px) {
+  .explanation_screen {overflow-y: hidden;}
   /* header { backdrop-filter: none; } */
   header.fixed{backdrop-filter: blur(10px);}
   .hamberger { position: absolute; top: 24px; right:36px; }
@@ -784,13 +790,13 @@ header .left_col>div>.btn.registration:hover{background-color: var(--orange);}
   .login_page .forgot_box{max-width: 327px;margin: 0 auto;display:block;}
   .login_page .login_btn{position: absolute;right: 0;border-radius:50px 0 0 50px;padding: 18px 17px 18px 35px;text-align: left;    background-color: var(--green);min-width: auto;width: 37%;}
   .login_page .login_btn:hover{background-color: var(--orange);}
-  .login_page.registration_page .reglogo { margin: 0 auto 5px; width: 230px; max-width: 230px; }
+  .login_page.registration_page .reglogo { margin: 0 auto 5px; width: 210px; max-width: 230px; }
   .login_page.registration_page .reglogo img { width: 100%; height: auto; object-fit: contain; }
 
 
   /* explanation_screen */
   .explanation_screen .brand { width: fit-content; margin: 0 auto; position: absolute; z-index: 2; top: 10px; left: 0; right: 0; margin: 0 auto; max-width: 120px; }
-  .explanation_screen .inner { padding: 13px 43px 40px; }
+  .explanation_screen .inner { padding: 13px 43px 120px; }
   .explanation_screen .inner h3 { max-width: 250px; margin: 0 auto 9px; }
   .explanation_screen .simage { max-width: 280px; bottom: calc(100% - 60px); }
   .explanation_screen .inner::after { height: 100%; }
@@ -802,7 +808,7 @@ header .left_col>div>.btn.registration:hover{background-color: var(--orange);}
   .otp_screen{height: auto;padding: 15px 20px 85px;}
   .otp_screen h1 { font-size: 22px; }
   .otp_screen p { font-size: 15px; max-width: 212px; margin: 0 auto; line-height: 20px; display: block;}
-  .otp_verify .phone_text{margin-top: 18px;font-size: 15px;}
+  .otp_verify .phone_text{margin-top: 8px;font-size: 15px;}
   .otp_verify .timer { font-size: 12px; margin-top: 17px; }
   .otp_verify .send_again { font-size: 12px; margin-top: 16px; }
   .otp_screen .form_input{margin-top: 18px;}
@@ -837,7 +843,7 @@ header .left_col>div>.btn.registration:hover{background-color: var(--orange);}
 
 
    /* new */
-   .main { padding-top: 78px;display: block; position: fixed;top: 0;left: 0;}
+   .main { padding-top: 78px;display: block; position: fixed;top: 0;left: 0; overflow-y: hidden; }
   .registration_page .reglogo { margin: 0 auto 22px; max-width: 180px;}
   .registration_page .agree_check { margin-top: 20px; }
   .registration_page .btn_col { max-width: 352px; margin: 20px auto 0; }
@@ -880,7 +886,6 @@ header .left_col>div>.btn.registration:hover{background-color: var(--orange);}
 }
 /* 360 */
 @media (max-width:374px) {
-  
   header { border-top: 10px solid var(--orange); }
   .hamberger { top: 21px; right: 20px; max-width: 40px; }
   header .brand { max-width: 140px; right: 10px; }
@@ -924,6 +929,10 @@ header .left_col>div>.btn.registration:hover{background-color: var(--orange);}
 
 
 
+}
+
+@media screen and (max-width: 375px) {
+  .explanation_screen .inner { padding: 13px 40px 40px; }
 }
 
 /* aichat layout: remove extra top gap by anchoring chat box under header */
