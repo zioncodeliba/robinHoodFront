@@ -852,6 +852,11 @@ header .left_col>div>.btn.registration:hover{background-color: var(--orange);}
   .appointment_page .colin .confirmation{display: none;}
   .appointment_page .appointment_man { left: 0; max-width: 350px; bottom: 10px; right: -80px; margin: 60px auto 0;position: relative;}
 
+  .explanation_screen .inner { padding: 13px 40px 120px; }
+  .explanation_screen .inner .btn_col a, 
+  .explanation_screen .inner .btn_col button { padding: 8px 14px 12px;}
+  .explanation_screen .inner p{font-size: 16px;}
+
 
 
 }
@@ -877,8 +882,8 @@ header .left_col>div>.btn.registration:hover{background-color: var(--orange);}
   .explanation_screen .skip { left: 22px; top: 26px; }
   .explanation_screen .inner { padding: 13px 20px 120px; }
   .explanation_screen .simage { max-width: 280px; bottom: calc(100% - 40px); }  
-  .explanation_screen .inner h3 { max-width: 220px; margin: 0 auto 9px; }
-
+  .explanation_screen .inner h3 { max-width: 220px; margin: 0 auto 9px; font-size: 22px; }
+  .explanation_screen .inner p{line-height: 20px;}
 
   /* otp_screen */
   .otp_screen .brand { margin-bottom: 20px; max-width: 120px;}
