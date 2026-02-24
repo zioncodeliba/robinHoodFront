@@ -10,6 +10,27 @@ import notificationsman from '../assets/images/notifications_man.png';
 import robinman from '../assets/images/robin_man.png';
 
 
+const EnvelopeStatusIcon = ({ isRead }) => (
+  <span
+    className={`read_state_icon ${isRead ? 'is-read' : 'is-unread'}`}
+    aria-label={isRead ? 'הודעה נקראה' : 'הודעה לא נקראה'}
+    title={isRead ? 'נקראה' : 'לא נקראה'}
+  >
+    {isRead ? (
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M3 9.5L12 4l9 5.5" />
+        <path d="M4 10v9h16v-9" />
+        <path d="m4 10 8 5 8-5" />
+      </svg>
+    ) : (
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <rect x="3.5" y="5" width="17" height="14" rx="2" />
+        <path d="m4 7 8 6 8-6" />
+      </svg>
+    )}
+  </span>
+);
+
 const Notificationspage = () => {
   const navigate = useNavigate();
   const apiBase = useMemo(() => getGatewayBase(), []);
@@ -203,6 +224,9 @@ const Notificationspage = () => {
                 {item.sent_at ? (
                   <div className="notification_meta">{formatDateTime(item.sent_at)}</div>
                 ) : null}
+                <div className="read_state">
+                  <EnvelopeStatusIcon isRead={Boolean(item.read_at)} />
+                </div>
                 <div
                   className="remove"
                   onClick={() => removeNotification(item.id)}

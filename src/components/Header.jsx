@@ -139,14 +139,11 @@ const Header = () => {
   }, [normalizedPath]);
 
   const badgeText = unreadCount > 99 ? '99+' : `${unreadCount}`;
-  const notificationsDisabled = isAuthenticated && unreadCount === 0;
   const suggestionsDisabled = isAuthenticated && !hasSuggestions;
 
   const handleStateAwareNavClick = (event, options = {}) => {
-    const { requireNotifications = false, requireSuggestions = false, closeMenu = false } = options;
-    const shouldDisable =
-      (requireNotifications && notificationsDisabled) ||
-      (requireSuggestions && suggestionsDisabled);
+    const { requireSuggestions = false, closeMenu = false } = options;
+    const shouldDisable = requireSuggestions && suggestionsDisabled;
     if (shouldDisable) {
       event.preventDefault();
       event.stopPropagation();
@@ -230,11 +227,8 @@ const Header = () => {
               <li>
                 <Link
                   to="/notifications"
-                  className={notificationsDisabled ? 'is-disabled' : ''}
-                  aria-disabled={notificationsDisabled}
-                  onClick={(event) =>
-                    handleStateAwareNavClick(event, { requireNotifications: true })
-                  }
+                  className="nav_notification_link"
+                  onClick={(event) => handleStateAwareNavClick(event)}
                 >
                 ההתראות שלי
                   {unreadCount > 0 ? (
@@ -271,11 +265,8 @@ const Header = () => {
               <li>
                 <Link
                   to="/notifications"
-                  className={notificationsDisabled ? "nav_notification_link is-disabled" : "nav_notification_link"}
-                  aria-disabled={notificationsDisabled}
-                  onClick={(event) =>
-                    handleStateAwareNavClick(event, { requireNotifications: true })
-                  }
+                  className="nav_notification_link"
+                  onClick={(event) => handleStateAwareNavClick(event)}
                 >
                   ההתראות שלי
                   {unreadCount > 0 ? (
@@ -300,11 +291,9 @@ const Header = () => {
                 <li>
                   <Link
                     to="/notifications"
-                    className={notificationsDisabled ? "nav_notification_link is-disabled" : "nav_notification_link"}
-                    aria-disabled={notificationsDisabled}
+                    className="nav_notification_link"
                     onClick={(event) =>
                       handleStateAwareNavClick(event, {
-                        requireNotifications: true,
                         closeMenu: true,
                       })
                     }
