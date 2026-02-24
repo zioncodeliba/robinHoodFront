@@ -12,6 +12,9 @@ background: linear-gradient(90deg, rgba(234, 245, 231, 1) 60%, rgba(255, 255, 25
 .mortgagepage .offer_col h4{color: var(--black);font-size: 18px;line-height: 20px;margin-bottom: 12px;}
 .mortgagepage .offer_col h5{font-size:32px;line-height: 20px;}
 .mortgagepage .offer_col h5 em{font-size:15px;line-height: 20px;font-style: normal;}
+.mortgagepage .das_top_title .bank_title .bank_logo_icon{display:flex;align-items:center;justify-content:center;}
+.mortgagepage .das_top_title .bank_title .bank_logo_icon::after{display:none;}
+.mortgagepage .das_top_title .bank_title .bank_logo_icon img{max-width:63px;max-height:63px;width:63px;height:63px;object-fit:contain;}
 
 
 /* responsive */

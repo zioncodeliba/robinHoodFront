@@ -220,6 +220,11 @@ const Suggestionspage = () => {
           track?.monthly_payment ??
           track?.payment
         );
+        const rawMonths = toNumber(
+          track?.['תקופה_חודשים'] ??
+          track?.['תקופה (חודשים)'] ??
+          track?.months
+        );
         const name =
           track?.['סוג_מסלול'] ||
           track?.['שם'] ||
@@ -233,6 +238,7 @@ const Suggestionspage = () => {
           rawPercent,
           rawInterest,
           rawMonthlyPayment,
+          rawMonths,
         };
       });
       const total = mappedTracks.reduce((sum, item) => sum + item.amount, 0);
@@ -255,6 +261,7 @@ const Suggestionspage = () => {
         ),
         interest: formatPercent(item.rawInterest) || '—',
         balance: formatCurrency(item.rawMonthlyPayment ?? item.amount),
+        months: item.rawMonths,
       }));
     }
 
@@ -274,6 +281,11 @@ const Suggestionspage = () => {
         label: row?.['סוג_מסלול'] || row?.['שם'] || row?.['מסלול'] || 'מסלול',
         name: row?.['סוג_מסלול'] || row?.['שם'] || row?.['מסלול'] || 'מסלול',
         amount,
+        months: toNumber(
+          row?.['תקופה_חודשים'] ??
+          row?.['תקופה (חודשים)'] ??
+          row?.months
+        ),
         percent,
         percentage: formatPercent(percent) || '0%',
         interest: formatPercent(row?.['ריבית']) || '—',

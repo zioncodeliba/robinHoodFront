@@ -178,7 +178,7 @@ const Homepage = () => {
       }
 
       try {
-        const customerResponse = await fetchCustomerMeCached(token);
+        const customerResponse = await fetchCustomerMeCached(token, { force: true });
         if (customerResponse.status === 401 || customerResponse.status === 403) {
           handleAuthFailure();
           return;
@@ -201,7 +201,7 @@ const Homepage = () => {
           ? getDefaultAllowedBankIds(customerMortgageType)
           : [];
 
-        const visibilityResponse = await fetchBankVisibilityMeCached(token);
+        const visibilityResponse = await fetchBankVisibilityMeCached(token, { force: true });
         if (visibilityResponse.status === 401 || visibilityResponse.status === 403) {
           handleAuthFailure();
           return;
@@ -214,12 +214,15 @@ const Homepage = () => {
         );
         const hasSelectedBankChoice =
           Number.isInteger(selectedDisplayChoice) && allowedBankIds.includes(selectedDisplayChoice);
-        const canOpenSelectedBankPage = isNewMortgagePrincipalApproval({
-          mortgageType: customerMortgageType,
-          status: customerStatus,
-        });
+        const hasSelectedOfferChoice = selectedDisplayChoice === "selected_offer";
+        const canOpenSelectedBankPage =
+          isNewMortgagePrincipalApproval({
+            mortgageType: customerMortgageType,
+            status: customerStatus,
+          }) ||
+          (customerMortgageType === REFINANCE_MORTGAGE_TYPE && shouldRouteByVisibility);
 
-        const bankResponsesResponse = await fetchBankResponsesMeCached(token);
+        const bankResponsesResponse = await fetchBankResponsesMeCached(token, { force: true });
         if (bankResponsesResponse.status === 401 || bankResponsesResponse.status === 403) {
           handleAuthFailure();
           return;
@@ -238,9 +241,17 @@ const Homepage = () => {
           return isApprovalOfferResult(calcResult);
         });
 
-        if (hasSelectedBankChoice && canOpenSelectedBankPage) {
+        if ((hasSelectedBankChoice || hasSelectedOfferChoice) && canOpenSelectedBankPage) {
+          const selectedOfferBankId = Number(approvalResponses[0]?.bank_id);
+          const fallbackBankId = Number.isInteger(allowedBankIds[0]) ? allowedBankIds[0] : null;
+          const targetBankId = hasSelectedBankChoice
+            ? selectedDisplayChoice
+            : (Number.isInteger(selectedOfferBankId) ? selectedOfferBankId : fallbackBankId);
           didRedirect = true;
-          navigate(`/new-loan?bankId=${selectedDisplayChoice}`, { replace: true });
+          navigate(
+            Number.isInteger(targetBankId) ? `/new-loan?bankId=${targetBankId}` : "/new-loan",
+            { replace: true }
+          );
           return;
         }
 
@@ -275,7 +286,7 @@ const Homepage = () => {
           localStorage.removeItem(NEW_MORTGAGE_KEY);
         }
 
-        const approvalResponse = await fetchCustomerFilesMeCached(token);
+        const approvalResponse = await fetchCustomerFilesMeCached(token, { force: true });
         if (approvalResponse.status === 401 || approvalResponse.status === 403) {
           handleAuthFailure();
           return;

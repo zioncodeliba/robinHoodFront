@@ -3,10 +3,50 @@ import React from "react";
 import './RoutesExplanation.css';
 import notificationicon from '../../assets/images/notification_i.svg';
 
-const RoutesExplanation = () => {
+const getMonthsValue = (route) => {
+  const months = Number(
+    route?.months ??
+    route?.termMonths ??
+    route?.durationMonths ??
+    route?.["תקופה_חודשים"] ??
+    route?.["תקופה (חודשים)"]
+  );
+  if (!Number.isFinite(months) || months <= 0) return null;
+  return Math.round(months);
+};
+
+const formatAmount = (amountValue, balanceValue) => {
+  if (balanceValue) return balanceValue;
+  const amount = Number(amountValue);
+  if (!Number.isFinite(amount)) return '—';
+  return `${amount.toLocaleString('he-IL')} ₪`;
+};
+
+const toNumber = (value) => {
+  if (value === null || value === undefined || value === '') return null;
+  if (typeof value === 'number') return Number.isFinite(value) ? value : null;
+  const numeric = Number(String(value).replace(/[^\d.-]/g, ''));
+  return Number.isFinite(numeric) ? numeric : null;
+};
+
+const RoutesExplanation = ({ routes, color = "#E4061F", totalPayments }) => {
+  const fallbackRoutes = [
+    { name: 'ק"צ', percentage: "40%", months: 108, interest: "5%", balance: "640,000 ₪" },
+    { name: 'מ"צ', percentage: "40%", months: 108, interest: "5%", balance: "368,000 ₪" },
+    { name: "פריים", percentage: "40%", months: 108, interest: "5%", balance: "592,000 ₪" },
+  ];
+  const safeRoutes = Array.isArray(routes) && routes.length > 0 ? routes : fallbackRoutes;
+  const totalAmount = safeRoutes.reduce((sum, route) => {
+    const amount = Number(route?.amount);
+    return Number.isFinite(amount) ? sum + amount : sum;
+  }, 0);
+  const summaryTotal = toNumber(totalPayments);
+  const displayTotal = Number.isFinite(summaryTotal) && summaryTotal > 0
+    ? summaryTotal
+    : totalAmount;
 
   return (
-    <div className="routes_explanation">
+    <div className="routes_explanation" style={{ "--routes-color": color }}>
         <h2>התמהיל שלך</h2>
         <div className="note d_flex d_flex_ac d_flex_jc">
           <img src={notificationicon} alt="" />
@@ -19,25 +59,29 @@ const RoutesExplanation = () => {
           <li>יתרה</li>
         </ul>
         <div className="list_routes">
-          <ul>
-            <li><span><em>(40%)</em> ק"צ</span></li>
-            <li>108</li>
-            <li>5%</li>
-            <li>640,000 ₪</li>
-          </ul>
-          <ul>
-            <li><span><em>(40%)</em> מ"צ</span></li>
-            <li>108</li>
-            <li>5%</li>
-            <li>368,000 ₪</li>
-          </ul>
-          <ul>
-            <li><span><em>(40%)</em> פריים</span></li>
-            <li>108</li>
-            <li>5%</li>
-            <li>592,000 ₪</li>
-          </ul>
-          <div className="total">סה"כ: 1,700,000 ש"ח</div>
+          {safeRoutes.map((route, index) => {
+            const months = getMonthsValue(route);
+            const routeName = route?.name || route?.label || "מסלול";
+            const routePercent = route?.percentage || null;
+            return (
+              <ul key={`${routeName}-${index}`}>
+                <li>
+                  <span>
+                    {routePercent ? <em>({routePercent})</em> : null}
+                    {` ${routeName}`}
+                  </span>
+                </li>
+                <li>{months ? `${months}` : "—"}</li>
+                <li>{route?.interest || "—"}</li>
+                <li>{formatAmount(route?.amount, route?.balance)}</li>
+              </ul>
+            );
+          })}
+          <div className="total">
+            {displayTotal > 0
+              ? `סה"כ: ${displayTotal.toLocaleString('he-IL')} ש"ח`
+              : 'סה"כ: —'}
+          </div>
         </div>
     </div>
   );
