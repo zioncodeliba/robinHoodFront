@@ -843,7 +843,7 @@ header .left_col>div>.btn.registration:hover{background-color: var(--orange);}
 
 
    /* new */
-   .main { padding-top: 78px;display: block; position: fixed;top: 0;left: 0; overflow-y: hidden; }
+   .main { padding-top: 78px;display: block; position: fixed;top: 0;left: 0; }
   .registration_page .reglogo { margin: 0 auto 22px; max-width: 180px;}
   .registration_page .agree_check { margin-top: 20px; }
   .registration_page .btn_col { max-width: 352px; margin: 20px auto 0; }
