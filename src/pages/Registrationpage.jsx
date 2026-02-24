@@ -16,7 +16,7 @@ import closeimg from '../assets/images/close_popup.png';
 
 import userIcon from '../assets/images/user.svg';
 import emailIcon from '../assets/images/email.svg';
-import phoneIcon from '../assets/images/phone.png';
+import phoneIcon from '../assets/images/phone.svg';
 
 const Registrationpage = () => {
   const navigate = useNavigate();
