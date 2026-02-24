@@ -106,7 +106,7 @@ background: linear-gradient(180deg, rgba(255, 255, 255, 1) 0%, rgba(225, 240, 22
 /* savings_list */
 .mortgage_cycle_page .savings_list{max-width: 329px;margin:44px auto 0;}
 .mortgage_cycle_page .savings_list ul{}
-.mortgage_cycle_page .savings_list ul li{width: calc(50% - 4.5px);text-align: center;border: 1px dashed #27450E;border-radius: 15px;font-size: 18px;line-height: 24px;font-weight: 400;padding: 18px 10px 21px;color: var(--green);}
+.mortgage_cycle_page .savings_list ul li{width: calc(50% - 4.5px);text-align: center;background: #FFFFFF;border: 2px dashed #27450E;border-radius: 15px;font-size: 18px;line-height: 24px;font-weight: 400;padding: 18px 10px 21px;color: var(--green);}
 .mortgage_cycle_page .savings_list ul li:nth-child(n+3){margin-top: 12px;}
 .mortgage_cycle_page .savings_list ul li strong{display: block;}
 
