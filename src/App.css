@@ -735,7 +735,6 @@ header .left_col>div>.btn.registration:hover{background-color: var(--orange);}
 
   header {border-top: 22px solid var(--orange);border-bottom: none;}
   header nav{position: fixed;top: 0;width: 100%;right: 0;height: 100vh;transform: translateX(100%);transition: 0.4s ease all;z-index: 999;}
-  header nav.open{transform: translateX(0);}
   header .brand { max-width: 168px; }
   .hamberger {        top: 3px; position: relative;}
   header .left_col>.btn { top: 2px;}
@@ -752,6 +751,7 @@ header .left_col>div>.btn.registration:hover{background-color: var(--orange);}
   header nav>ul{display: none !important;}
   .mobile_menu .pan_menu,.mobile_menu .mob_brand,header nav .bg,.mobile_menu h2{display: block;}
   .mobile_menu{background-color: #2A2A2A75; backdrop-filter: blur(70px); max-width: calc(100% - 90px); height: 100vh; border-radius: 70px 0 0 70px;position: relative;z-index: 2;padding: 52px 50px 50px;display: block;}
+  header nav.open{transform: translateX(0);}
   .mobile_menu .pan_menu{position: absolute;bottom:43px;left: 29px;pointer-events: none;}
   .mobile_menu .mob_brand{margin: 0 auto;        width: fit-content;}
   .mobile_menu h2{color: var(--white); font-weight: 300; margin-top: 27px; font-size: 22px; line-height: 24px; text-align: center;padding-left: 40px;}
