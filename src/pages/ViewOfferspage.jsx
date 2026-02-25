@@ -28,6 +28,8 @@ const BANK_LOGOS = {
 const OFFER_SLIDE_DURATION_MS = 360;
 const SWIPE_THRESHOLD_PX = 48;
 const SWIPE_MAX_VERTICAL_DELTA_PX = 80;
+const DEFAULT_OFFERS_CAROUSEL_NOTE =
+  "נשלח בקשה לאישור עקרוני לכלל הבנקים כשיתקבלו האישורים ישלח עדכון.";
 
 const BANK_LIST = [
   {
@@ -106,6 +108,24 @@ const ViewOfferspage = () => {
   const pendingRouteBankIdRef = useRef(null);
   const { userData } = useCustomerProfile();
   const displayName = getCustomerDisplayName(userData, "שם");
+  const offersCarouselNote = useMemo(() => {
+    const noteFromApi = typeof userData?.offers_carousel_note === "string"
+      ? userData.offers_carousel_note.trim()
+      : "";
+    const noteFromCache = typeof userData?.offersCarouselNote === "string"
+      ? userData.offersCarouselNote.trim()
+      : "";
+    return noteFromApi || noteFromCache || DEFAULT_OFFERS_CAROUSEL_NOTE;
+  }, [userData]);
+  const offersCarouselNoteVisible = useMemo(() => {
+    if (typeof userData?.offers_carousel_note_visible === "boolean") {
+      return userData.offers_carousel_note_visible;
+    }
+    if (typeof userData?.offersCarouselNoteVisible === "boolean") {
+      return userData.offersCarouselNoteVisible;
+    }
+    return true;
+  }, [userData]);
 
   useEffect(() => {
     if (!navStateLoaded) {
@@ -522,10 +542,12 @@ const ViewOfferspage = () => {
         )}
       </div>
       <div className="tag"><img src={timeicon} alt="" />ממתין לאישור עקרוני</div>
-      <span className="notification"><img src={noteIcon} alt="" /></span>
+      {offersCarouselNoteVisible ? (
+        <span className="notification"><img src={noteIcon} alt="" /></span>
+      ) : null}
       <img src={sandicon} className="sandicon" alt="" />
     </div>
-  ), []);
+  ), [offersCarouselNoteVisible]);
 
   const renderBankCard = useCallback((bank) => {
     if (!bank) return null;
@@ -536,9 +558,11 @@ const ViewOfferspage = () => {
       <YourRoutesMortgageDetails
         data={mortgageDataByBankId.get(bank.id)}
         themeColor="#D92D20"
+        offersCarouselNoteVisible={offersCarouselNoteVisible}
+        offersCarouselNoteIcon={noteIcon}
       />
     );
-  }, [offerBankIdsSet, mortgageDataByBankId, renderAwaitingApprovalCard]);
+  }, [offerBankIdsSet, mortgageDataByBankId, offersCarouselNoteVisible, renderAwaitingApprovalCard]);
 
   const fromBank = offerTransition ? carouselBanks[offerTransition.fromIndex] || null : null;
   const toBank = offerTransition ? carouselBanks[offerTransition.toIndex] || null : null;
@@ -612,11 +636,13 @@ const ViewOfferspage = () => {
         )}
         <div className="inner d_flex d_flex_jb">
           <AffordableOffer savings={bestOffer?.savings} />
-          <div className="offer_col">
-            <img src={offer_i} alt="" />
-            <h4>נא לשים לב</h4>
-            <p>בנק מזרחי ממתין למסמכי עו”ש על מנת להפניק הצעה עדכנית, נא לקדם את הנושא</p>
-          </div>
+          {offersCarouselNoteVisible ? (
+            <div className="offer_col">
+              <img src={offer_i} alt="" />
+              <h4>נא לשים לב</h4>
+              <p>{offersCarouselNote}</p>
+            </div>
+          ) : null}
           <div className="my_statuses_summary_sec d_flex d_flex_jb d_flex_as">
             <StatusSummary statusData={statusData} />
           </div>

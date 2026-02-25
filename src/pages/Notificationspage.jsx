@@ -145,10 +145,20 @@ const Notificationspage = () => {
   };
 
   const unreadCount = notificationsList.filter((n) => !n.read_at).length;
+  const isBankUpdateNotification = (item) => {
+    const title = (item?.template_name || '').trim();
+    const message = (item?.message || '').trim();
+    return (
+      title.includes('בנק') ||
+      message.includes('עודכנו הבנקים') ||
+      message.includes('הבנקים שנבחרו')
+    );
+  };
   const approvalNotification = notificationsList.find((item) => {
-    const title = item?.template_name || '';
-    const message = item?.message || '';
-    return `${title} ${message}`.includes('אישור עקרוני');
+    const title = (item?.template_name || '').trim();
+    const message = (item?.message || '').trim();
+    const hasApprovalKeyword = title.includes('אישור עקרוני') || message.includes('אישור עקרוני');
+    return hasApprovalKeyword && !isBankUpdateNotification(item);
   });
 
   const markAsRead = async (item) => {
