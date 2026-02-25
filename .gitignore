@@ -31,3 +31,4 @@ yarn-error.log*
 *.zip
 .env.development
 package-lock.json
+package-lock.json

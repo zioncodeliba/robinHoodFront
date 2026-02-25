@@ -77,9 +77,9 @@
     .viewoffers_page { padding: 26px 13px 150px; }
     .viewoffers_page h1 { font-weight: 300; }
     .next_prev_box a,
-    .next_prev_box button { height: 28px; width: 34px;padding: 0 4px;}
+    .next_prev_box button { height: 38px; width: 44px;padding: 0 9px;}
     .next_prev_box a img,
-    .next_prev_box button img { max-width: 20px; }
+    .next_prev_box button img { max-width: 28px; }
     .viewoffers_page .routes_mortgage_sec { margin-top: 56px; padding: 0; box-shadow: none; background: no-repeat; }
     .viewoffers_page .routes_mobile { max-width: calc(100% - 32px); }
     .viewoffers_page .routes_mortgage_sec h2{display: none;}
@@ -102,7 +102,7 @@
     .bank_offer_list { width: 100%;margin-bottom: 16px;padding: 10px 15px 35px;}
     .bank_expireday_list{width: 100%; }
     .bank_expireday_list ul li h4 { font-size: 16px; }
-    .viewoffers_page .next_prev_box{position: absolute;bottom: auto;top:280px;}
+    .viewoffers_page .next_prev_box{position: absolute;bottom: auto;top:350px;}
 
 
 
