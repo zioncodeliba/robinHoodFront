@@ -12,8 +12,8 @@ import suggestions from '../assets/images/s_suggestions.svg';
 const StickyMobileMenu = () => {
   const location = useLocation();
   const { unreadCount, hasSuggestions, hasPrincipalApproval } = useNavState();
+  const badgeText = unreadCount > 99 ? '99+' : `${unreadCount}`;
   
-  const notificationsDisabled = Boolean(localStorage.getItem('auth_token')) && unreadCount === 0;
   const suggestionsDisabled = Boolean(localStorage.getItem('auth_token')) && !hasSuggestions;
   const statusDisabled = Boolean(localStorage.getItem('auth_token')) && !hasPrincipalApproval;
 
@@ -41,11 +41,12 @@ const StickyMobileMenu = () => {
           <li>
             <Link
               to='/notifications'
-              className={`${location.pathname === "/notifications" ? "active" : ""} ${notificationsDisabled ? "is-disabled" : ""}`.trim()}
-              aria-disabled={notificationsDisabled}
-              onClick={(event) => handleDisabledNavigation(event, notificationsDisabled)}
+              className={`nav_notification_link ${location.pathname === "/notifications" ? "active" : ""}`.trim()}
             >
               <img src={Alerts} alt="" /><span>התראות</span>
+              {unreadCount > 0 ? (
+                <span className="notification_badge">{badgeText}</span>
+              ) : null}
             </Link>
           </li>
           <li><Link to='/simulatorpage' className={location.pathname === "/simulatorpage" ? "active" : ""}><img src={simulation} alt="" /><span>סימולציה</span></Link></li>

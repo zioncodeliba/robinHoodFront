@@ -16,7 +16,12 @@ const normalizeRouteName = (value) => {
   return normalized || "מסלול";
 };
 
-const YourRoutesMortgageDetails = ({ data, themeColor }) => {
+const YourRoutesMortgageDetails = ({
+  data,
+  themeColor,
+  offersCarouselNoteVisible = false,
+  offersCarouselNoteIcon = noteicon,
+}) => {
   // Fallback if no data is passed
   const mortgageData = data || {
     logobank:'',
@@ -59,6 +64,9 @@ const YourRoutesMortgageDetails = ({ data, themeColor }) => {
         {logobank && (
           <div className="bank_logo"><img src={logobank} alt="" /></div>
         )}
+        {offersCarouselNoteVisible ? (
+          <span className="notification"><img src={offersCarouselNoteIcon} alt="" /></span>
+        ) : null}
         {title && (
           <h2>{title}</h2>
         )}

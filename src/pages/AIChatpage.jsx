@@ -69,12 +69,10 @@ const AIChatpage = () => {
   const [buttonAnswersByMessageId, setButtonAnswersByMessageId] = useState({});
   const [mortgageBlocks, setMortgageBlocks] = useState({});
   const [activeBlockToken, setActiveBlockToken] = useState(0);
-  const [signatureReady, setSignatureReady] = useState(false);
   const [signatureSaving, setSignatureSaving] = useState(false);
-  const [signatureSaved, setSignatureSaved] = useState(false);
-  const [coSignatureReady, setCoSignatureReady] = useState(false);
-  const [coSignatureSaved, setCoSignatureSaved] = useState(false);
-  const [needsCoBorrowerSignature, setNeedsCoBorrowerSignature] = useState(false);
+  const [requiredSignatureCount, setRequiredSignatureCount] = useState(1);
+  const [signatureReadyByIndex, setSignatureReadyByIndex] = useState({ 0: false });
+  const [signatureSavedByIndex, setSignatureSavedByIndex] = useState({ 0: false });
   const [isSignatureDocsOpen, setIsSignatureDocsOpen] = useState(false);
   const [signatureTemplates, setSignatureTemplates] = useState([]);
   const [signatureTemplatesLoading, setSignatureTemplatesLoading] = useState(false);
@@ -83,12 +81,9 @@ const AIChatpage = () => {
   const [isCountryDropdownOpen, setIsCountryDropdownOpen] = useState(false);
 
   const authToken = useMemo(() => localStorage.getItem('auth_token'), []);
-  const signatureCanvasRef = useRef(null);
-  const signatureCtxRef = useRef(null);
-  const isDrawingRef = useRef(false);
-  const coSignatureCanvasRef = useRef(null);
-  const coSignatureCtxRef = useRef(null);
-  const isCoDrawingRef = useRef(false);
+  const signatureCanvasRefs = useRef([]);
+  const signatureCtxRefs = useRef([]);
+  const signatureDrawingRefs = useRef([]);
   const hasHistoryRef = useRef(false);
   const historyAnswerByBlockRef = useRef(new Map());
   const mortgageBlocksRef = useRef({});
@@ -300,8 +295,7 @@ const AIChatpage = () => {
     let firstBlockKey = null;
     const historyAnswers = new Map();
     const historyMortgageBlocks = new Map();
-    let hasCoBorrowerAnswer = false;
-    let hasCoBorrowerYes = false;
+    let coBorrowerYesCount = 0;
     history.forEach((item) => {
       let botMessageId = null;
       if (item.block_message) {
@@ -334,9 +328,8 @@ const AIChatpage = () => {
             historyAnswers.set(item.block_key, true);
           }
           if (isCoBorrowerQuestionText(item.block_message)) {
-            hasCoBorrowerAnswer = true;
             if (String(answerText).includes('כן')) {
-              hasCoBorrowerYes = true;
+              coBorrowerYesCount += 1;
             }
           }
           const parsedMortgage = parseMortgageAnswer(answerText);
@@ -359,9 +352,7 @@ const AIChatpage = () => {
     hasHistoryRef.current = hasItems;
     setHasHistory(hasItems);
     historyAnswerByBlockRef.current = historyAnswers;
-    if (hasCoBorrowerAnswer) {
-      setNeedsCoBorrowerSignature(hasCoBorrowerYes);
-    }
+    setRequiredSignatureCount(Math.max(1, 1 + coBorrowerYesCount));
     if (historyMortgageBlocks.size > 0) {
       setMortgageBlocks((prev) => {
         const next = { ...prev };
@@ -641,11 +632,30 @@ const AIChatpage = () => {
 
   const signatureBlockId = 52;
   const shouldShowSignature = currentBlock?.id === signatureBlockId;
+  const signatureIndexes = useMemo(
+    () => Array.from({ length: Math.max(requiredSignatureCount, 1) }, (_, signatureIndex) => signatureIndex),
+    [requiredSignatureCount],
+  );
+  const areAllSignaturesReady = useMemo(
+    () => signatureIndexes.every((signatureIndex) => Boolean(signatureReadyByIndex[signatureIndex])),
+    [signatureIndexes, signatureReadyByIndex],
+  );
+  const areAllSignaturesSaved = useMemo(
+    () => signatureIndexes.every((signatureIndex) => Boolean(signatureSavedByIndex[signatureIndex])),
+    [signatureIndexes, signatureSavedByIndex],
+  );
+
+  useEffect(() => {
+    const maxCount = Math.max(requiredSignatureCount, 1);
+    signatureCanvasRefs.current = signatureCanvasRefs.current.slice(0, maxCount);
+    signatureCtxRefs.current = signatureCtxRefs.current.slice(0, maxCount);
+    signatureDrawingRefs.current = signatureDrawingRefs.current.slice(0, maxCount);
+  }, [requiredSignatureCount]);
 
   useEffect(() => {
     if (!shouldShowSignature) return;
-    const initCanvas = (canvasRef, ctxRef) => {
-      const canvas = canvasRef.current;
+    const initCanvas = (signatureIndex) => {
+      const canvas = signatureCanvasRefs.current[signatureIndex];
       if (!canvas) return;
       const rect = canvas.getBoundingClientRect();
       const ratio = window.devicePixelRatio || 1;
@@ -654,31 +664,30 @@ const AIChatpage = () => {
       const ctx = canvas.getContext('2d');
       if (!ctx) return;
       ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
-      ctx.lineWidth = 2;
+      ctx.lineWidth = 3.5;
       ctx.lineCap = 'round';
-      ctx.strokeStyle = '#1f2937';
-      ctxRef.current = ctx;
+      ctx.strokeStyle = '#1d4ed8';
+      signatureCtxRefs.current[signatureIndex] = ctx;
     };
 
     const handleResize = () => {
-      initCanvas(signatureCanvasRef, signatureCtxRef);
-      if (needsCoBorrowerSignature) {
-        initCanvas(coSignatureCanvasRef, coSignatureCtxRef);
-      }
+      signatureIndexes.forEach((signatureIndex) => initCanvas(signatureIndex));
     };
 
     handleResize();
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
-  }, [shouldShowSignature, needsCoBorrowerSignature]);
+  }, [shouldShowSignature, signatureIndexes]);
 
   useEffect(() => {
     if (!shouldShowSignature) return;
-    setSignatureReady(false);
-    setSignatureSaved(false);
-    setCoSignatureReady(false);
-    setCoSignatureSaved(false);
-  }, [shouldShowSignature, needsCoBorrowerSignature]);
+    const defaultState = {};
+    signatureIndexes.forEach((signatureIndex) => {
+      defaultState[signatureIndex] = false;
+    });
+    setSignatureReadyByIndex(defaultState);
+    setSignatureSavedByIndex(defaultState);
+  }, [shouldShowSignature, signatureIndexes]);
 
   const signatureConfirmOption = useMemo(
     () => (shouldShowSignature ? buttonOptions.find((option) => option.label === 'מאשר') ?? null : null),
@@ -1035,68 +1044,74 @@ const AIChatpage = () => {
     };
   };
 
-  const handleSignaturePointerDown = (event, canvasRef, ctxRef, drawingRef, setReady, setSaved) => {
-    if (!ctxRef.current) return;
-    event.preventDefault();
-    drawingRef.current = true;
-    if (setSaved) {
-      setSaved(false);
-    }
-    canvasRef.current?.setPointerCapture?.(event.pointerId);
-    const { x, y } = getSignaturePoint(event, canvasRef.current);
-    ctxRef.current.beginPath();
-    ctxRef.current.moveTo(x, y);
+  const setSignatureReady = (signatureIndex, value) => {
+    setSignatureReadyByIndex((prev) => {
+      if (Boolean(prev[signatureIndex]) === value) {
+        return prev;
+      }
+      return {
+        ...prev,
+        [signatureIndex]: value,
+      };
+    });
   };
 
-  const handleSignaturePointerMove = (event, canvasRef, ctxRef, drawingRef, setReady) => {
-    if (!drawingRef.current || !ctxRef.current) return;
-    event.preventDefault();
-    const { x, y } = getSignaturePoint(event, canvasRef.current);
-    ctxRef.current.lineTo(x, y);
-    ctxRef.current.stroke();
-    setReady(true);
+  const setSignatureSaved = (signatureIndex, value) => {
+    setSignatureSavedByIndex((prev) => {
+      if (Boolean(prev[signatureIndex]) === value) {
+        return prev;
+      }
+      return {
+        ...prev,
+        [signatureIndex]: value,
+      };
+    });
   };
 
-  const handleSignaturePointerUp = (event, canvasRef, ctxRef, drawingRef) => {
-    if (!ctxRef.current) return;
+  const handleSignaturePointerDown = (event, signatureIndex) => {
+    const canvas = signatureCanvasRefs.current[signatureIndex];
+    const ctx = signatureCtxRefs.current[signatureIndex];
+    if (!canvas || !ctx) return;
     event.preventDefault();
-    drawingRef.current = false;
-    canvasRef.current?.releasePointerCapture?.(event.pointerId);
+    signatureDrawingRefs.current[signatureIndex] = true;
+    setSignatureSaved(signatureIndex, false);
+    canvas.setPointerCapture?.(event.pointerId);
+    const { x, y } = getSignaturePoint(event, canvas);
+    ctx.beginPath();
+    ctx.moveTo(x, y);
   };
 
-  const handlePrimaryPointerDown = (event) =>
-    handleSignaturePointerDown(event, signatureCanvasRef, signatureCtxRef, isDrawingRef, setSignatureReady, setSignatureSaved);
-  const handlePrimaryPointerMove = (event) =>
-    handleSignaturePointerMove(event, signatureCanvasRef, signatureCtxRef, isDrawingRef, setSignatureReady);
-  const handlePrimaryPointerUp = (event) =>
-    handleSignaturePointerUp(event, signatureCanvasRef, signatureCtxRef, isDrawingRef);
+  const handleSignaturePointerMove = (event, signatureIndex) => {
+    const canvas = signatureCanvasRefs.current[signatureIndex];
+    const ctx = signatureCtxRefs.current[signatureIndex];
+    if (!signatureDrawingRefs.current[signatureIndex] || !canvas || !ctx) return;
+    event.preventDefault();
+    const { x, y } = getSignaturePoint(event, canvas);
+    ctx.lineTo(x, y);
+    ctx.stroke();
+    setSignatureReady(signatureIndex, true);
+  };
 
-  const handleCoPointerDown = (event) =>
-    handleSignaturePointerDown(event, coSignatureCanvasRef, coSignatureCtxRef, isCoDrawingRef, setCoSignatureReady, setCoSignatureSaved);
-  const handleCoPointerMove = (event) =>
-    handleSignaturePointerMove(event, coSignatureCanvasRef, coSignatureCtxRef, isCoDrawingRef, setCoSignatureReady);
-  const handleCoPointerUp = (event) =>
-    handleSignaturePointerUp(event, coSignatureCanvasRef, coSignatureCtxRef, isCoDrawingRef);
+  const handleSignaturePointerUp = (event, signatureIndex) => {
+    const canvas = signatureCanvasRefs.current[signatureIndex];
+    const ctx = signatureCtxRefs.current[signatureIndex];
+    if (!canvas || !ctx) return;
+    event.preventDefault();
+    signatureDrawingRefs.current[signatureIndex] = false;
+    canvas.releasePointerCapture?.(event.pointerId);
+  };
 
-  const clearSignaturePad = (canvasRef, ctxRef, drawingRef, setReady, setSaved) => {
-    const canvas = canvasRef.current;
-    const ctx = ctxRef.current;
+  const clearSignaturePad = (signatureIndex) => {
+    const canvas = signatureCanvasRefs.current[signatureIndex];
+    const ctx = signatureCtxRefs.current[signatureIndex];
     if (!canvas || !ctx) return;
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     ctx.beginPath();
-    drawingRef.current = false;
-    setReady(false);
-    if (setSaved) {
-      setSaved(false);
-    }
+    signatureDrawingRefs.current[signatureIndex] = false;
+    setSignatureReady(signatureIndex, false);
+    setSignatureSaved(signatureIndex, false);
     setError('');
   };
-
-  const handlePrimarySignatureClear = () =>
-    clearSignaturePad(signatureCanvasRef, signatureCtxRef, isDrawingRef, setSignatureReady, setSignatureSaved);
-
-  const handleCoSignatureClear = () =>
-    clearSignaturePad(coSignatureCanvasRef, coSignatureCtxRef, isCoDrawingRef, setCoSignatureReady, setCoSignatureSaved);
 
   const loadSignatureTemplates = async () => {
     if (signatureTemplatesLoadedRef.current || signatureTemplatesLoading) return;
@@ -1184,25 +1199,30 @@ const AIChatpage = () => {
   };
 
   const handleSignatureSave = async (confirmOption) => {
-    if (!signatureCanvasRef.current || !authToken) return;
+    if (!signatureCanvasRefs.current[0] || !authToken) return;
     if (!sessionId) {
       setError('לא ניתן לשמור חתימה ללא סשן פעיל');
       return;
     }
-    if (!signatureReady) {
-      setError('נא לחתום לפני שמירה');
-      return;
-    }
-    if (needsCoBorrowerSignature && !coSignatureReady) {
-      setError('נא לחתום גם כלווה נוסף');
+    const missingSignatureIndex = signatureIndexes.find((signatureIndex) => !signatureReadyByIndex[signatureIndex]);
+    if (missingSignatureIndex !== undefined) {
+      setError(
+        missingSignatureIndex === 0
+          ? 'נא לחתום לפני שמירה'
+          : `נא לחתום גם כלווה נוסף ${missingSignatureIndex}`,
+      );
       return;
     }
     setSignatureSaving(true);
     setError('');
     try {
-      const uploadSignature = async (canvasRef, filename) => {
+      const uploadSignature = async (signatureIndex, filename) => {
+        const canvas = signatureCanvasRefs.current[signatureIndex];
+        if (!canvas) {
+          throw new Error('לא ניתן לשמור חתימה');
+        }
         const blob = await new Promise((resolve) => {
-          canvasRef.current.toBlob((fileBlob) => resolve(fileBlob), 'image/png');
+          canvas.toBlob((fileBlob) => resolve(fileBlob), 'image/png');
         });
         if (!blob) {
           throw new Error('לא ניתן לשמור חתימה');
@@ -1222,14 +1242,30 @@ const AIChatpage = () => {
         }
       };
 
-      await uploadSignature(signatureCanvasRef, `system_signature_${sessionId}.png`);
-      if (needsCoBorrowerSignature) {
-        await uploadSignature(coSignatureCanvasRef, `system_signature_co_${sessionId}.png`);
-        setSignatureSaved(true);
-        setCoSignatureSaved(true);
-      } else {
-        setSignatureSaved(true);
+      const getSignatureFileName = (signatureIndex) => {
+        if (signatureIndex === 0) {
+          return `system_signature_${sessionId}.png`;
+        }
+        if (signatureIndex === 1) {
+          return `system_signature_co_${sessionId}.png`;
+        }
+        return `system_signature_co_${signatureIndex}_${sessionId}.png`;
+      };
+
+      const orderedSignatureIndexes = signatureIndexes.length > 1
+        ? [...signatureIndexes.slice(1), signatureIndexes[0]]
+        : signatureIndexes;
+      for (const signatureIndex of orderedSignatureIndexes) {
+        const filename = getSignatureFileName(signatureIndex);
+        await uploadSignature(signatureIndex, filename);
       }
+      setSignatureSavedByIndex((prev) => {
+        const next = { ...prev };
+        signatureIndexes.forEach((signatureIndex) => {
+          next[signatureIndex] = true;
+        });
+        return next;
+      });
       if (confirmOption) {
         const confirmSaved = await sendAnswer(confirmOption, null, confirmOption.label);
         if (!confirmSaved) {
@@ -1292,14 +1328,10 @@ const AIChatpage = () => {
     const messageAnswer = buttonAnswersByMessageId[messageId];
     if (!messageId || !blockKey || isSending) return;
     if (messageAnswer?.answeredToken === activeBlockToken || blockState?.answeredToken === activeBlockToken) return;
-    if (currentBlock?.block_key === blockKey && isCoBorrowerQuestionText(currentBlock?.message)) {
-      const label = String(option.label || '');
-      if (label.includes('כן')) {
-        setNeedsCoBorrowerSignature(true);
-      } else if (label.includes('לא')) {
-        setNeedsCoBorrowerSignature(false);
-      }
-    }
+    const isCoBorrowerQuestion =
+      currentBlock?.block_key === blockKey &&
+      isCoBorrowerQuestionText(currentBlock?.message);
+    const shouldAddSignature = isCoBorrowerQuestion && String(option.label || '').includes('כן');
     upsertButtonAnswerForMessage(messageId, {
       selectedId: option.id,
       selectedLabel: option.label,
@@ -1308,6 +1340,9 @@ const AIChatpage = () => {
     if (success) {
       upsertButtonAnswerForMessage(messageId, { answered: true, answeredToken: activeBlockToken });
       upsertButtonBlock(blockKey, { answered: true, answeredToken: activeBlockToken });
+      if (shouldAddSignature) {
+        setRequiredSignatureCount((prev) => prev + 1);
+      }
     }
   };
 
@@ -1482,54 +1517,43 @@ const AIChatpage = () => {
               <div className="order_benefit">
                 <h4>על מנת להנות מהמשך טיפול נא <br /> לחתום לצורך ייפוי כוח</h4>
                 <form onSubmit={(event) => event.preventDefault()}>
-                  <div className="signature_group">
-                    <div className="signature_label">חתימת הלווה הראשי</div>
-                    <div className="signature signature_pad">
-                      {!signatureReady && <span>נא לחתום כאן</span>}
-                      <button
-                        type="button"
-                        className={`signature_clear_icon ${signatureReady ? 'is-visible' : ''}`}
-                        onClick={handlePrimarySignatureClear}
-                        disabled={signatureSaving}
-                        aria-label="נקה חתימה"
-                      >
-                        <img src={removeIcon} alt="" />
-                      </button>
-                      <canvas
-                        ref={signatureCanvasRef}
-                        className="signature_canvas"
-                        onPointerDown={handlePrimaryPointerDown}
-                        onPointerMove={handlePrimaryPointerMove}
-                        onPointerUp={handlePrimaryPointerUp}
-                        onPointerLeave={handlePrimaryPointerUp}
-                      />
-                    </div>
-                  </div>
-                  {needsCoBorrowerSignature && (
-                    <div className="signature_group">
-                      <div className="signature_label">חתימת לווה נוסף</div>
-                      <div className="signature signature_pad">
-                        {!coSignatureReady && <span>נא לחתום כאן</span>}
-                        <button
-                          type="button"
-                          className={`signature_clear_icon ${coSignatureReady ? 'is-visible' : ''}`}
-                          onClick={handleCoSignatureClear}
-                          disabled={signatureSaving}
-                          aria-label="נקה חתימת לווה נוסף"
-                        >
-                          <img src={removeIcon} alt="" />
-                        </button>
-                        <canvas
-                          ref={coSignatureCanvasRef}
-                          className="signature_canvas"
-                          onPointerDown={handleCoPointerDown}
-                          onPointerMove={handleCoPointerMove}
-                          onPointerUp={handleCoPointerUp}
-                          onPointerLeave={handleCoPointerUp}
-                        />
+                  {signatureIndexes.map((signatureIndex) => {
+                    const isPrimarySignature = signatureIndex === 0;
+                    const isSignatureReady = Boolean(signatureReadyByIndex[signatureIndex]);
+                    const signatureLabel = isPrimarySignature
+                      ? 'חתימת הלווה הראשי'
+                      : `חתימת לווה נוסף ${signatureIndex}`;
+                    const clearLabel = isPrimarySignature
+                      ? 'נקה חתימה'
+                      : `נקה חתימת לווה נוסף ${signatureIndex}`;
+                    return (
+                      <div className="signature_group" key={`signature-${signatureIndex}`}>
+                        <div className="signature_label">{signatureLabel}</div>
+                        <div className="signature signature_pad">
+                          {!isSignatureReady && <span>נא לחתום כאן</span>}
+                          <button
+                            type="button"
+                            className={`signature_clear_icon ${isSignatureReady ? 'is-visible' : ''}`}
+                            onClick={() => clearSignaturePad(signatureIndex)}
+                            disabled={signatureSaving}
+                            aria-label={clearLabel}
+                          >
+                            <img src={removeIcon} alt="" />
+                          </button>
+                          <canvas
+                            ref={(element) => {
+                              signatureCanvasRefs.current[signatureIndex] = element;
+                            }}
+                            className="signature_canvas"
+                            onPointerDown={(event) => handleSignaturePointerDown(event, signatureIndex)}
+                            onPointerMove={(event) => handleSignaturePointerMove(event, signatureIndex)}
+                            onPointerUp={(event) => handleSignaturePointerUp(event, signatureIndex)}
+                            onPointerLeave={(event) => handleSignaturePointerUp(event, signatureIndex)}
+                          />
+                        </div>
                       </div>
-                    </div>
-                  )}
+                    );
+                  })}
                   <div className="btn_col d_flex d_flex_jb d_flex_ac">
                     <button
                       type="button"
@@ -1544,18 +1568,13 @@ const AIChatpage = () => {
                       type="button"
                       className="confirmation"
                       onClick={() => handleSignatureSave(signatureConfirmOption)}
-                      disabled={
-                        signatureSaving
-                        || (needsCoBorrowerSignature
-                          ? (signatureSaved && coSignatureSaved) || !signatureReady || !coSignatureReady
-                          : signatureSaved || !signatureReady)
-                      }
+                      disabled={signatureSaving || areAllSignaturesSaved || !areAllSignaturesReady}
                     >
                       {signatureSaving
                         ? 'שומר...'
-                        : needsCoBorrowerSignature
-                          ? (signatureSaved && coSignatureSaved ? 'החתימות נשמרו' : 'אישור')
-                          : (signatureSaved ? 'החתימה נשמרה' : 'אישור')}
+                        : areAllSignaturesSaved
+                          ? (requiredSignatureCount > 1 ? 'החתימות נשמרו' : 'החתימה נשמרה')
+                          : 'אישור'}
                     </button>
                   </div>
                 </form>

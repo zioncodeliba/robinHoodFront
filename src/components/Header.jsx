@@ -83,36 +83,67 @@ const Header = () => {
   const [isFixed, setIsFixed] = useState(false);
 
   useEffect(() => {
-    const scrollElement =
-      document.querySelector(".ai_chat_box .inner") ||
-      document.querySelector(".main");
-
-    if (!scrollElement) {
-      setIsFixed(false);
-      return undefined;
-    }
+    let activeScrollElement = null;
 
     const handleScroll = () => {
-      setIsFixed(scrollElement.scrollTop > 20);
+      if (!activeScrollElement) {
+        setIsFixed(false);
+        return;
+      }
+      setIsFixed(activeScrollElement.scrollTop > 20);
     };
 
-    handleScroll();
-    scrollElement.addEventListener("scroll", handleScroll);
+    const bindScrollElement = () => {
+      const nextScrollElement =
+        document.querySelector(".ai_chat_box .inner") ||
+        document.querySelector(".main");
+
+      if (nextScrollElement === activeScrollElement) {
+        handleScroll();
+        return;
+      }
+
+      if (activeScrollElement) {
+        activeScrollElement.removeEventListener("scroll", handleScroll);
+      }
+
+      activeScrollElement = nextScrollElement;
+
+      if (!activeScrollElement) {
+        setIsFixed(false);
+        return;
+      }
+
+      activeScrollElement.addEventListener("scroll", handleScroll);
+      handleScroll();
+    };
+
+    bindScrollElement();
+
+    const observer = new MutationObserver(() => {
+      bindScrollElement();
+    });
+    if (document.body) {
+      observer.observe(document.body, { childList: true, subtree: true });
+    }
+
+    window.addEventListener("resize", bindScrollElement);
 
     return () => {
-      scrollElement.removeEventListener("scroll", handleScroll);
+      observer.disconnect();
+      window.removeEventListener("resize", bindScrollElement);
+      if (activeScrollElement) {
+        activeScrollElement.removeEventListener("scroll", handleScroll);
+      }
     };
   }, [normalizedPath]);
 
   const badgeText = unreadCount > 99 ? '99+' : `${unreadCount}`;
-  const notificationsDisabled = isAuthenticated && unreadCount === 0;
   const suggestionsDisabled = isAuthenticated && !hasSuggestions;
 
   const handleStateAwareNavClick = (event, options = {}) => {
-    const { requireNotifications = false, requireSuggestions = false, closeMenu = false } = options;
-    const shouldDisable =
-      (requireNotifications && notificationsDisabled) ||
-      (requireSuggestions && suggestionsDisabled);
+    const { requireSuggestions = false, closeMenu = false } = options;
+    const shouldDisable = requireSuggestions && suggestionsDisabled;
     if (shouldDisable) {
       event.preventDefault();
       event.stopPropagation();
@@ -164,14 +195,6 @@ const Header = () => {
     navigate('/', { replace: true });
   };
 
-  useEffect(() => {
-    if (location.pathname.includes("/aichat")) {
-      document.querySelector("header").classList.add("fixed");
-    } else {
-      document.querySelector("header").classList.remove("fixed");
-    }
-  }, [location]);
-
   return (
     <>
     <header className={`d_flex d_flex_ac d_flex_jb ${isFixed ? "fixed" : ""}`}>
@@ -204,11 +227,8 @@ const Header = () => {
               <li>
                 <Link
                   to="/notifications"
-                  className={notificationsDisabled ? 'is-disabled' : ''}
-                  aria-disabled={notificationsDisabled}
-                  onClick={(event) =>
-                    handleStateAwareNavClick(event, { requireNotifications: true })
-                  }
+                  className="nav_notification_link"
+                  onClick={(event) => handleStateAwareNavClick(event)}
                 >
                 ההתראות שלי
                   {unreadCount > 0 ? (
@@ -245,11 +265,8 @@ const Header = () => {
               <li>
                 <Link
                   to="/notifications"
-                  className={notificationsDisabled ? "nav_notification_link is-disabled" : "nav_notification_link"}
-                  aria-disabled={notificationsDisabled}
-                  onClick={(event) =>
-                    handleStateAwareNavClick(event, { requireNotifications: true })
-                  }
+                  className="nav_notification_link"
+                  onClick={(event) => handleStateAwareNavClick(event)}
                 >
                   ההתראות שלי
                   {unreadCount > 0 ? (
@@ -274,11 +291,9 @@ const Header = () => {
                 <li>
                   <Link
                     to="/notifications"
-                    className={notificationsDisabled ? "nav_notification_link is-disabled" : "nav_notification_link"}
-                    aria-disabled={notificationsDisabled}
+                    className="nav_notification_link"
                     onClick={(event) =>
                       handleStateAwareNavClick(event, {
-                        requireNotifications: true,
                         closeMenu: true,
                       })
                     }

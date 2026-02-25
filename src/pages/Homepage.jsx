@@ -29,6 +29,7 @@ import {
   canRouteByBankVisibility,
   getDefaultAllowedBankIds,
   hasSupportedMortgageType,
+  isNewMortgagePrincipalApproval,
   normalizeAllowedBankIds,
 } from "../utils/customerFlowRouting";
 import useCustomerProfile, { getCustomerDisplayName } from "../hooks/useCustomerProfile";
@@ -48,6 +49,14 @@ const isApprovalOfferResult = (calcResult) => {
     proposedMix?.graph_data ||
     (Array.isArray(proposedMix?.tracks_detail) && proposedMix.tracks_detail.length > 0)
   );
+};
+
+const parseSelectedDisplayChoice = (rawValue) => {
+  if (rawValue === null || rawValue === undefined || rawValue === "") return null;
+  if (rawValue === "selected_offer") return "selected_offer";
+  const numericValue = Number(rawValue);
+  if (Number.isInteger(numericValue)) return numericValue;
+  return null;
 };
 
 
@@ -170,7 +179,7 @@ const Homepage = () => {
       }
 
       try {
-        const customerResponse = await fetchCustomerMeCached(token);
+        const customerResponse = await fetchCustomerMeCached(token, { force: true });
         if (customerResponse.status === 401 || customerResponse.status === 403) {
           handleAuthFailure();
           return;
@@ -193,7 +202,7 @@ const Homepage = () => {
           ? getDefaultAllowedBankIds(customerMortgageType)
           : [];
 
-        const visibilityResponse = await fetchBankVisibilityMeCached(token);
+        const visibilityResponse = await fetchBankVisibilityMeCached(token, { force: true });
         if (visibilityResponse.status === 401 || visibilityResponse.status === 403) {
           handleAuthFailure();
           return;
@@ -201,8 +210,20 @@ const Homepage = () => {
         const allowedBankIds = visibilityResponse.ok
           ? normalizeAllowedBankIds(visibilityResponse.data?.allowed_bank_ids, defaultAllowedBankIds)
           : [...defaultAllowedBankIds];
+        const selectedDisplayChoice = parseSelectedDisplayChoice(
+          visibilityResponse.data?.selected_display_choice
+        );
+        const hasSelectedBankChoice =
+          Number.isInteger(selectedDisplayChoice) && allowedBankIds.includes(selectedDisplayChoice);
+        const hasSelectedOfferChoice = selectedDisplayChoice === "selected_offer";
+        const canOpenSelectedBankPage =
+          isNewMortgagePrincipalApproval({
+            mortgageType: customerMortgageType,
+            status: customerStatus,
+          }) ||
+          (customerMortgageType === REFINANCE_MORTGAGE_TYPE && shouldRouteByVisibility);
 
-        const bankResponsesResponse = await fetchBankResponsesMeCached(token);
+        const bankResponsesResponse = await fetchBankResponsesMeCached(token, { force: true });
         if (bankResponsesResponse.status === 401 || bankResponsesResponse.status === 403) {
           handleAuthFailure();
           return;
@@ -220,6 +241,20 @@ const Homepage = () => {
           const calcResult = getCalculatorResult(response);
           return isApprovalOfferResult(calcResult);
         });
+
+        if ((hasSelectedBankChoice || hasSelectedOfferChoice) && canOpenSelectedBankPage) {
+          const selectedOfferBankId = Number(approvalResponses[0]?.bank_id);
+          const fallbackBankId = Number.isInteger(allowedBankIds[0]) ? allowedBankIds[0] : null;
+          const targetBankId = hasSelectedBankChoice
+            ? selectedDisplayChoice
+            : (Number.isInteger(selectedOfferBankId) ? selectedOfferBankId : fallbackBankId);
+          didRedirect = true;
+          navigate(
+            Number.isInteger(targetBankId) ? `/new-loan?bankId=${targetBankId}` : "/new-loan",
+            { replace: true }
+          );
+          return;
+        }
 
         // Bank visibility is the primary switch for both flows.
         if (allowedBankIds.length > 0 && shouldRouteByVisibility) {
@@ -252,7 +287,7 @@ const Homepage = () => {
           localStorage.removeItem(NEW_MORTGAGE_KEY);
         }
 
-        const approvalResponse = await fetchCustomerFilesMeCached(token);
+        const approvalResponse = await fetchCustomerFilesMeCached(token, { force: true });
         if (approvalResponse.status === 401 || approvalResponse.status === 403) {
           handleAuthFailure();
           return;

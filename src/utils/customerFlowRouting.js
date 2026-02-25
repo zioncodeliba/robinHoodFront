@@ -36,6 +36,18 @@ export const canRouteByBankVisibility = ({ mortgageType, status }) => {
   return !BANK_VISIBILITY_BLOCKED_STATUSES.has(normalizedStatus);
 };
 
+export const isNewMortgagePrincipalApproval = ({ mortgageType, status }) => {
+  const normalizedType = String(mortgageType || "").trim();
+  if (normalizedType !== NEW_MORTGAGE_TYPE) {
+    return false;
+  }
+  const normalizedStatus = normalizeStatusForRouting(status);
+  if (!normalizedStatus) {
+    return false;
+  }
+  return normalizedStatus.includes("אישור עקרוני");
+};
+
 export const normalizeAllowedBankIds = (ids, fallback = SUPPORTED_BANK_IDS) => {
   if (!Array.isArray(ids)) return [...fallback];
   const allowed = new Set(ids.map((value) => Number(value)));
@@ -52,4 +64,3 @@ export const getDefaultAllowedBankIds = (mortgageType) => {
   }
   return [];
 };
-
