@@ -35,6 +35,7 @@
 .routes_mortgage_sec .bank_logo{position: absolute; top: -30px; width: 79px; height: 79px; right: 30px;}
 .routes_mortgage_sec .expire_offer{background-color: #D9E8D8;border-radius: 20px;line-height: 26px;padding: 0 11px;color: var(--green);font-size: 12px;font-weight: 400;position: absolute;left: 68px;top:-13px;z-index: 2;}
 .routes_mortgage_sec .expire_offer strong{font-weight: 500;}
+.routes_mobile .notification{display: none;}
 
 
 @media (max-width:767px) {
@@ -67,6 +68,7 @@
     .routes_mortgage_sec .total_payments h4{color: #27450E !important;font-weight: 700;font-size: 14px;line-height: 24px;}
     .routes_mortgage_sec .total_payments h4{font-weight: 400;font-size: 18px;}
     .routes_mortgage_sec .routs_note { margin-top: 21px;margin-right: 44px;}
+    .routes_mobile .notification{position: absolute;left: 8px;top: 6px;display: block;}
     
     .routes_mortgage_sec .routes_explanation .list_routes{background-color: var(--white);padding: 10px 0 !important;box-shadow:  0 4px 50px #E2760029;}
     .routes_mortgage_sec .routes_explanation .list_routes::after { width: 129px; height: calc(100% - 20px); top: 10px; }

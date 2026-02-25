@@ -109,6 +109,8 @@ const isApprovalOfferResult = (calcResult) => {
 const HEADER_SLIDE_DURATION_MS = 600;
 const SWIPE_THRESHOLD_PX = 48;
 const SWIPE_MAX_VERTICAL_DELTA_PX = 80;
+const DEFAULT_OFFERS_CAROUSEL_NOTE =
+    "נשלח בקשה לאישור עקרוני לכלל הבנקים כשיתקבלו האישורים ישלח עדכון.";
 
 const HomeBeforeApproval2 = () => {
     const navigate = useNavigate();
@@ -128,6 +130,24 @@ const HomeBeforeApproval2 = () => {
     const transitionTargetIndexRef = useRef(null);
     const touchStartRef = useRef(null);
     const displayName = getCustomerDisplayName(userData, "שם");
+    const offersCarouselNote = useMemo(() => {
+        const noteFromApi = typeof userData?.offers_carousel_note === "string"
+            ? userData.offers_carousel_note.trim()
+            : "";
+        const noteFromCache = typeof userData?.offersCarouselNote === "string"
+            ? userData.offersCarouselNote.trim()
+            : "";
+        return noteFromApi || noteFromCache || DEFAULT_OFFERS_CAROUSEL_NOTE;
+    }, [userData]);
+    const offersCarouselNoteVisible = useMemo(() => {
+        if (typeof userData?.offers_carousel_note_visible === "boolean") {
+            return userData.offers_carousel_note_visible;
+        }
+        if (typeof userData?.offersCarouselNoteVisible === "boolean") {
+            return userData.offersCarouselNoteVisible;
+        }
+        return true;
+    }, [userData]);
 
     const questionsdata = [
         {
@@ -227,6 +247,10 @@ const HomeBeforeApproval2 = () => {
         : allowedBankIds.length === DEFAULT_BANK_IDS.length
             ? "הבקשה נשלחה לכל הבנקים"
             : "הבקשה נשלחה לבנקים שנבחרו";
+    const fallbackOfferInfoText = waitingForAdminSelection
+        ? `${summaryText}. החישוב הזמני מוכן. הצוות בודק ובוחר עבורך בנקים להצגה, וברגע שזה יקרה נראה כאן את הסטטוסים.`
+        : `${summaryText}. כשיתקבלו אישורים יישלח עדכון.`;
+    const offerInfoText = offersCarouselNote || fallbackOfferInfoText;
     const mobileBank = statusList.length ? statusList[activeMobileBankIndex] : null;
 
     const completeHeaderSlide = useCallback(() => {
@@ -344,7 +368,9 @@ const HomeBeforeApproval2 = () => {
                     )}
                 </div>
                 <div className="tag"> <img src={timeicon} alt="" />ממתין לאישור עקרוני</div>
-                <span className="notification"><img src={noteIcon} alt="" /></span>
+                {offersCarouselNoteVisible ? (
+                    <span className="notification"><img src={noteIcon} alt="" /></span>
+                ) : null}
                 
                 <img src={sandicon} className="sandicon" alt="" />
             </div>
@@ -429,15 +455,13 @@ const HomeBeforeApproval2 = () => {
                     <FrequentlyQuestions questionsdata={questionsdata} />
                 </div>
                 <div className="left_col">
-                    <div className="offer_col">
-                        <img src={offericon} alt="" />
-                        <h4>מידע חשוב</h4>
-                        <p>
-                            {waitingForAdminSelection
-                                ? `${summaryText}. החישוב הזמני מוכן. הצוות בודק ובוחר עבורך בנקים להצגה, וברגע שזה יקרה נראה כאן את הסטטוסים.`
-                                : `${summaryText}. כשיתקבלו אישורים יישלח עדכון.`}
-                        </p>
-                    </div>
+                    {offersCarouselNoteVisible ? (
+                        <div className="offer_col">
+                            <img src={offericon} alt="" />
+                            <h4>מידע חשוב</h4>
+                            <p>{offerInfoText}</p>
+                        </div>
+                    ) : null}
                     <FrequentlyQuestions questionsdata={questionsdata} />
                     <StatusSummary statusData={statusData} />
                 </div>
