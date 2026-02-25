@@ -1,43 +1,111 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Link } from 'react-router-dom';
 import '../components/settingscomponents/settingspage.css';
-import { getGatewayApiBase } from "../utils/apiBase";
+import { getGatewayBase } from "../utils/apiBase";
 
 import settingsimg from '../assets/images/settings_img.png';
 
-const Settingspage = () => {
+const DEFAULT_SETTINGS = {
+  notifications: true,
+  benefits: false,
+  quickAccess: false,
+};
 
-  // Function to get initial values from localStorage
-  const getInitialSettings = () => {
-    try {
-      const userData = localStorage.getItem('user_data');
-      if (userData) {
-        const parsed = JSON.parse(userData);
-        const settings = parsed?.settings || {};
-        return {
-          notifications: settings.notifications ?? true,
-          benefits: settings.benefits ?? false,
-          quickAccess: settings.quickAccess ?? false,
-        };
-      }
-    } catch (error) {
-      console.error('Error reading user_data from localStorage:', error);
-    }
-    // Default fallback values
-    return {
-      notifications: true,
-      benefits: false,
-      quickAccess: false,
-    };
+const readSettingsFromPayload = (payload) => {
+  const nestedSettings = payload?.settings || {};
+  return {
+    notifications:
+      payload?.notifications_enabled ??
+      nestedSettings?.notifications ??
+      DEFAULT_SETTINGS.notifications,
+    benefits:
+      payload?.benefits_enabled ??
+      nestedSettings?.benefits ??
+      DEFAULT_SETTINGS.benefits,
+    quickAccess:
+      payload?.quick_access_enabled ??
+      nestedSettings?.quickAccess ??
+      DEFAULT_SETTINGS.quickAccess,
   };
+};
 
-  const initialSettings = getInitialSettings();
+const readStoredSettings = () => {
+  try {
+    const raw = localStorage.getItem('user_data');
+    if (!raw) return DEFAULT_SETTINGS;
+    const parsed = JSON.parse(raw);
+    return readSettingsFromPayload(parsed);
+  } catch {
+    return DEFAULT_SETTINGS;
+  }
+};
+
+const persistSettingsToStorage = (settings, customerPayload = null) => {
+  try {
+    const raw = localStorage.getItem('user_data');
+    const parsed = raw ? JSON.parse(raw) : {};
+    const nextPayload = customerPayload && typeof customerPayload === 'object'
+      ? { ...parsed, ...customerPayload }
+      : { ...parsed };
+
+    nextPayload.notifications_enabled = Boolean(settings.notifications);
+    nextPayload.benefits_enabled = Boolean(settings.benefits);
+    nextPayload.quick_access_enabled = Boolean(settings.quickAccess);
+    nextPayload.settings = {
+      ...(nextPayload.settings || {}),
+      notifications: Boolean(settings.notifications),
+      benefits: Boolean(settings.benefits),
+      quickAccess: Boolean(settings.quickAccess),
+    };
+    localStorage.setItem('user_data', JSON.stringify(nextPayload));
+  } catch {
+    // Ignore storage errors.
+  }
+};
+
+const Settingspage = () => {
+  const initialSettings = readStoredSettings();
   const [notifications, setNotifications] = useState(initialSettings.notifications);
   const [benefits, setBenefits] = useState(initialSettings.benefits);
   const [quickAccess, setQuickAccess] = useState(initialSettings.quickAccess);
+  const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+
+  useEffect(() => {
+    const token = localStorage.getItem('auth_token');
+    if (!token) return;
+
+    let isMounted = true;
+    const loadSettings = async () => {
+      setIsLoading(true);
+      try {
+        const response = await fetch(`${getGatewayBase()}/auth/v1/customers/me`, {
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            'Authorization': `Bearer ${token}`,
+          },
+        });
+        if (!response.ok) return;
+        const payload = await response.json().catch(() => null);
+        if (!payload || typeof payload !== 'object' || !isMounted) return;
+        const nextSettings = readSettingsFromPayload(payload);
+        setNotifications(Boolean(nextSettings.notifications));
+        setBenefits(Boolean(nextSettings.benefits));
+        setQuickAccess(Boolean(nextSettings.quickAccess));
+        persistSettingsToStorage(nextSettings, payload);
+      } finally {
+        if (isMounted) setIsLoading(false);
+      }
+    };
+
+    void loadSettings();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   const handleSaveSettings = async () => {
     const token = localStorage.getItem('auth_token');
@@ -52,17 +120,17 @@ const Settingspage = () => {
     setSuccess('');
 
     try {
-      const response = await fetch(`${getGatewayApiBase()}/customer-settings-save`, {
-        method: 'POST',
+      const response = await fetch(`${getGatewayBase()}/auth/v1/customers/me`, {
+        method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
           'Authorization': `Bearer ${token}`,
         },
         body: JSON.stringify({
-          notifications: notifications,
-          benefits: benefits,
-          quick_access: quickAccess,
+          notifications_enabled: notifications,
+          benefits_enabled: benefits,
+          quick_access_enabled: quickAccess,
         }),
       });
 
@@ -81,27 +149,16 @@ const Settingspage = () => {
         throw new Error(errorMessage);
       }
 
-      if (data?.success || response.ok) {
-        setSuccess(data?.message || 'ההגדרות נשמרו בהצלחה');
+      if (response.ok) {
+        const nextSettings = readSettingsFromPayload(data || {});
+        setNotifications(Boolean(nextSettings.notifications));
+        setBenefits(Boolean(nextSettings.benefits));
+        setQuickAccess(Boolean(nextSettings.quickAccess));
+        persistSettingsToStorage(nextSettings, data);
+
+        setSuccess('ההגדרות נשמרו בהצלחה');
         // Clear success message after 3 seconds
         setTimeout(() => setSuccess(''), 3000);
-
-        // Update user_data in localStorage with new settings
-        try {
-          const userData = localStorage.getItem('user_data');
-          if (userData) {
-            const parsed = JSON.parse(userData);
-            parsed.settings = {
-              ...parsed.settings,
-              notifications: notifications,
-              benefits: benefits,
-              quickAccess: quickAccess,
-            };
-            localStorage.setItem('user_data', JSON.stringify(parsed));
-          }
-        } catch (error) {
-          console.error('Error updating user_data in localStorage:', error);
-        }
       }
     } catch (err) {
       setError(err?.message || 'שגיאה בשמירת ההגדרות. נסה שוב.');
@@ -169,9 +226,9 @@ const Settingspage = () => {
           <button
             className="btn save_settings"
             onClick={handleSaveSettings}
-            disabled={isSaving}
+            disabled={isSaving || isLoading}
           >
-            {isSaving ? 'שומר...' : 'שמור הגדרות'}
+            {isSaving ? 'שומר...' : isLoading ? 'טוען...' : 'שמור הגדרות'}
           </button>
         </div>
       </div>
