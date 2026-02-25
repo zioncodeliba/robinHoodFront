@@ -1,6 +1,7 @@
 // Homepage.jsx
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import useEmblaCarousel from "embla-carousel-react";
 import '../components/beforeapprovalcomponents/HomeBeforeApproval.css'
 
 import nextprevarrow from "../assets/images/np_arrow.svg";
@@ -106,9 +107,6 @@ const isApprovalOfferResult = (calcResult) => {
     );
 };
 
-const HEADER_SLIDE_DURATION_MS = 600;
-const SWIPE_THRESHOLD_PX = 48;
-const SWIPE_MAX_VERTICAL_DELTA_PX = 80;
 const DEFAULT_OFFERS_CAROUSEL_NOTE =
     "נשלח בקשה לאישור עקרוני לכלל הבנקים כשיתקבלו האישורים ישלח עדכון.";
 
@@ -123,12 +121,8 @@ const HomeBeforeApproval2 = () => {
     );
     const [allowedBankIds, setAllowedBankIds] = useState(defaultAllowedBankIds);
     const [approvedBankIds, setApprovedBankIds] = useState([]);
-    const [activeMobileBankIndex, setActiveMobileBankIndex] = useState(0);
-    const [headerTransition, setHeaderTransition] = useState(null);
-    const [isHeaderSlideRunning, setIsHeaderSlideRunning] = useState(false);
-    const slideTimeoutRef = useRef(null);
-    const transitionTargetIndexRef = useRef(null);
-    const touchStartRef = useRef(null);
+    const [canScrollPrev, setCanScrollPrev] = useState(false);
+    const [canScrollNext, setCanScrollNext] = useState(false);
     const displayName = getCustomerDisplayName(userData, "שם");
     const offersCarouselNote = useMemo(() => {
         const noteFromApi = typeof userData?.offers_carousel_note === "string"
@@ -206,6 +200,12 @@ const HomeBeforeApproval2 = () => {
             return { ...bank, statusText, statusClass, link };
         });
     }, [visibleBanks, approvedVisibleBankIds]);
+    const carouselBanks = statusList.length ? statusList : [null];
+    const [emblaRef, emblaApi] = useEmblaCarousel({
+        loop: statusList.length > 1,
+        direction: "rtl",
+        align: "start"
+    });
 
     useEffect(() => {
         if (approvedVisibleBankIds.length > 0) {
@@ -213,27 +213,26 @@ const HomeBeforeApproval2 = () => {
         }
     }, [approvedVisibleBankIds, navigate]);
 
-    useEffect(() => {
-        if (statusList.length === 0) {
-            setActiveMobileBankIndex(0);
+    const updateCarouselControls = useCallback(() => {
+        if (!emblaApi || statusList.length <= 1) {
+            setCanScrollPrev(false);
+            setCanScrollNext(false);
             return;
         }
-        setActiveMobileBankIndex((prev) => {
-            if (prev < 0 || prev >= statusList.length) {
-                return 0;
-            }
-            return prev;
-        });
-    }, [statusList.length]);
+        setCanScrollPrev(emblaApi.canScrollPrev());
+        setCanScrollNext(emblaApi.canScrollNext());
+    }, [emblaApi, statusList.length]);
 
     useEffect(() => {
+        if (!emblaApi) return;
+        updateCarouselControls();
+        emblaApi.on("select", updateCarouselControls);
+        emblaApi.on("reInit", updateCarouselControls);
         return () => {
-            if (slideTimeoutRef.current) {
-                window.clearTimeout(slideTimeoutRef.current);
-                slideTimeoutRef.current = null;
-            }
+            emblaApi.off("select", updateCarouselControls);
+            emblaApi.off("reInit", updateCarouselControls);
         };
-    }, []);
+    }, [emblaApi, updateCarouselControls]);
 
     const statusData = {
         title: "ריכוז הסטטוסים שלי",
@@ -251,107 +250,15 @@ const HomeBeforeApproval2 = () => {
         ? `${summaryText}. החישוב הזמני מוכן. הצוות בודק ובוחר עבורך בנקים להצגה, וברגע שזה יקרה נראה כאן את הסטטוסים.`
         : `${summaryText}. כשיתקבלו אישורים יישלח עדכון.`;
     const offerInfoText = offersCarouselNote || fallbackOfferInfoText;
-    const mobileBank = statusList.length ? statusList[activeMobileBankIndex] : null;
-
-    const completeHeaderSlide = useCallback(() => {
-        const targetIndex = transitionTargetIndexRef.current;
-        transitionTargetIndexRef.current = null;
-        if (slideTimeoutRef.current) {
-            window.clearTimeout(slideTimeoutRef.current);
-            slideTimeoutRef.current = null;
-        }
-        if (typeof targetIndex === "number") {
-            setActiveMobileBankIndex(targetIndex);
-        }
-        setHeaderTransition(null);
-        setIsHeaderSlideRunning(false);
-    }, []);
-
-    const startHeaderSlide = useCallback((direction) => {
-        if (statusList.length <= 1 || headerTransition) return;
-
-        const nextIndex = direction === "next"
-            ? (activeMobileBankIndex + 1) % statusList.length
-            : (activeMobileBankIndex - 1 + statusList.length) % statusList.length;
-
-        transitionTargetIndexRef.current = nextIndex;
-        setHeaderTransition({
-            direction,
-            fromIndex: activeMobileBankIndex,
-            toIndex: nextIndex
-        });
-        setIsHeaderSlideRunning(false);
-
-        requestAnimationFrame(() => {
-            requestAnimationFrame(() => {
-                setIsHeaderSlideRunning(true);
-            });
-        });
-
-        if (slideTimeoutRef.current) {
-            window.clearTimeout(slideTimeoutRef.current);
-        }
-        slideTimeoutRef.current = window.setTimeout(
-            completeHeaderSlide,
-            HEADER_SLIDE_DURATION_MS + 60
-        );
-    }, [activeMobileBankIndex, completeHeaderSlide, headerTransition, statusList.length]);
-
-    useEffect(() => {
-        if (!headerTransition) return;
-        if (!statusList[headerTransition.fromIndex] || !statusList[headerTransition.toIndex]) {
-            completeHeaderSlide();
-        }
-    }, [completeHeaderSlide, headerTransition, statusList]);
-
-    const handleHeaderTouchStart = (event) => {
-        if (statusList.length <= 1 || headerTransition) return;
-        const touch = event.touches?.[0];
-        if (!touch) return;
-        touchStartRef.current = {
-            startX: touch.clientX,
-            startY: touch.clientY,
-            lastX: touch.clientX,
-            lastY: touch.clientY
-        };
-    };
-
-    const handleHeaderTouchMove = (event) => {
-        const touch = event.touches?.[0];
-        if (!touch || !touchStartRef.current) return;
-        touchStartRef.current.lastX = touch.clientX;
-        touchStartRef.current.lastY = touch.clientY;
-    };
-
-    const handleHeaderTouchEnd = () => {
-        const touchData = touchStartRef.current;
-        touchStartRef.current = null;
-        if (!touchData) return;
-
-        const deltaX = touchData.lastX - touchData.startX;
-        const deltaY = touchData.lastY - touchData.startY;
-
-        if (Math.abs(deltaX) < SWIPE_THRESHOLD_PX) return;
-        if (Math.abs(deltaY) > SWIPE_MAX_VERTICAL_DELTA_PX) return;
-        if (Math.abs(deltaX) <= Math.abs(deltaY)) return;
-
-        if (deltaX < 0) {
-            startHeaderSlide("next");
-            return;
-        }
-        startHeaderSlide("prev");
-    };
-
-    const handleHeaderTouchCancel = () => {
-        touchStartRef.current = null;
-    };
 
     const handleMobilePrev = () => {
-        startHeaderSlide("prev");
+        if (!emblaApi || statusList.length <= 1) return;
+        emblaApi.scrollPrev();
     };
 
     const handleMobileNext = () => {
-        startHeaderSlide("next");
+        if (!emblaApi || statusList.length <= 1) return;
+        emblaApi.scrollNext();
     };
 
     const renderHeaderCard = (bank) => (
@@ -377,14 +284,9 @@ const HomeBeforeApproval2 = () => {
         </>
     );
 
-    const fromBank = headerTransition ? statusList[headerTransition.fromIndex] || null : null;
-    const toBank = headerTransition ? statusList[headerTransition.toIndex] || null : null;
-    const outgoingTarget = headerTransition?.direction === "next" ? "-100%" : "100%";
-    const incomingStart = headerTransition?.direction === "next" ? "100%" : "-100%";
-    const slideTransitionStyle = isHeaderSlideRunning
-        ? `transform ${HEADER_SLIDE_DURATION_MS}ms cubic-bezier(0.22, 1, 0.36, 1), opacity ${HEADER_SLIDE_DURATION_MS}ms ease`
-        : "none";
-    const arrowDisabled = Boolean(headerTransition) || statusList.length <= 1;
+    const arrowDisabled = statusList.length <= 1 || !emblaApi;
+    const prevDisabled = arrowDisabled || !canScrollPrev;
+    const nextDisabled = arrowDisabled || !canScrollNext;
 
   return (
     <div className="homebefore_approval_page ">
@@ -393,59 +295,24 @@ const HomeBeforeApproval2 = () => {
             
             <div
                 className="mobile_header_slider"
-                style={{ position: "relative", overflow: "hidden", touchAction: "pan-y" }}
-                onTouchStart={handleHeaderTouchStart}
-                onTouchMove={handleHeaderTouchMove}
-                onTouchEnd={handleHeaderTouchEnd}
-                onTouchCancel={handleHeaderTouchCancel}
             >
-                {headerTransition ? (
-                    <>
-                        <div style={{ visibility: "hidden" }}>
-                            {renderHeaderCard(fromBank || mobileBank)}
-                        </div>
-                        <div
-                            style={{
-                                position: "absolute",
-                                top: 0,
-                                left: 0,
-                                width: "100%",
-                                transform: isHeaderSlideRunning ? `translateX(${outgoingTarget})` : "translateX(0%)",
-                                opacity: isHeaderSlideRunning ? 0.2 : 1,
-                                transition: slideTransitionStyle,
-                                willChange: "transform, opacity"
-                            }}
-                        >
-                            {renderHeaderCard(fromBank || mobileBank)}
-                        </div>
-                        <div
-                            style={{
-                                position: "absolute",
-                                top: 0,
-                                left: 0,
-                                width: "100%",
-                                transform: isHeaderSlideRunning ? "translateX(0%)" : `translateX(${incomingStart})`,
-                                opacity: isHeaderSlideRunning ? 1 : 0.85,
-                                transition: slideTransitionStyle,
-                                willChange: "transform, opacity"
-                            }}
-                            onTransitionEnd={(event) => {
-                                if (event.propertyName !== "transform") return;
-                                if (!headerTransition || !isHeaderSlideRunning) return;
-                                completeHeaderSlide();
-                            }}
-                        >
-                            {renderHeaderCard(toBank || mobileBank)}
-                        </div>
-                    </>
-                ) : (
-                    renderHeaderCard(mobileBank)
-                )}
+                <div className="mobile_header_slider__viewport" ref={emblaRef}>
+                    <div className="mobile_header_slider__container">
+                        {carouselBanks.map((bank, index) => (
+                            <div
+                                className="mobile_header_slider__slide"
+                                key={bank?.id ?? `mobile-bank-placeholder-${index}`}
+                            >
+                                {renderHeaderCard(bank)}
+                            </div>
+                        ))}
+                    </div>
+                </div>
                 <div className="next_prev_box">
-                    <button type="button" className="prev" onClick={handleMobilePrev} disabled={arrowDisabled}>
+                    <button type="button" className="prev" onClick={handleMobilePrev} disabled={prevDisabled}>
                         <img src={nextprevarrow} alt="" />
                     </button>
-                    <button type="button" className="next" onClick={handleMobileNext} disabled={arrowDisabled}>
+                    <button type="button" className="next" onClick={handleMobileNext} disabled={nextDisabled}>
                         <img src={nextprevarrow} alt="" />
                     </button>
                 </div>

@@ -49,6 +49,10 @@
 .awaiting_approval_box .bank_title1{display: flex;align-items: center;justify-content: center;gap: 8px;margin-top: 12px;}
 .awaiting_approval_box .bank_title1 span{width: 64px;height: 64px;display: flex;align-items: center;justify-content: center;}
 .awaiting_approval_box .bank_title1 h3{line-height: 24px;color: #27450E;font-size: 18px;font-weight: 400;}
+.homebefore_approval_page .mobile_header_slider{position: relative;overflow: hidden;}
+.homebefore_approval_page .mobile_header_slider__viewport{overflow: hidden;}
+.homebefore_approval_page .mobile_header_slider__container{display: flex;touch-action: pan-y;}
+.homebefore_approval_page .mobile_header_slider__slide{flex: 0 0 100%;min-width: 0;}
 
 /* responsive */
 @media (max-width:1399px){
