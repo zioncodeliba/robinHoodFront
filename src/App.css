@@ -704,7 +704,7 @@ header .left_col>div>.btn.registration:hover{background-color: var(--orange);}
   .main{
     /* background-image: url(../src/assets/images/broker_mobile_bg.jpg) !important;
     background-image: url(../src/assets/images/broker_mobile_bg1.jpg) !important; */
-    background-image: url(../src/assets/images/broker_mobile_bg2.jpg) !important; padding-top: 98px; background-size: 101% auto; background-position: top 0 center; }
+    background-image: url(../src/assets/images/broker_mobile_bg3.jpg) !important; padding-top: 98px; background-size: 101% auto; background-position: top 0 center; }
   .main:has( .simulator_page),
   .main:has( .mortgagecyclecheck_page),
   .main:has( .mortgage_cycle_page),
@@ -716,7 +716,7 @@ header .left_col>div>.btn.registration:hover{background-color: var(--orange);}
   .viewoffers_page,
   .mortgage_cycle_page,
   .homebefore_approval_page,
-  .suggestions_page { background-image: url(../src/assets/images/broker_mobile_bg2.jpg) !important; padding-top: 98px !important; background-size: 101% auto; background-position: top 0 center; background-repeat: no-repeat; }
+  .suggestions_page { background-image: url(../src/assets/images/broker_mobile_bg3.jpg) !important; padding-top: 98px !important; background-size: 101% auto; background-position: top 0 center; background-repeat: no-repeat; }
 
 
 
