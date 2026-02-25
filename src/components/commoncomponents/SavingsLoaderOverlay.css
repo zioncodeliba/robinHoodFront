@@ -1,0 +1,148 @@
+.savings_loader_overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 2147483647;
+  width: 100vw;
+  height: 100vh;
+  height: 100dvh;
+  background: #f9f9f9;
+  display: flex;
+  justify-content: center;
+  overflow: hidden;
+}
+
+body.savings_loader_overlay_open {
+  overflow: hidden;
+}
+
+.savings_loader_overlay__canvas {
+  position: relative;
+  width: min(100vw, 414px);
+  height: 100%;
+  min-height: 100vh;
+  min-height: 100dvh;
+  background: #f9f9f9;
+  overflow: hidden;
+}
+
+.savings_loader_overlay__bg {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.savings_loader_overlay__panel {
+  position: absolute;
+  left: -10.63%;
+  top: -1.95%;
+  width: 121.26%;
+  height: 113.1%;
+  transform: rotate(180deg);
+}
+
+.savings_loader_overlay__photo_frame {
+  position: absolute;
+  top: 0.12%;
+  left: 0;
+  width: 100%;
+  height: 52.2%;
+  mix-blend-mode: luminosity;
+  overflow: hidden;
+}
+
+.savings_loader_overlay__photo {
+  position: absolute;
+  top: 0;
+  left: -22.7%;
+  width: 175.12%;
+  height: 112.85%;
+  max-width: none;
+  object-fit: cover;
+}
+
+.savings_loader_overlay__gradient {
+  position: absolute;
+  width: 101.69%;
+}
+
+.savings_loader_overlay__gradient--top {
+  left: -1.69%;
+  top: 0;
+  height: 70.5%;
+  background: linear-gradient(180deg, #c1e9b9 0%, rgba(255, 255, 255, 0) 100%);
+}
+
+.savings_loader_overlay__gradient--middle {
+  left: 0;
+  top: -8.66%;
+  height: 62.07%;
+  transform: rotate(180deg);
+  background: linear-gradient(180deg, #c1e9b9 17.308%, rgba(255, 255, 255, 0.3) 100%);
+}
+
+.savings_loader_overlay__gradient--bottom {
+  left: 0.24%;
+  top: 53.41%;
+  height: 67.44%;
+  background: linear-gradient(180deg, #c1e9b9 0%, rgba(255, 255, 255, 0) 100%);
+}
+
+.savings_loader_overlay__brand {
+  position: absolute;
+  top: 5.13%;
+  left: 50%;
+  width: 40.52%;
+  z-index: 3;
+  transform: translateX(-50%);
+}
+
+.savings_loader_overlay__brand img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.savings_loader_overlay__hero {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+}
+
+.savings_loader_overlay__leaf {
+  position: absolute;
+  top: 32.25%;
+  left: 17.63%;
+  width: 70.29%;
+  height: auto;
+}
+
+.savings_loader_overlay__magnifier {
+  position: absolute;
+  top: 44.15%;
+  left: 37.92%;
+  width: 24.15%;
+  height: auto;
+}
+
+.savings_loader_overlay__text {
+  position: absolute;
+  top: 57.8%;
+  left: 50%;
+  width: 65.94%;
+  margin: 0;
+  transform: translateX(-50%);
+  color: #27450e;
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 24px;
+  text-align: center;
+  z-index: 4;
+}
+
+@media (max-width: 374px) {
+  .savings_loader_overlay__text {
+    font-size: 16px;
+    line-height: 22px;
+  }
+}
