@@ -1,8 +1,10 @@
 import React, { useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 import '../components/mortgagecyclecheckcomponents/mortgagecyclecheck.css';
 
+import previcon from '../assets/images/prev_icon.svg';
+import schedulemeetings_man from '../assets/images/schedulemeetings_man.png';
 import MortgageUploadfiles from '../components/mortgagecyclecheckcomponents/MortgageUploadfiles';
 import MortgageFinaldetails from '../components/mortgagecyclecheckcomponents/MortgageFinaldetails';
 
@@ -188,8 +190,9 @@ const MortgageCycleCheck = () => {
   };
 
   return (
+    <>
     <div className="mortgagecyclecheck_page">
-       
+      <Link to="/" className="prev_page_link"><img src={previcon} alt="" /></Link>
       <h1>בדיקת מחזור משכנתא</h1>
       <MortgageUploadfiles files={selectedFiles} setFiles={setSelectedFiles} />
       <MortgageFinaldetails
@@ -210,6 +213,8 @@ const MortgageCycleCheck = () => {
         </button>
       </div>
     </div>
+      <img src={schedulemeetings_man} className="schedulemeetings_man_recycle" alt="" />
+    </>
   );
 };
 

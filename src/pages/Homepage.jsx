@@ -4,10 +4,11 @@ import { Link, useNavigate } from 'react-router-dom';
 
 import '../components/homecomponents/homepage.css';
 
-import mortgageimg1 from '../assets/images/op1.png';
-import mortgageimg2 from '../assets/images/op2.png';
+import mortgageimg1 from '../assets/images/op1.svg';
+import mortgageimg2 from '../assets/images/op2.svg';
 import loginleftimg from '../assets/images/login_left_img.png';
 import loginleftimgmobile from '../assets/images/login_left_img_m.png';
+
 import {
   getCalculatorResult,
   hasCalculatorOffer,
