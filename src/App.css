@@ -134,9 +134,9 @@
 .aichat_page .calculator_box .range_box .arrow:after{height:58px;top:-7px;width:12px;right:-10px;} */
 
 /* aichat only: scale the arrow and place it on the bar; tooltip unchanged */
-.aichat_page .calculator_box .range_box .arrow{top: 68px;margin-top: -44px;transform: scale(0.6);transform-origin: center bottom;}
+.aichat_page .calculator_box .range_box .arrow{top: 53px;margin-top: -45px;transform: scale(0.6);transform-origin: center bottom;right:32px;}
 /* tooltip only: extend green box down so it sits on the arrow (no gap) */
-.aichat_page .calculator_box .range_box .tooltip{box-sizing: border-box;}
+.aichat_page .calculator_box .range_box .tooltip{box-sizing: border-box;top: -33px !important;}
 
 @media (max-width:1850px) {
   .aichat_page { padding: 0 20px 0; }
@@ -194,7 +194,8 @@
   .signature_docs_links button{font-size: 11px;line-height: 14px;padding: 7px 4px;min-height: 34px;}
   .signature_docs_missing{font-size: 10px;min-height: 34px;}
   .signature_docs_footer button{width: auto;}
-
+  .aichat_page .calculator_box .range_box .tooltip {box-sizing: border-box; top: -37px !important;}
+  .aichat_page .calculator_box .range_box .arrow { top: 50px; margin-top: -38px; right: 32px; }
 
 
 }
@@ -319,6 +320,12 @@ body{background-repeat: no-repeat;background-size: cover;}
 
 
 .main{background-image: url(../src/assets/images/bg_layer.jpg);background-repeat: no-repeat; background-size: cover; height: 100vh; padding-top: 113px; overflow: auto; background-position: top center;width:100%;    overflow-x: clip; overflow-y: auto;}
+/* Settings page: background scrolls with content so you see more of the image as you scroll */
+.main:has(.settings_page){background-attachment: local; background-size: auto 200vh; background-position: top center;}
+/* Treatment status page: same scrollable background */
+.main:has(.treatment_status_page){background-attachment: local; background-size: auto 200vh; background-position: top center;}
+/* AI chat page: scroll happens inside .ai_chat_box .inner, so put scrollable background there */
+.main:has(.aichat_page) .ai_chat_box .inner{background-image: url(../src/assets/images/bg_layer.jpg); background-repeat: no-repeat !important; background-attachment: local; background-size: auto 500vh; background-position: top center;}
 .main .l_left {position: absolute; left: 0; top: 19%; }
 .main .l_right{position: absolute; right:0; bottom: -100px;}
 
@@ -705,6 +712,9 @@ header .left_col>div>.btn.registration:hover{background-color: var(--orange);}
     /* background-image: url(../src/assets/images/broker_mobile_bg.jpg) !important;
     background-image: url(../src/assets/images/broker_mobile_bg1.jpg) !important; */
     background-image: url(../src/assets/images/broker_mobile_bg3.jpg) !important; padding-top: 98px; background-size: 101% auto; background-position: top 0 center; }
+  .main:has(.settings_page){ background-attachment: local; background-size: 101% 200vh; background-position: top center; }
+  .main:has(.treatment_status_page){ background-attachment: local; background-size: 101% 200vh; background-position: top center; }
+  .main:has(.aichat_page) .ai_chat_box .inner{ background-image: url(../src/assets/images/broker_mobile_bg3.jpg) !important; background-attachment: local; background-size: 101% 500vh; background-position: top center; background-repeat: no-repeat !important; }
   .main:has( .simulator_page),
   .main:has( .mortgagecyclecheck_page),
   .main:has( .mortgage_cycle_page),
@@ -725,7 +735,6 @@ header .left_col>div>.btn.registration:hover{background-color: var(--orange);}
 
   header {border-top: 22px solid var(--orange);border-bottom: none;}
   header nav{position: fixed;top: 0;width: 100%;right: 0;height: 100vh;transform: translateX(100%);transition: 0.4s ease all;z-index: 999;}
-  header nav.open{transform: translateX(0);}
   header .brand { max-width: 168px; }
   .hamberger {        top: 3px; position: relative;}
   header .left_col>.btn { top: 2px;}
@@ -742,6 +751,7 @@ header .left_col>div>.btn.registration:hover{background-color: var(--orange);}
   header nav>ul{display: none !important;}
   .mobile_menu .pan_menu,.mobile_menu .mob_brand,header nav .bg,.mobile_menu h2{display: block;}
   .mobile_menu{background-color: #2A2A2A75; backdrop-filter: blur(70px); max-width: calc(100% - 90px); height: 100vh; border-radius: 70px 0 0 70px;position: relative;z-index: 2;padding: 52px 50px 50px;display: block;}
+  header nav.open{transform: translateX(0);}
   .mobile_menu .pan_menu{position: absolute;bottom:43px;left: 29px;pointer-events: none;}
   .mobile_menu .mob_brand{margin: 0 auto;        width: fit-content;}
   .mobile_menu h2{color: var(--white); font-weight: 300; margin-top: 27px; font-size: 22px; line-height: 24px; text-align: center;padding-left: 40px;}
