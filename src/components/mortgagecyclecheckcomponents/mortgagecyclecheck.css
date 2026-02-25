@@ -1,3 +1,4 @@
+body {overflow-y: hidden;}
 .mortgagecyclecheck_page{padding: 85px 0 90px;text-align: center;position: relative;}
 .mortgagecyclecheck_page h1{font-size: 65px;line-height: 40px;}
 .mortgagecyclecheck_page .check_nav{margin-top: 40px;}
@@ -27,7 +28,7 @@
 .mortgage_finaldetails select.in{background-image: url(../../assets/images/select.svg);background-repeat: no-repeat;background-position: left 20px center;}
 .mortgage_finaldetails .in:focus{border-color: var(--orange);}
 
-.mortgagecyclecheck_page .next_prev_btnk{margin-top: 80px;}
+.mortgagecyclecheck_page .next_prev_btnk{margin-top: 40px;}
 
 /* error popup */
 .mortgage_fileError_popup{width: 730px;background-color: #24242475;border-radius: 20px;padding: 58px 40px 24px;position: absolute;top: 0;left: 0;right: 0;margin: auto;z-index: 2;backdrop-filter: blur(70px);visibility: hidden;transition: 0.4s ease all;}
