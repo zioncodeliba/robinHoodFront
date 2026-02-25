@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect ,useState } from 'react';
 import './assets/fonts/stylesheet.css';
 import './App.css';
 
@@ -95,6 +95,22 @@ const PATH_ALIASES = {
 function AppWrapper() {
   const location = useLocation();
   const navigate = useNavigate();
+  
+  const [hideElements, setHideElements] = useState(false);
+  const [hideElementsrecycle, setHideElementsrecycle] = useState(false);
+
+  useEffect(() => {
+    if (location.pathname === "/") {
+      setHideElements(true);
+    } else {
+      setHideElements(false);
+    }
+    if (location.pathname === "/recycle-loan") {
+      setHideElementsrecycle(true);
+    } else {
+      setHideElementsrecycle(false);
+    }
+  }, [location.pathname]);
 
   // If backend redirects back with token in querystring (Apple OAuth, etc.)
   useEffect(() => {
@@ -199,11 +215,16 @@ function AppWrapper() {
 
         {/* <div className={`main ${appointmentBg ? "appointmentBg" : ""} ${hidepans ? "test" : ""}`} > */}
         <div className={`main ${(appointmentBg ? "appointmentBg " : "")} ${(exscreenBg ? "exscreenBg " : "")} ${(hidepan ? "hidepan" : "")} `}>
+           {!hideElements && (
+             <>
+             {!hideElementsrecycle && (
+               <img src={leavesleft} alt="" className='l_left' />
 
-          <img src={leavesleft} alt="" className='l_left' />
-          <img src={leavesright} alt="" className='l_right' />
-
-          <Routes>
+             )}
+              <img src={leavesright} alt="" className='l_right' />
+            </>
+           )}
+          <Routes>  
             {/* Public routes */}
             <Route path="/" element={<LandingRoute />} />
             <Route path="/registration" element={<Registration />} />

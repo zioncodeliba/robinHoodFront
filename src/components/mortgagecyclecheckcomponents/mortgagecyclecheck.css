@@ -47,6 +47,12 @@
 .mortgage_conversion_free_popup .text h3{font-size: 20px;line-height: 24px;font-weight: 700;color: var(--white);margin-bottom: 0;margin-bottom: 24px;}
 .mortgage_conversion_free_popup .text p{font-size: 16px;line-height: 24px;font-weight: 400;color: var(--white);margin-bottom: 24px;}
 
+.schedulemeetings_man_recycle{position: absolute; bottom: 0; left: 3%; max-width: 28%;pointer-events: none;}
+.mortgage_finaldetails{display: none;}
+/* @media (min-width:768px) {
+    .mortgagecyclecheck_page .upload_file_box .wrapk{display: flex;flex-direction:column-reverse;}
+    .mortgagecyclecheck_page .uploaded_list{    min-width: 353px;    margin: 53px auto 0;}
+} */
 
 /* responsive */
 @media (max-width:1850px) {
@@ -60,8 +66,15 @@
 }
 @media (max-width:1279px) {
     .prev_page_link { top: 40px; right: 30px; }
+    .schedulemeetings_man_recycle{display: none;}
+}
+@media (max-width:1023px) {
+    .prev_page_link { top: 40px; right: 30px; }
+    .schedulemeetings_man_recycle{display: none;}
+    .mortgagecyclecheck_page .prev_page_link { top: 100px; right: 30px; }
 }
 @media (max-width:767px) {
+    .mortgagecyclecheck_page .prev_page_link {display: none;}
     .mortgagecyclecheck_page { padding: 30px 0 156px; }
     .mortgagecyclecheck_page h1 { font-size: 22px; line-height: 24px; font-weight: 300; }
     .prev_page_link { top: 49px; right: auto; position: fixed; left: 25px; z-index: 999; }
@@ -73,7 +86,7 @@
     .mortgagecyclecheck_page .uploaded_list h3 { font-size: 22px; line-height: 24px; margin-bottom: 0; text-align: center; margin-top: 26px; }
     .mortgagecyclecheck_page .upload_file_box .upload_area { width: 281px; height: 107px; padding: 20px 44px 20px 25px; }
     .mortgagecyclecheck_page .upload_file_box .upload_area span { font-size: 14px; line-height: 16px; max-width: 110px; }
-    .mortgage_finaldetails { max-width: 368px; margin: 22px auto 0; }
+    .mortgage_finaldetails { max-width: 368px; margin: 22px auto 0; display: block;}
     .mortgage_finaldetails h2 { margin-bottom: 28px; }
     .mortgagecyclecheck_page .next_prev_btnk { margin-top: 51px;padding-right: 42px;}
     .mortgagecyclecheck_page .btn { font-size: 20px; padding: 18px 47px 19px; line-height: 24px; }

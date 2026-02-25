@@ -79,46 +79,45 @@ const MortgageUploadfiles = ({ files, setFiles }) => {
         {/* MortgageFileErrorPopup */}
         <MortgageFileErrorPopup />
         <MortgageConversionFreePopup />
+          <div className="uploaded_list">
+            <h3>ניתן להוסיף קבצים נוספים</h3>
 
-        <div className="uploaded_list">
-          <h3>ניתן להוסיף קבצים נוספים</h3>
-
-          {files.length === 0 ? (
-            <div className="file_item">
-              <span className="file_name">עדיין לא נבחרו קבצים</span>
-            </div>
-          ) : (
-            files.map((file, index) => (
-              <div className="file_item" key={`${file.name}-${index}`}>
-                <span className="file_name">{file.name}</span>
-                <button className="view_btn" onClick={() => handleView(file)}>
-                  <img src={eyeIcon} alt="view" />
-                </button>
-                <button className="delete_btn" onClick={() => handleDelete(index)}>
-                  <img src={closeIcon} alt="remove" />
-                </button>
+            {files.length === 0 ? (
+              <div className="file_item">
+                <span className="file_name">עדיין לא נבחרו קבצים</span>
               </div>
-            ))
-          )}
-        </div>
-
-        {/* 📂 Regular Upload */}
-        <label className="upload_area">
-          <input
-            ref={fileInputRef}
-            type="file"
-            multiple
-            accept=".pdf,.jpg,.jpeg"
-            onChange={handleFileChange}
-            hidden
-          />
-          <span>
-            נא לטעון קובץ <br /> pdf / jpg <br /> עד 5 MB
-          </span>
-          <div>
-            <img src={uploadIcon} alt="upload" />
+            ) : (
+              files.map((file, index) => (
+                <div className="file_item" key={`${file.name}-${index}`}>
+                  <span className="file_name">{file.name}</span>
+                  <button className="view_btn" onClick={() => handleView(file)}>
+                    <img src={eyeIcon} alt="view" />
+                  </button>
+                  <button className="delete_btn" onClick={() => handleDelete(index)}>
+                    <img src={closeIcon} alt="remove" />
+                  </button>
+                </div>
+              ))
+            )}
           </div>
-        </label>
+
+          {/* 📂 Regular Upload */}
+          <label className="upload_area">
+            <input
+              ref={fileInputRef}
+              type="file"
+              multiple
+              accept=".pdf,.jpg,.jpeg"
+              onChange={handleFileChange}
+              hidden
+            />
+            <span>
+              נא לטעון קובץ <br /> pdf / jpg <br /> עד 5 MB
+            </span>
+            <div>
+              <img src={uploadIcon} alt="upload" />
+            </div>
+          </label>
 
         {/* 📸 Camera Upload */}
         <div className="camera_upload_box" onClick={handleClickCamera}>

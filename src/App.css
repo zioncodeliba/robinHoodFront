@@ -9,7 +9,7 @@
 }
 
 /* aichat static */
-.aichat_page{padding: 0 20px 0;text-align: center;}
+.aichat_page{padding:40px 20px 0;text-align: center;}
 .aichat_page .prev_page_link{display: none;}
 .aichat_page .wrapper{max-width: 1214px;}
 .aichat_page .title h1{font-size: 65px;line-height: 40px;margin-bottom: 39px;}
@@ -319,7 +319,7 @@ body{background-repeat: no-repeat;background-size: cover;overflow: hidden;}
 .main.hidepan .l_right{display: none !important;}
 
 
-.btn{font-size: 22px;font-weight: 300;background-color: var(--orange);padding:14px 37px 16px;color: var(--white);border-radius: 50px;box-shadow: 0 4px 40px #E2760052;cursor: pointer;transition: 0.4s ease all;    outline: none; border: none;}
+.btn{font-size: 22px;font-weight: 300;background-color: var(--orange);padding:12px 37px 13px;color: var(--white);border-radius: 50px;box-shadow: 0 4px 40px #E2760052;cursor: pointer;transition: 0.4s ease all;    outline: none; border: none;}
 .btn:hover{background-color: var(--green);color: var(--white);}
 
 
