@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
+import useEmblaCarousel from "embla-carousel-react";
 import '../components/suggestionscomponents/Suggestionspage.css';
 
 // images 
@@ -69,17 +70,15 @@ const BANK_META = {
 };
 
 const Suggestionspage = () => {
+  const location = useLocation();
   const navigate = useNavigate();
   const { bankResponses: navBankResponses, isLoaded: navStateLoaded } = useNavState();
   const [bankResponses, setBankResponses] = useState([]);
   const [offersLoading, setOffersLoading] = useState(true);
   const [offersLoaded, setOffersLoaded] = useState(false);
-  const [pageIndex, setPageIndex] = useState(0);
-  const [isMobile, setIsMobile] = useState(() =>
-    typeof window !== 'undefined' && window.matchMedia
-      ? window.matchMedia('(max-width: 767px)').matches
-      : false
-  );
+  const [selectedOfferIndex, setSelectedOfferIndex] = useState(0);
+  const [canScrollPrev, setCanScrollPrev] = useState(false);
+  const [canScrollNext, setCanScrollNext] = useState(false);
 
   const [openPopupId, setOpenPopupId] = useState(null);
 
@@ -90,24 +89,6 @@ const Suggestionspage = () => {
   const closePopup = () => {
     setOpenPopupId(null);
   };
-
-  useEffect(() => {
-    if (typeof window === 'undefined' || !window.matchMedia) return;
-    const media = window.matchMedia('(max-width: 767px)');
-    const handleChange = (event) => setIsMobile(event.matches);
-    if (media.addEventListener) {
-      media.addEventListener('change', handleChange);
-    } else {
-      media.addListener(handleChange);
-    }
-    return () => {
-      if (media.removeEventListener) {
-        media.removeEventListener('change', handleChange);
-      } else {
-        media.removeListener(handleChange);
-      }
-    };
-  }, []);
 
   const handleAuthFailure = useCallback(() => {
     localStorage.removeItem("auth_token");
@@ -375,34 +356,89 @@ const Suggestionspage = () => {
       };
     });
   }, [bankResponses]);
+  const [emblaRef, emblaApi] = useEmblaCarousel({
+    loop: visibleOffers.length > 1,
+    direction: "rtl",
+    align: "start",
+  });
 
   const hasOffers = visibleOffers.length > 0;
-  const itemsPerPage = isMobile ? 1 : 3;
-  const totalPages = Math.ceil(visibleOffers.length / itemsPerPage);
-  const showPager = visibleOffers.length > itemsPerPage;
+  const activeOffer = hasOffers
+    ? (visibleOffers[selectedOfferIndex] || visibleOffers[0] || null)
+    : null;
+  const showPager = visibleOffers.length > 1;
 
   useEffect(() => {
     if (!visibleOffers.length) {
-      setPageIndex(0);
+      setSelectedOfferIndex(0);
       return;
     }
-    const maxIndex = Math.max(0, totalPages - 1);
-    setPageIndex((prev) => (prev > maxIndex ? 0 : prev));
-  }, [visibleOffers.length, totalPages, itemsPerPage]);
+    setSelectedOfferIndex((prev) => (
+      prev < 0 || prev >= visibleOffers.length ? 0 : prev
+    ));
+  }, [visibleOffers.length]);
 
-  const pagedOffers = useMemo(() => {
-    if (!showPager) return visibleOffers;
-    const start = pageIndex * itemsPerPage;
-    return visibleOffers.slice(start, start + itemsPerPage);
-  }, [visibleOffers, pageIndex, showPager]);
+  const updateOfferCarouselControls = useCallback(() => {
+    if (!emblaApi || visibleOffers.length <= 1) {
+      setCanScrollPrev(false);
+      setCanScrollNext(false);
+      return;
+    }
+    setCanScrollPrev(emblaApi.canScrollPrev());
+    setCanScrollNext(emblaApi.canScrollNext());
+  }, [emblaApi, visibleOffers.length]);
+
+  useEffect(() => {
+    if (!emblaApi) return;
+    updateOfferCarouselControls();
+
+    const handleSelect = () => {
+      setSelectedOfferIndex(emblaApi.selectedScrollSnap());
+      updateOfferCarouselControls();
+    };
+
+    emblaApi.on('select', handleSelect);
+    emblaApi.on('reInit', updateOfferCarouselControls);
+
+    return () => {
+      emblaApi.off('select', handleSelect);
+      emblaApi.off('reInit', updateOfferCarouselControls);
+    };
+  }, [emblaApi, updateOfferCarouselControls]);
+
+  useEffect(() => {
+    if (!emblaApi || !visibleOffers.length) return;
+    const params = new URLSearchParams(location.search || '');
+    const routeBankId = Number(params.get('bankId'));
+    if (!Number.isFinite(routeBankId)) return;
+
+    const targetIndex = visibleOffers.findIndex((offer) => offer.id === routeBankId);
+    if (targetIndex < 0) return;
+
+    if (emblaApi.selectedScrollSnap() === targetIndex) {
+      setSelectedOfferIndex(targetIndex);
+      updateOfferCarouselControls();
+      return;
+    }
+
+    emblaApi.scrollTo(targetIndex);
+    setSelectedOfferIndex(targetIndex);
+    updateOfferCarouselControls();
+  }, [emblaApi, location.search, updateOfferCarouselControls, visibleOffers]);
 
   const handlePrevPage = () => {
-    setPageIndex((prev) => (prev <= 0 ? totalPages - 1 : prev - 1));
+    if (!emblaApi || visibleOffers.length <= 1) return;
+    emblaApi.scrollPrev();
   };
 
   const handleNextPage = () => {
-    setPageIndex((prev) => (prev + 1) % totalPages);
+    if (!emblaApi || visibleOffers.length <= 1) return;
+    emblaApi.scrollNext();
   };
+
+  const arrowDisabled = visibleOffers.length <= 1 || !emblaApi;
+  const prevDisabled = arrowDisabled || !canScrollPrev;
+  const nextDisabled = arrowDisabled || !canScrollNext;
 
   return (
     <div className="suggestions_page">
@@ -416,49 +452,52 @@ const Suggestionspage = () => {
         </div>
       ) : hasOffers ? (
         <>
-          <div className="wrapper d_flex d_flex_jb">
-              {pagedOffers.map(offer => (
-                  <div className="colin" key={offer.id}>
-                      {/* {offer.id === 8 ? (
-                      <InternationalSuggestionCard bankData={offer} />
-                      ) : (
+          <div className="wrapper">
+            <div className="colin suggestions_active_offer">
+              <div className="suggestions_card_carousel">
+                <div className="suggestions_card_carousel__viewport" ref={emblaRef}>
+                  <div className="suggestions_card_carousel__container">
+                    {visibleOffers.map((offer, index) => (
+                      <div
+                        className="suggestions_card_carousel__slide"
+                        key={offer.id}
+                        aria-hidden={index !== selectedOfferIndex}
+                      >
                         <BankMortgageCard bankData={offer} />
-                      )} */}
-                      <BankMortgageCard bankData={offer} />
-                      <div className="baskets_list">
-                        <ul className="d_flex">
-                          <li>סל אחיד 1</li>
-                        </ul>
                       </div>
-                      <div className="note" onClick={() => openPopup(offer.id)}>
-                        <img src={notei} alt="" />
-                        <p>הסבר על המסלולים</p>
-                      </div>
-                      <RoutesBankMortgage color={offer.color} routes={offer.routes} />
-                      {/* {offer.routes && offer.routes.length > 0 ? (
-                        <RoutesBankMortgage color={offer.color} routes={offer.routes} />
-                      ) : null} */}
-                      
-                      {offer.simulatorchartdata ? (
-                        <ReturnsChart 
-                           charttitle={'החזרים'} 
-                           interest={'ריבית'} 
-                           fund={'קרן'} 
-                           dataSets={offer.simulatorchartdata} 
-                           kerenColor={"#27450E"}
-                           rivitColor={"#E27600"}
-                         />
-                      ) : null}
-                      <NotePopup isOpen={openPopupId === offer.id} onClose={closePopup} />
+                    ))}
                   </div>
-              ))}
+                </div>
+              </div>
+              <div className="baskets_list">
+                <ul className="d_flex">
+                  <li>סל אחיד 1</li>
+                </ul>
+              </div>
+              <div className="note" onClick={() => openPopup(activeOffer.id)}>
+                <img src={notei} alt="" />
+                <p>הסבר על המסלולים</p>
+              </div>
+              <RoutesBankMortgage color={activeOffer.color} routes={activeOffer.routes} />
+              {activeOffer.simulatorchartdata ? (
+                <ReturnsChart
+                  charttitle={'החזרים'}
+                  interest={'ריבית'}
+                  fund={'קרן'}
+                  dataSets={activeOffer.simulatorchartdata}
+                  kerenColor={"#27450E"}
+                  rivitColor={"#E27600"}
+                />
+              ) : null}
+              <NotePopup isOpen={openPopupId === activeOffer.id} onClose={closePopup} />
+            </div>
           </div>
           {showPager ? (
             <div className="next_prev_box">
-              <button type="button" className="prev" onClick={handlePrevPage}>
+              <button type="button" className="prev" onClick={handlePrevPage} disabled={prevDisabled}>
                 <img src={nextprevarrow} alt="" />
               </button>
-              <button type="button" className="next" onClick={handleNextPage}>
+              <button type="button" className="next" onClick={handleNextPage} disabled={nextDisabled}>
                 <img src={nextprevarrow} alt="" />
               </button>
             </div>

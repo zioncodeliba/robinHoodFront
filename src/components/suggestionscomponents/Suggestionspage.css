@@ -4,6 +4,11 @@
 .suggestions_page .title p{font-size: 22px; line-height: 24px; text-align: center;color: var(--green);font-weight: 700;}
 .suggestions_page .wrapper{max-width: 1319px;}
 .suggestions_page .colin{width: 386px;position: relative;}
+.suggestions_page .suggestions_active_offer{margin: 0 auto;}
+.suggestions_page .suggestions_card_carousel{position: relative;overflow: hidden;}
+.suggestions_page .suggestions_card_carousel__viewport{overflow: hidden;}
+.suggestions_page .suggestions_card_carousel__container{display: flex;touch-action: pan-y;}
+.suggestions_page .suggestions_card_carousel__slide{flex: 0 0 100%;min-width: 0;}
 .suggestions_page .colin .note{display: flex; align-items: center; margin-top: 8px; }
 .suggestions_page .colin .note img { margin-left: 20px; width: 24px; }
 .suggestions_page .colin .note p { color: var(--green); font-size: 14px; line-height: 1; font-weight: 500; text-decoration: underline;cursor: pointer;}
