@@ -50,6 +50,7 @@ const MortgageCycleCheck = () => {
   const [bankId, setBankId] = useState("");
   const [amount, setAmount] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [apiComplete, setApiComplete] = useState(false);
   const navigate = useNavigate();
   const { refreshNavState } = useNavState();
 
@@ -81,6 +82,7 @@ const MortgageCycleCheck = () => {
 
     try {
       setSubmitting(true);
+      setApiComplete(false);
       const formData = new FormData();
       formData.append("bank_id", bankId);
       formData.append("amount", String(numericAmount));
@@ -174,21 +176,21 @@ const MortgageCycleCheck = () => {
             const responseCalcResult = item?.extracted_json?.calculator_result;
             return isApprovalOfferResult(responseCalcResult);
           });
-        navigate(approvalResponses.length > 0 ? "/viewoffer" : "/homebeforeapproval2", {
-          replace: true,
-        });
+        setApiComplete(true);
         return;
       }
 
-      navigate(hasOffer ? "/mortgagecyclepage" : "/noofferfound", {
-        state: { bankResponse: payload },
-      });
+      setApiComplete(true);
     } catch (error) {
       console.error(error);
       alert(error instanceof Error ? error.message : "שגיאה בשליחת הקובץ");
-    } finally {
       setSubmitting(false);
     }
+  };
+
+  const onLoaderComplete = () => {
+    setSubmitting(false);
+    navigate('/', { replace: true });
   };
 
   return (
@@ -216,7 +218,7 @@ const MortgageCycleCheck = () => {
       </div>
     </div>
       <img src={schedulemeetings_man} className="schedulemeetings_man_recycle" alt="" />
-      {submitting && <SavingsLoaderOverlay />}
+      {submitting && <SavingsLoaderOverlay onComplete={onLoaderComplete} apiComplete={apiComplete} />}
     </>
   );
 };
