@@ -12,6 +12,7 @@ import {
   resolveQuickAccessPreference,
   setAuthToken,
 } from './utils/authStorage';
+import { getGatewayApiBase } from './utils/apiBase';
 
 // Component
 import Header from './components/Header';
@@ -97,6 +98,49 @@ const PATH_ALIASES = {
 
 };
 
+const AFFILIATE_VISITOR_STORAGE_KEY = 'affiliate_visitor_id';
+const AFFILIATE_CLICK_DEDUPE_KEY = 'affiliate_click_dedupe';
+
+const getOrCreateAffiliateVisitorId = () => {
+  const existing = localStorage.getItem(AFFILIATE_VISITOR_STORAGE_KEY);
+  if (existing && existing.trim()) return existing.trim();
+
+  let nextId = '';
+  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+    nextId = crypto.randomUUID();
+  } else {
+    nextId = `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+  }
+  localStorage.setItem(AFFILIATE_VISITOR_STORAGE_KEY, nextId);
+  return nextId;
+};
+
+const shouldSkipDuplicateAffiliateClick = (fingerprint) => {
+  try {
+    const raw = sessionStorage.getItem(AFFILIATE_CLICK_DEDUPE_KEY);
+    if (!raw) return false;
+    const parsed = JSON.parse(raw);
+    if (!parsed || typeof parsed !== 'object') return false;
+    if (parsed.fingerprint !== fingerprint) return false;
+    const ts = Number(parsed.ts || 0);
+    if (!Number.isFinite(ts)) return false;
+    return Date.now() - ts < 5000;
+  } catch {
+    return false;
+  }
+};
+
+const rememberAffiliateClickFingerprint = (fingerprint) => {
+  try {
+    sessionStorage.setItem(
+      AFFILIATE_CLICK_DEDUPE_KEY,
+      JSON.stringify({ fingerprint, ts: Date.now() })
+    );
+  } catch {
+    // Ignore storage failures.
+  }
+};
+
 function AppWrapper() {
   const location = useLocation();
   const navigate = useNavigate();
@@ -160,9 +204,31 @@ function AppWrapper() {
     const code = decodeURIComponent(match[1] || '').trim().toUpperCase();
     if (code) {
       setAffiliateCode(code);
+      const fingerprint = `${code}|${location.pathname}|${location.search || ''}`;
+      if (!shouldSkipDuplicateAffiliateClick(fingerprint)) {
+        rememberAffiliateClickFingerprint(fingerprint);
+        const token = getAuthToken();
+        const headers = { 'Content-Type': 'application/json' };
+        if (token) {
+          headers.Authorization = `Bearer ${token}`;
+        }
+        const payload = {
+          affiliate_code: code,
+          visitor_id: getOrCreateAffiliateVisitorId(),
+          landing_path: `${location.pathname}${location.search || ''}`,
+          referrer: document.referrer || undefined,
+        };
+        void fetch(`${getGatewayApiBase()}/affiliate-click`, {
+          method: 'POST',
+          headers,
+          body: JSON.stringify(payload),
+        }).catch(() => {
+          // Keep silent - tracking must not block user flow.
+        });
+      }
     }
     navigate('/', { replace: true });
-  }, [location.pathname, navigate]);
+  }, [location.pathname, location.search, navigate]);
 
   // const hideHeader = location.pathname === "/appointment";
   // const hidepan = ["/simulatorpage"];
