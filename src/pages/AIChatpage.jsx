@@ -8,6 +8,7 @@ import removeIcon from '../assets/images/remove.png';
 import viewicon from '../assets/images/pdf_view.svg';
 import sendicon from '../assets/images/send.svg';
 import { getGatewayBase } from "../utils/apiBase";
+import { getAuthToken } from "../utils/authStorage";
 
 const DEFAULT_MIN_AMOUNT = 100000;
 const DEFAULT_MAX_AMOUNT = 1500000;
@@ -80,7 +81,7 @@ const AIChatpage = () => {
   const [signatureTemplateDownloadingKey, setSignatureTemplateDownloadingKey] = useState('');
   const [isCountryDropdownOpen, setIsCountryDropdownOpen] = useState(false);
 
-  const authToken = useMemo(() => localStorage.getItem('auth_token'), []);
+  const authToken = useMemo(() => getAuthToken(), []);
   const signatureCanvasRefs = useRef([]);
   const signatureCtxRefs = useRef([]);
   const signatureDrawingRefs = useRef([]);

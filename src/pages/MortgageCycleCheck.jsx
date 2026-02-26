@@ -7,6 +7,7 @@ import previcon from '../assets/images/prev_icon.svg';
 import schedulemeetings_man from '../assets/images/schedulemeetings_man.png';
 import MortgageUploadfiles from '../components/mortgagecyclecheckcomponents/MortgageUploadfiles';
 import MortgageFinaldetails from '../components/mortgagecyclecheckcomponents/MortgageFinaldetails';
+import SavingsLoaderOverlay from '../components/commoncomponents/SavingsLoaderOverlay';
 
 import {
   getCalculatorResult,
@@ -17,6 +18,7 @@ import {
 import { getGatewayBase } from "../utils/apiBase";
 import { clearAuthGetCache } from "../utils/authGetCache";
 import { useNavState } from "../context/NavStateContext";
+import { getAuthToken } from "../utils/authStorage";
 
 const DEFAULT_BANK_IDS = [3, 2, 1, 4, 8, 12];
 
@@ -48,6 +50,7 @@ const MortgageCycleCheck = () => {
   const [bankId, setBankId] = useState("");
   const [amount, setAmount] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [apiComplete, setApiComplete] = useState(false);
   const navigate = useNavigate();
   const { refreshNavState } = useNavState();
 
@@ -71,7 +74,7 @@ const MortgageCycleCheck = () => {
       alert("נא להזין סכום תקין");
       return;
     }
-    const token = localStorage.getItem("auth_token");
+    const token = getAuthToken();
     if (!token) {
       alert("יש להתחבר מחדש");
       return;
@@ -79,6 +82,7 @@ const MortgageCycleCheck = () => {
 
     try {
       setSubmitting(true);
+      setApiComplete(false);
       const formData = new FormData();
       formData.append("bank_id", bankId);
       formData.append("amount", String(numericAmount));
@@ -172,21 +176,21 @@ const MortgageCycleCheck = () => {
             const responseCalcResult = item?.extracted_json?.calculator_result;
             return isApprovalOfferResult(responseCalcResult);
           });
-        navigate(approvalResponses.length > 0 ? "/viewoffer" : "/homebeforeapproval2", {
-          replace: true,
-        });
+        setApiComplete(true);
         return;
       }
 
-      navigate(hasOffer ? "/mortgagecyclepage" : "/noofferfound", {
-        state: { bankResponse: payload },
-      });
+      setApiComplete(true);
     } catch (error) {
       console.error(error);
       alert(error instanceof Error ? error.message : "שגיאה בשליחת הקובץ");
-    } finally {
       setSubmitting(false);
     }
+  };
+
+  const onLoaderComplete = () => {
+    setSubmitting(false);
+    navigate('/', { replace: true });
   };
 
   return (
@@ -214,6 +218,7 @@ const MortgageCycleCheck = () => {
       </div>
     </div>
       <img src={schedulemeetings_man} className="schedulemeetings_man_recycle" alt="" />
+      {submitting && <SavingsLoaderOverlay onComplete={onLoaderComplete} apiComplete={apiComplete} />}
     </>
   );
 };

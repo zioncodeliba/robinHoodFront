@@ -1,6 +1,7 @@
 // Homepage.jsx
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
+import useEmblaCarousel from "embla-carousel-react";
 import '../components/viewofferscomponents/ViewOfferspage.css';
 
 import offer_i from "../assets/images/offer_i.svg";
@@ -25,9 +26,6 @@ const BANK_LOGOS = {
   international: "/banks/international.png",
   mercantile: "/banks/mercantile.png",
 };
-const OFFER_SLIDE_DURATION_MS = 360;
-const SWIPE_THRESHOLD_PX = 48;
-const SWIPE_MAX_VERTICAL_DELTA_PX = 80;
 const DEFAULT_OFFERS_CAROUSEL_NOTE =
   "נשלח בקשה לאישור עקרוני לכלל הבנקים כשיתקבלו האישורים ישלח עדכון.";
 
@@ -98,14 +96,10 @@ const ViewOfferspage = () => {
   const [bankResponses, setBankResponses] = useState([]);
   const [offersLoading, setOffersLoading] = useState(true);
   const [offersLoaded, setOffersLoaded] = useState(false);
-  const [activeOfferIndex, setActiveOfferIndex] = useState(0);
-  const [pendingOfferIndex, setPendingOfferIndex] = useState(null);
-  const [offerTransition, setOfferTransition] = useState(null);
-  const [isOfferSlideRunning, setIsOfferSlideRunning] = useState(false);
-  const slideTimeoutRef = useRef(null);
-  const transitionTargetIndexRef = useRef(null);
-  const touchStartRef = useRef(null);
-  const pendingRouteBankIdRef = useRef(null);
+  const [selectedOfferIndex, setSelectedOfferIndex] = useState(0);
+  const [canScrollPrev, setCanScrollPrev] = useState(false);
+  const [canScrollNext, setCanScrollNext] = useState(false);
+  const isSyncingFromRouteRef = useRef(false);
   const { userData } = useCustomerProfile();
   const displayName = getCustomerDisplayName(userData, "שם");
   const offersCarouselNote = useMemo(() => {
@@ -217,6 +211,11 @@ const ViewOfferspage = () => {
     });
     return merged;
   }, [approvedBanks, offerBanks]);
+  const [emblaRef, emblaApi] = useEmblaCarousel({
+    loop: carouselBanks.length > 1,
+    direction: "rtl",
+    align: "start",
+  });
 
   useEffect(() => {
     if (offersLoaded && !offersLoading && visibilityLoaded && offerBankIds.length === 0 && allowedBankIds.length === 0) {
@@ -226,30 +225,23 @@ const ViewOfferspage = () => {
 
   useEffect(() => {
     if (carouselBanks.length === 0) {
-      setActiveOfferIndex(0);
-      setPendingOfferIndex(null);
+      setSelectedOfferIndex(0);
       return;
     }
-    setActiveOfferIndex((prev) => (
+    setSelectedOfferIndex((prev) => (
       prev < 0 || prev >= carouselBanks.length ? 0 : prev
     ));
-    setPendingOfferIndex((prev) => {
-      if (prev === null) return null;
-      return prev < 0 || prev >= carouselBanks.length ? 0 : prev;
-    });
   }, [carouselBanks.length]);
 
-  useEffect(() => {
-    return () => {
-      if (slideTimeoutRef.current) {
-        window.clearTimeout(slideTimeoutRef.current);
-        slideTimeoutRef.current = null;
-      }
-    };
-  }, []);
-
-  const effectiveOfferIndex = pendingOfferIndex !== null ? pendingOfferIndex : activeOfferIndex;
-  const activeBank = carouselBanks.length ? carouselBanks[effectiveOfferIndex] : null;
+  const updateOfferCarouselControls = useCallback(() => {
+    if (!emblaApi || carouselBanks.length <= 1) {
+      setCanScrollPrev(false);
+      setCanScrollNext(false);
+      return;
+    }
+    setCanScrollPrev(emblaApi.canScrollPrev());
+    setCanScrollNext(emblaApi.canScrollNext());
+  }, [emblaApi, carouselBanks.length]);
 
   const toNumber = (value) => {
     if (value === null || value === undefined || value === '') return null;
@@ -377,152 +369,74 @@ const ViewOfferspage = () => {
   }), [approvedBanks, offerBankIdsSet, bestOffer?.bankName]);
 
   useEffect(() => {
-    const params = new URLSearchParams(location.search || '');
-    const bankIdParam = Number(params.get('bankId'));
-    if (!Number.isFinite(bankIdParam)) {
-      pendingRouteBankIdRef.current = null;
-      return;
-    }
-    const pendingRouteBankId = pendingRouteBankIdRef.current;
-    if (pendingRouteBankId !== null && bankIdParam !== pendingRouteBankId) {
-      return;
-    }
-    if (pendingRouteBankId !== null && bankIdParam === pendingRouteBankId) {
-      pendingRouteBankIdRef.current = null;
-    }
-    const index = carouselBanks.findIndex((bank) => bank.id === bankIdParam);
-    if (index >= 0 && index !== activeOfferIndex) {
-      setPendingOfferIndex(index);
-      setActiveOfferIndex(index);
-    }
-  }, [location.search, carouselBanks, activeOfferIndex]);
+    if (!emblaApi) return;
+    updateOfferCarouselControls();
 
-  const completeOfferSlide = useCallback(() => {
-    const targetIndex = transitionTargetIndexRef.current;
-    transitionTargetIndexRef.current = null;
-    if (slideTimeoutRef.current) {
-      window.clearTimeout(slideTimeoutRef.current);
-      slideTimeoutRef.current = null;
-    }
-    if (typeof targetIndex === 'number') {
-      const normalized = carouselBanks.length
-        ? ((targetIndex % carouselBanks.length) + carouselBanks.length) % carouselBanks.length
-        : 0;
-      setPendingOfferIndex(normalized);
-      setActiveOfferIndex(normalized);
-      const bankId = carouselBanks[normalized]?.id;
-      if (bankId) {
-        pendingRouteBankIdRef.current = bankId;
-        navigate(`/viewoffer?bankId=${bankId}`);
+    const handleSelect = () => {
+      const nextIndex = emblaApi.selectedScrollSnap();
+      setSelectedOfferIndex(nextIndex);
+      updateOfferCarouselControls();
+
+      if (isSyncingFromRouteRef.current) {
+        return;
       }
-    }
-    setOfferTransition(null);
-  }, [navigate, carouselBanks]);
+
+      const bankId = carouselBanks[nextIndex]?.id;
+      if (!bankId) return;
+
+      const params = new URLSearchParams(location.search || '');
+      const routeBankId = Number(params.get('bankId'));
+      if (Number.isFinite(routeBankId) && routeBankId === bankId) {
+        return;
+      }
+      navigate(`/viewoffer?bankId=${bankId}`);
+    };
+
+    emblaApi.on('select', handleSelect);
+    emblaApi.on('reInit', updateOfferCarouselControls);
+
+    return () => {
+      emblaApi.off('select', handleSelect);
+      emblaApi.off('reInit', updateOfferCarouselControls);
+    };
+  }, [emblaApi, carouselBanks, location.search, navigate, updateOfferCarouselControls]);
 
   useEffect(() => {
-    if (!offerTransition && isOfferSlideRunning) {
-      setIsOfferSlideRunning(false);
-    }
-  }, [offerTransition, isOfferSlideRunning]);
+    if (!emblaApi) return;
+    const params = new URLSearchParams(location.search || '');
+    const routeBankId = Number(params.get('bankId'));
+    if (!Number.isFinite(routeBankId)) return;
+    const targetIndex = carouselBanks.findIndex((bank) => bank.id === routeBankId);
+    if (targetIndex < 0) return;
 
-  useEffect(() => {
-    if (pendingOfferIndex === null) return;
-    if (pendingOfferIndex !== activeOfferIndex) return;
+    if (emblaApi.selectedScrollSnap() === targetIndex) {
+      setSelectedOfferIndex(targetIndex);
+      updateOfferCarouselControls();
+      return;
+    }
+
+    isSyncingFromRouteRef.current = true;
+    emblaApi.scrollTo(targetIndex);
+    setSelectedOfferIndex(targetIndex);
+    updateOfferCarouselControls();
+
     const frameId = window.requestAnimationFrame(() => {
-      setPendingOfferIndex(null);
+      isSyncingFromRouteRef.current = false;
     });
+
     return () => {
       window.cancelAnimationFrame(frameId);
     };
-  }, [pendingOfferIndex, activeOfferIndex]);
-
-  const startOfferSlide = useCallback((direction) => {
-    if (carouselBanks.length <= 1 || offerTransition) return;
-    pendingRouteBankIdRef.current = null;
-    setPendingOfferIndex(null);
-
-    const nextIndex = direction === 'next'
-      ? (activeOfferIndex + 1) % carouselBanks.length
-      : (activeOfferIndex - 1 + carouselBanks.length) % carouselBanks.length;
-
-    transitionTargetIndexRef.current = nextIndex;
-    setOfferTransition({
-      direction,
-      fromIndex: activeOfferIndex,
-      toIndex: nextIndex,
-    });
-    setIsOfferSlideRunning(false);
-
-    requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-        setIsOfferSlideRunning(true);
-      });
-    });
-
-    if (slideTimeoutRef.current) {
-      window.clearTimeout(slideTimeoutRef.current);
-    }
-    slideTimeoutRef.current = window.setTimeout(
-      completeOfferSlide,
-      OFFER_SLIDE_DURATION_MS + 80
-    );
-  }, [activeOfferIndex, completeOfferSlide, carouselBanks.length, offerTransition]);
-
-  useEffect(() => {
-    if (!offerTransition) return;
-    if (!carouselBanks[offerTransition.fromIndex] || !carouselBanks[offerTransition.toIndex]) {
-      completeOfferSlide();
-    }
-  }, [completeOfferSlide, carouselBanks, offerTransition]);
-
-  const handleDetailsTouchStart = (event) => {
-    if (carouselBanks.length <= 1 || offerTransition) return;
-    const touch = event.touches?.[0];
-    if (!touch) return;
-    touchStartRef.current = {
-      startX: touch.clientX,
-      startY: touch.clientY,
-      lastX: touch.clientX,
-      lastY: touch.clientY,
-    };
-  };
-
-  const handleDetailsTouchMove = (event) => {
-    const touch = event.touches?.[0];
-    if (!touch || !touchStartRef.current) return;
-    touchStartRef.current.lastX = touch.clientX;
-    touchStartRef.current.lastY = touch.clientY;
-  };
-
-  const handleDetailsTouchEnd = () => {
-    const touchData = touchStartRef.current;
-    touchStartRef.current = null;
-    if (!touchData) return;
-
-    const deltaX = touchData.lastX - touchData.startX;
-    const deltaY = touchData.lastY - touchData.startY;
-
-    if (Math.abs(deltaX) < SWIPE_THRESHOLD_PX) return;
-    if (Math.abs(deltaY) > SWIPE_MAX_VERTICAL_DELTA_PX) return;
-    if (Math.abs(deltaX) <= Math.abs(deltaY)) return;
-
-    if (deltaX < 0) {
-      startOfferSlide('next');
-      return;
-    }
-    startOfferSlide('prev');
-  };
-
-  const handleDetailsTouchCancel = () => {
-    touchStartRef.current = null;
-  };
+  }, [carouselBanks, emblaApi, location.search, updateOfferCarouselControls]);
 
   const handlePrev = () => {
-    startOfferSlide('prev');
+    if (!emblaApi || carouselBanks.length <= 1) return;
+    emblaApi.scrollPrev();
   };
 
   const handleNext = () => {
-    startOfferSlide('next');
+    if (!emblaApi || carouselBanks.length <= 1) return;
+    emblaApi.scrollNext();
   };
 
   const renderAwaitingApprovalCard = useCallback((bank) => (
@@ -564,69 +478,29 @@ const ViewOfferspage = () => {
     );
   }, [offerBankIdsSet, mortgageDataByBankId, offersCarouselNoteVisible, renderAwaitingApprovalCard]);
 
-  const fromBank = offerTransition ? carouselBanks[offerTransition.fromIndex] || null : null;
-  const toBank = offerTransition ? carouselBanks[offerTransition.toIndex] || null : null;
-  const outgoingTarget = offerTransition?.direction === 'next' ? '-100%' : '100%';
-  const incomingStart = offerTransition?.direction === 'next' ? '100%' : '-100%';
-  const slideTransitionStyle = isOfferSlideRunning
-    ? `transform ${OFFER_SLIDE_DURATION_MS}ms cubic-bezier(0.22, 1, 0.36, 1), opacity ${OFFER_SLIDE_DURATION_MS}ms ease`
-    : 'none';
-  const arrowDisabled = Boolean(offerTransition) || carouselBanks.length <= 1;
+  const arrowDisabled = carouselBanks.length <= 1 || !emblaApi;
+  const prevDisabled = arrowDisabled || !canScrollPrev;
+  const nextDisabled = arrowDisabled || !canScrollNext;
 
   return (
     <div className="viewoffers_page">
       <div className="wrapper">
         <h1>ברוכים הבאים, {displayName}</h1>
         {carouselBanks.length > 0 ? (
-          <div
-            style={{ position: 'relative', overflow: 'hidden', touchAction: 'pan-y' }}
-            onTouchStart={handleDetailsTouchStart}
-            onTouchMove={handleDetailsTouchMove}
-            onTouchEnd={handleDetailsTouchEnd}
-            onTouchCancel={handleDetailsTouchCancel}
-          >
-            {offerTransition ? (
-              <>
-                <div style={{ visibility: 'hidden' }}>
-                  {renderBankCard(fromBank || activeBank)}
-                </div>
-                <div
-                  style={{
-                    position: 'absolute',
-                    top: 0,
-                    left: 0,
-                    width: '100%',
-                    transform: isOfferSlideRunning ? `translateX(${outgoingTarget})` : 'translateX(0%)',
-                    opacity: isOfferSlideRunning ? 0.2 : 1,
-                    transition: slideTransitionStyle,
-                    willChange: 'transform, opacity',
-                  }}
-                >
-                  {renderBankCard(fromBank || activeBank)}
-                </div>
-                <div
-                  style={{
-                    position: 'absolute',
-                    top: 0,
-                    left: 0,
-                    width: '100%',
-                    transform: isOfferSlideRunning ? 'translateX(0%)' : `translateX(${incomingStart})`,
-                    opacity: isOfferSlideRunning ? 1 : 0.85,
-                    transition: slideTransitionStyle,
-                    willChange: 'transform, opacity',
-                  }}
-                  onTransitionEnd={(event) => {
-                    if (event.propertyName !== 'transform') return;
-                    if (!offerTransition || !isOfferSlideRunning) return;
-                    completeOfferSlide();
-                  }}
-                >
-                  {renderBankCard(toBank || activeBank)}
-                </div>
-              </>
-            ) : (
-              renderBankCard(activeBank)
-            )}
+          <div className="viewoffers_carousel">
+            <div className="viewoffers_carousel__viewport" ref={emblaRef}>
+              <div className="viewoffers_carousel__container">
+                {carouselBanks.map((bank, index) => (
+                  <div
+                    className="viewoffers_carousel__slide"
+                    key={bank?.id ?? `offer-bank-placeholder-${index}`}
+                    aria-hidden={index !== selectedOfferIndex}
+                  >
+                    {renderBankCard(bank)}
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
         ) : (
           <div className="no_offers">
@@ -649,10 +523,10 @@ const ViewOfferspage = () => {
         </div>
       </div>
       <div className="next_prev_box">
-        <button type="button" className="prev" onClick={handlePrev} disabled={arrowDisabled}>
+        <button type="button" className="prev" onClick={handlePrev} disabled={prevDisabled}>
           <img src={nextprevarrow} alt="" />
         </button>
-        <button type="button" className="next" onClick={handleNext} disabled={arrowDisabled}>
+        <button type="button" className="next" onClick={handleNext} disabled={nextDisabled}>
           <img src={nextprevarrow} alt="" />
         </button>
       </div>

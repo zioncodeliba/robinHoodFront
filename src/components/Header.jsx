@@ -11,6 +11,7 @@ import { getGatewayApiBase } from '../utils/apiBase';
 import {
   clearAuthGetCache,
 } from '../utils/authGetCache';
+import { clearAuthToken, getAuthToken } from '../utils/authStorage';
 import { useNavState } from '../context/NavStateContext';
 import useCustomerProfile, { getCustomerDisplayName } from '../hooks/useCustomerProfile';
 
@@ -31,7 +32,7 @@ const Header = () => {
   const isLoginPage = normalizedPath.includes("login");
   const isbrokerpage = normalizedPath.includes("brokerhomepage");
   const shouldShowMobileBackButton = ["/suggestionspage", "/aichat", "/aichat-static","/simulatorpage","/recycle-loan"].includes(normalizedPath);
-  const authToken = localStorage.getItem("auth_token");
+  const authToken = getAuthToken();
   const affiliateToken = localStorage.getItem("affiliate_token");
   const isAuthenticated = Boolean(authToken || affiliateToken);
   const isDesktop = window.innerWidth >= 1024;
@@ -160,7 +161,7 @@ const Header = () => {
   }
 
   const handleLogout = async () => {
-    const token = localStorage.getItem("auth_token");
+    const token = getAuthToken();
     const apiBase = getGatewayApiBase();
     try{
       if (token && apiBase) {
@@ -177,7 +178,7 @@ const Header = () => {
     catch(error){
       console.log(error);
     }
-    localStorage.removeItem("auth_token");
+    clearAuthToken();
     localStorage.removeItem("user_data");
     localStorage.removeItem("affiliate_token");
     localStorage.removeItem("affiliate_data");
@@ -197,7 +198,7 @@ const Header = () => {
 
   return (
     <>
-    <header className={`d_flex d_flex_ac d_flex_jb ${isFixed ? "fixed" : ""}`}>
+    <header className={`d_flex d_flex_ac d_flex_jb ${isFixed && !isOpen ? "fixed" : ""}`}>
       {/* <div className="hamberger" onClick={hambergerhandle}><img src={hambergericon} alt="" /></div> */}
       <div className="hamberger" onClick={hambergerhandle}><img src={hambergericon} alt="" /></div>
       <nav className={`right_col ${isOpen ? 'open' : ''}`} >

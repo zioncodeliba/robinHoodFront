@@ -21,6 +21,7 @@ import {
   fetchBankResponsesMeCached,
   fetchBankVisibilityMeCached,
 } from "../utils/authGetCache";
+import { clearAuthToken, getAuthToken } from "../utils/authStorage";
 
 const SUPPORTED_BANK_IDS = [3, 2, 1, 4, 8, 12];
 
@@ -81,7 +82,7 @@ const MortgageCyclePage = () => {
   const calcResult = bankResponse?.extracted_json?.calculator_result;
 
   const handleAuthFailure = useCallback(() => {
-    localStorage.removeItem("auth_token");
+    clearAuthToken();
     localStorage.removeItem("user_data");
     localStorage.removeItem("mortgage_cycle_result");
     localStorage.removeItem("new_mortgage_submitted");
@@ -89,7 +90,7 @@ const MortgageCyclePage = () => {
   }, [navigate]);
 
   useEffect(() => {
-    const token = localStorage.getItem("auth_token");
+    const token = getAuthToken();
     if (!token) return;
     let isMounted = true;
 

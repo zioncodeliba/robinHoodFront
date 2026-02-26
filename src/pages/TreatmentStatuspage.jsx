@@ -7,6 +7,7 @@ import yesicon from "../assets/images/yes.svg";
 import treatmentstatusImage from "../assets/images/treatmentstatus_img.png";
 import treatmentstatusImagemob from "../assets/images/treatmentstatus_img_mobile.png";
 import { useNavState } from "../context/NavStateContext";
+import { clearAuthToken, getAuthToken } from "../utils/authStorage";
 
 const stepsData = [
   "אישור עקרוני",
@@ -61,7 +62,7 @@ const TreatmentStatuspage = () => {
   const [loadingStatus, setLoadingStatus] = useState(true);
 
   const handleAuthFailure = useCallback(() => {
-    localStorage.removeItem("auth_token");
+    clearAuthToken();
     localStorage.removeItem("user_data");
     localStorage.removeItem("mortgage_cycle_result");
     localStorage.removeItem("new_mortgage_submitted");
@@ -81,7 +82,7 @@ const TreatmentStatuspage = () => {
   }, [customerProfile, navStateLoaded]);
 
   useEffect(() => {
-    const token = localStorage.getItem("auth_token");
+    const token = getAuthToken();
     if (!token) {
       handleAuthFailure();
       return;

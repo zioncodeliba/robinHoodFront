@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import useGoogleAuth from '../../utils/useGoogleAuth';
 import { getGatewayApiBase } from '../../utils/apiBase';
 import { clearAffiliateCode, getAffiliateCode } from '../../utils/affiliate';
+import { resolveQuickAccessPreference, setAuthToken } from '../../utils/authStorage';
 
 import appleIcon from '../../assets/images/apple_i.svg';
 import googleIcon from '../../assets/images/google_i.svg';
@@ -143,7 +144,9 @@ const RegistrationPopup = ({ showRegistrationPopup }) => {
 
       if (data?.success || response.ok) {
         if (data?.data?.token) {
-          localStorage.setItem('auth_token', data.data.token);
+          setAuthToken(data.data.token, {
+            quickAccess: resolveQuickAccessPreference(data.data.customer),
+          });
           if (data.data.customer) {
             localStorage.setItem('user_data', JSON.stringify(data.data.customer));
           }

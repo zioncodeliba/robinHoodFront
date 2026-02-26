@@ -3,6 +3,11 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import useGoogleAuth from '../utils/useGoogleAuth';
 import { getGatewayApiBase } from '../utils/apiBase';
 import { clearAffiliateCode, getAffiliateCode } from '../utils/affiliate';
+import {
+  clearAuthToken,
+  resolveQuickAccessPreference,
+  setAuthToken,
+} from '../utils/authStorage';
 
 import logoup from '../assets/images/logoup.svg';
 import appleIcon from '../assets/images/apple_i.svg';
@@ -100,7 +105,7 @@ const Loginpage = () => {
       if (data?.success || response.ok) {
         if (data.data?.affiliate) {
           if (data.data?.token) {
-            localStorage.removeItem('auth_token');
+            clearAuthToken();
             localStorage.removeItem('user_data');
             localStorage.setItem('affiliate_token', data.data.token);
             localStorage.setItem('affiliate_data', JSON.stringify(data.data.affiliate));
@@ -111,7 +116,9 @@ const Loginpage = () => {
         }
 
         if (data.data?.token) {
-          localStorage.setItem('auth_token', data.data.token);
+          setAuthToken(data.data.token, {
+            quickAccess: resolveQuickAccessPreference(data.data.customer),
+          });
           if (data.data.customer) {
             localStorage.setItem('user_data', JSON.stringify(data.data.customer));
           }
