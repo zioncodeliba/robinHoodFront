@@ -32,6 +32,7 @@ import {
   isNewMortgagePrincipalApproval,
   normalizeAllowedBankIds,
 } from "../utils/customerFlowRouting";
+import { clearAuthToken, getAuthToken } from "../utils/authStorage";
 import useCustomerProfile, { getCustomerDisplayName } from "../hooks/useCustomerProfile";
 
 const isRefinanceResult = (calcResult) =>
@@ -67,7 +68,7 @@ const Homepage = () => {
   const displayName = getCustomerDisplayName(userData, "לרובין");
   const [checkingResults, setCheckingResults] = useState(true);
   const isAuthenticated = Boolean(
-    localStorage.getItem("auth_token") || localStorage.getItem("affiliate_token")
+    getAuthToken() || localStorage.getItem("affiliate_token")
   );
   const isDesktop = window.innerWidth >= 1024;
 
@@ -88,7 +89,7 @@ const Homepage = () => {
   };
 
   const handleAuthFailure = useCallback(() => {
-    localStorage.removeItem("auth_token");
+    clearAuthToken();
     localStorage.removeItem("user_data");
     localStorage.removeItem("mortgage_cycle_result");
     localStorage.removeItem("new_mortgage_submitted");
@@ -96,7 +97,7 @@ const Homepage = () => {
   }, [navigate]);
 
   const updateMortgageType = async (mortgageType) => {
-    const token = localStorage.getItem("auth_token");
+    const token = getAuthToken();
     if (!token) return;
     const syncMortgageTypeInStorage = (nextMortgageType, nextCustomer = null) => {
       try {
@@ -170,7 +171,7 @@ const Homepage = () => {
     };
 
     const loadLatestResult = async () => {
-      const token = localStorage.getItem("auth_token");
+      const token = getAuthToken();
       if (!token) {
         if (isActive) {
           setCheckingResults(false);

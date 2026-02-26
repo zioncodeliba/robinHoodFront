@@ -7,6 +7,11 @@ import leavesright from './assets/images/leaves_right.png';
 
 import { BrowserRouter as Router, Navigate, Routes, Route, useLocation, useNavigate } from 'react-router-dom';
 import { clearAffiliateCode, setAffiliateCode } from './utils/affiliate';
+import {
+  getAuthToken,
+  resolveQuickAccessPreference,
+  setAuthToken,
+} from './utils/authStorage';
 
 // Component
 import Header from './components/Header';
@@ -121,13 +126,19 @@ function AppWrapper() {
     if (!token && !customerRaw) return;
 
     try {
-      if (token) localStorage.setItem('auth_token', token);
+      let parsedCustomer = null;
 
       if (customerRaw) {
         // Expect URL-encoded JSON. Keep failure silent.
         const decoded = decodeURIComponent(customerRaw);
-        const parsed = JSON.parse(decoded);
-        localStorage.setItem('user_data', JSON.stringify(parsed));
+        parsedCustomer = JSON.parse(decoded);
+        localStorage.setItem('user_data', JSON.stringify(parsedCustomer));
+      }
+
+      if (token) {
+        setAuthToken(token, {
+          quickAccess: resolveQuickAccessPreference(parsedCustomer),
+        });
       }
       if (token || customerRaw) {
         clearAffiliateCode();
@@ -136,8 +147,10 @@ function AppWrapper() {
       // Remove query params from URL (avoid leaking tokens via history/share)
       window.history.replaceState({}, document.title, location.pathname);
     } catch {
-      // If parsing fails, still try to clear the URL if we got token
-      if (token) window.history.replaceState({}, document.title, location.pathname);
+      if (token) {
+        setAuthToken(token, { quickAccess: resolveQuickAccessPreference() });
+        window.history.replaceState({}, document.title, location.pathname);
+      }
     }
   }, [location.pathname, location.search]);
 
@@ -186,7 +199,7 @@ function AppWrapper() {
     "/registration",
   ];
   const isLandingPromo = path === "/"
-    && !localStorage.getItem('auth_token')
+    && !getAuthToken()
     && !localStorage.getItem('affiliate_token')
     && !isDesktop;
   const hideHeader = hideHeaderPaths.includes(path) || isLandingPromo;
@@ -197,7 +210,7 @@ function AppWrapper() {
   const HidestickyMenu = ["/registration", "/login", "/login-with-otp", "/otp-verify", "/aichat", "/aichat-static"].includes(path) || isLandingPromo;
 
   const LandingRoute = () => {
-    const isAuthenticated = localStorage.getItem('auth_token') || localStorage.getItem('affiliate_token');
+    const isAuthenticated = getAuthToken() || localStorage.getItem('affiliate_token');
     if (isAuthenticated) {
       return <Homepage />;
     }

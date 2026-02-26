@@ -14,6 +14,7 @@ import RoutesBankMortgage from '../components/suggestionscomponents/RoutesBankMo
 import ReturnsChart from '../components/commoncomponents/ReturnsChart';
 import NotePopup from '../components/suggestionscomponents/NotePopup';
 import { useNavState } from "../context/NavStateContext";
+import { clearAuthToken, getAuthToken } from "../utils/authStorage";
 
 const BANK_LOGOS = {
     hapoalim: "/banks/hapoalim.png",
@@ -91,7 +92,7 @@ const Suggestionspage = () => {
   };
 
   const handleAuthFailure = useCallback(() => {
-    localStorage.removeItem("auth_token");
+    clearAuthToken();
     localStorage.removeItem("user_data");
     localStorage.removeItem("mortgage_cycle_result");
     localStorage.removeItem("new_mortgage_submitted");
@@ -99,7 +100,7 @@ const Suggestionspage = () => {
   }, [navigate]);
 
   useEffect(() => {
-    if (!localStorage.getItem("auth_token")) {
+    if (!getAuthToken()) {
       handleAuthFailure();
       return undefined;
     }

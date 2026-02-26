@@ -1,6 +1,7 @@
 import React, { useRef, useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { getGatewayApiBase } from "../utils/apiBase";
+import { clearAuthToken } from "../utils/authStorage";
 
 import nextI from '../assets/images/next_icon.svg';
 import brand from '../assets/images/logoup_m.svg';
@@ -241,7 +242,7 @@ const AffiliateOtpVerify = () => {
 
       if (data?.success || response.ok) {
         if (data.data?.token) {
-          localStorage.removeItem('auth_token');
+          clearAuthToken();
           localStorage.removeItem('user_data');
           localStorage.setItem('affiliate_token', data.data.token);
           if (data.data.affiliate) {

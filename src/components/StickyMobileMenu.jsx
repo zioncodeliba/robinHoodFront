@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link ,useLocation } from 'react-router-dom';
 import { useNavState } from '../context/NavStateContext';
+import { getAuthToken } from '../utils/authStorage';
 
 import HomeIcon from '../assets/images/s_home.svg';
 import Alerts from '../assets/images/s_alerts.svg';
@@ -14,8 +15,8 @@ const StickyMobileMenu = () => {
   const { unreadCount, hasSuggestions, hasPrincipalApproval } = useNavState();
   const badgeText = unreadCount > 99 ? '99+' : `${unreadCount}`;
   
-  const suggestionsDisabled = Boolean(localStorage.getItem('auth_token')) && !hasSuggestions;
-  const statusDisabled = Boolean(localStorage.getItem('auth_token')) && !hasPrincipalApproval;
+  const suggestionsDisabled = Boolean(getAuthToken()) && !hasSuggestions;
+  const statusDisabled = Boolean(getAuthToken()) && !hasPrincipalApproval;
 
   const handleDisabledNavigation = (event, isDisabled) => {
     if (!isDisabled) {

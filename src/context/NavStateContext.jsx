@@ -5,6 +5,7 @@ import {
   fetchCustomerMeCached,
   fetchNotificationsMeCached,
 } from '../utils/authGetCache';
+import { getAuthToken } from '../utils/authStorage';
 
 const NavStateContext = createContext({
   isLoaded: false,
@@ -81,7 +82,7 @@ const hasApprovalStepUnlocked = (statusText) => {
 export const NavStateProvider = ({ children }) => {
   const lastAutoRefreshRef = useRef(0);
   const lastTokenRef = useRef(
-    typeof window !== 'undefined' ? (localStorage.getItem('auth_token') || '') : '',
+    typeof window !== 'undefined' ? (getAuthToken() || '') : '',
   );
   const [isLoaded, setIsLoaded] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
@@ -103,7 +104,7 @@ export const NavStateProvider = ({ children }) => {
   }, []);
 
   const refreshCustomerProfile = useCallback(async ({ force = false } = {}) => {
-    const token = localStorage.getItem('auth_token');
+    const token = getAuthToken();
     if (!token) {
       setCustomerProfile(null);
       return { ok: false, status: 401, data: null };
@@ -120,7 +121,7 @@ export const NavStateProvider = ({ children }) => {
   }, []);
 
   const refreshNavState = useCallback(async ({ force = false, forceNotifications = false } = {}) => {
-    const token = localStorage.getItem('auth_token');
+    const token = getAuthToken();
     if (!token) {
       resetState();
       setIsLoaded(true);
@@ -275,7 +276,7 @@ export const NavStateProvider = ({ children }) => {
 
   useEffect(() => {
     const interval = window.setInterval(() => {
-      const nextToken = localStorage.getItem('auth_token') || '';
+      const nextToken = getAuthToken() || '';
       if (nextToken === lastTokenRef.current) return;
       lastTokenRef.current = nextToken;
       lastAutoRefreshRef.current = 0;

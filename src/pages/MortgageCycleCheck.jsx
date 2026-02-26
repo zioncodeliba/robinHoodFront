@@ -18,6 +18,7 @@ import {
 import { getGatewayBase } from "../utils/apiBase";
 import { clearAuthGetCache } from "../utils/authGetCache";
 import { useNavState } from "../context/NavStateContext";
+import { getAuthToken } from "../utils/authStorage";
 
 const DEFAULT_BANK_IDS = [3, 2, 1, 4, 8, 12];
 
@@ -72,7 +73,7 @@ const MortgageCycleCheck = () => {
       alert("נא להזין סכום תקין");
       return;
     }
-    const token = localStorage.getItem("auth_token");
+    const token = getAuthToken();
     if (!token) {
       alert("יש להתחבר מחדש");
       return;

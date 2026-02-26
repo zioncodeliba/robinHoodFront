@@ -10,6 +10,7 @@ import {
   getDefaultAllowedBankIds,
   normalizeAllowedBankIds,
 } from '../utils/customerFlowRouting';
+import { clearAuthToken, getAuthToken } from '../utils/authStorage';
 
 const BANK_VISIBILITY_PAGES = new Set([
   '/homebeforeapproval',
@@ -20,7 +21,7 @@ const BANK_VISIBILITY_PAGES = new Set([
 
 const ProtectedRoute = ({ children }) => {
   const location = useLocation();
-  const token = localStorage.getItem('auth_token');
+  const token = getAuthToken();
   const isDesktop = typeof window !== 'undefined' ? window.innerWidth >= 1024 : false;
   const [status, setStatus] = React.useState(() => (token ? 'checking' : 'unauthenticated'));
   const [redirectPath, setRedirectPath] = React.useState('');
@@ -45,7 +46,7 @@ const ProtectedRoute = ({ children }) => {
         if (!isMounted) return;
 
         if (response.status === 401 || response.status === 403) {
-          localStorage.removeItem('auth_token');
+          clearAuthToken();
           localStorage.removeItem('user_data');
           setStatus('unauthenticated');
           setRedirectPath('');
@@ -56,7 +57,7 @@ const ProtectedRoute = ({ children }) => {
           // Always revalidate this flow-critical routing data.
           const customerResponse = await fetchCustomerMeCached(token);
           if (customerResponse.status === 401 || customerResponse.status === 403) {
-            localStorage.removeItem('auth_token');
+            clearAuthToken();
             localStorage.removeItem('user_data');
             if (!isMounted) return;
             setStatus('unauthenticated');
@@ -72,7 +73,7 @@ const ProtectedRoute = ({ children }) => {
 
             const visibilityResponse = await fetchBankVisibilityMeCached(token);
             if (visibilityResponse.status === 401 || visibilityResponse.status === 403) {
-              localStorage.removeItem('auth_token');
+              clearAuthToken();
               localStorage.removeItem('user_data');
               if (!isMounted) return;
               setStatus('unauthenticated');

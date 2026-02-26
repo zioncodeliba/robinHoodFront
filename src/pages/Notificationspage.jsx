@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import '../components/notificationcomponents/notifications.css';
 import { getGatewayBase } from "../utils/apiBase";
 import { useNavState } from "../context/NavStateContext";
+import { clearAuthToken, getAuthToken } from "../utils/authStorage";
 
 import notifiIcon from '../assets/images/notifi.png';
 import removeIcon from '../assets/images/remove.png';
@@ -47,7 +48,7 @@ const Notificationspage = () => {
   };
 
   const handleAuthFailure = useCallback(() => {
-    localStorage.removeItem("auth_token");
+    clearAuthToken();
     localStorage.removeItem("user_data");
     localStorage.removeItem("mortgage_cycle_result");
     localStorage.removeItem("new_mortgage_submitted");
@@ -55,7 +56,7 @@ const Notificationspage = () => {
   }, [navigate]);
 
   useEffect(() => {
-    const token = localStorage.getItem("auth_token");
+    const token = getAuthToken();
     if (!token) {
       handleAuthFailure();
       return;
@@ -79,7 +80,7 @@ const Notificationspage = () => {
   const loading = !navStateLoaded;
 
   const removeNotification = async (id) => {
-    const token = localStorage.getItem("auth_token");
+    const token = getAuthToken();
     if (!token || !apiBase) {
       handleAuthFailure();
       return;
@@ -115,7 +116,7 @@ const Notificationspage = () => {
   };
 
   const markAllAsRead = async () => {
-    const token = localStorage.getItem("auth_token");
+    const token = getAuthToken();
     if (!token || !apiBase) {
       handleAuthFailure();
       return;
@@ -163,7 +164,7 @@ const Notificationspage = () => {
 
   const markAsRead = async (item) => {
     if (!item || item.read_at) return;
-    const token = localStorage.getItem("auth_token");
+    const token = getAuthToken();
     if (!token || !apiBase) {
       handleAuthFailure();
       return;

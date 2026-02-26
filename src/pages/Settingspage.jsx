@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Link } from 'react-router-dom';
 import '../components/settingscomponents/settingspage.css';
 import { getGatewayBase } from "../utils/apiBase";
+import { getAuthToken, syncAuthTokenPersistence } from "../utils/authStorage";
 
 import settingsimg from '../assets/images/settings_img.png';
 
@@ -74,7 +75,7 @@ const Settingspage = () => {
   const [success, setSuccess] = useState('');
 
   useEffect(() => {
-    const token = localStorage.getItem('auth_token');
+    const token = getAuthToken();
     if (!token) return;
 
     let isMounted = true;
@@ -96,6 +97,7 @@ const Settingspage = () => {
         setBenefits(Boolean(nextSettings.benefits));
         setQuickAccess(Boolean(nextSettings.quickAccess));
         persistSettingsToStorage(nextSettings, payload);
+        syncAuthTokenPersistence(Boolean(nextSettings.quickAccess));
       } finally {
         if (isMounted) setIsLoading(false);
       }
@@ -108,7 +110,7 @@ const Settingspage = () => {
   }, []);
 
   const handleSaveSettings = async () => {
-    const token = localStorage.getItem('auth_token');
+    const token = getAuthToken();
 
     if (!token) {
       setError('נא להתחבר כדי לשמור הגדרות');
@@ -155,6 +157,7 @@ const Settingspage = () => {
         setBenefits(Boolean(nextSettings.benefits));
         setQuickAccess(Boolean(nextSettings.quickAccess));
         persistSettingsToStorage(nextSettings, data);
+        syncAuthTokenPersistence(Boolean(nextSettings.quickAccess));
 
         setSuccess('ההגדרות נשמרו בהצלחה');
         // Clear success message after 3 seconds

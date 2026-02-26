@@ -6,11 +6,12 @@ import congo from '../assets/images/congo_icon1.png';
 import close from '../assets/images/close_popup.png';
 import manImage from '../assets/images/schedulemeetings_man.png';
 import { getGatewayBase } from "../utils/apiBase";
+import { getAuthToken } from "../utils/authStorage";
 
 const ScheduleMeetingspage = () => {
   const navigate = useNavigate();
   const apiBase = useMemo(() => getGatewayBase(), []);
-  const authToken = useMemo(() => localStorage.getItem("auth_token"), []);
+  const authToken = useMemo(() => getAuthToken(), []);
 
   const [slotDays, setSlotDays] = useState([]);
   const [durationMinutes, setDurationMinutes] = useState(30);

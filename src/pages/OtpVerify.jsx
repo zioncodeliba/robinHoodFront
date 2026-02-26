@@ -2,6 +2,11 @@ import React, { useRef, useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { getGatewayApiBase } from "../utils/apiBase";
 import { clearAffiliateCode, getAffiliateCode } from "../utils/affiliate";
+import {
+  clearAuthToken,
+  resolveQuickAccessPreference,
+  setAuthToken,
+} from "../utils/authStorage";
 
 import nextI from '../assets/images/next_icon.svg';
 import brand from '../assets/images/logoup_m.svg';
@@ -282,7 +287,7 @@ const OtpVerify = () => {
         const token = data?.data?.token;
         if (role === 'affiliate' || data?.data?.affiliate) {
           if (token) {
-            localStorage.removeItem('auth_token');
+            clearAuthToken();
             localStorage.removeItem('user_data');
             localStorage.setItem('affiliate_token', token);
             if (data.data?.affiliate) {
@@ -298,7 +303,9 @@ const OtpVerify = () => {
         }
 
         if (token) {
-          localStorage.setItem('auth_token', token);
+          setAuthToken(token, {
+            quickAccess: resolveQuickAccessPreference(data.data?.customer),
+          });
           localStorage.setItem('user_data', JSON.stringify(data.data?.customer));
         }
         localStorage.removeItem('affiliate_token');

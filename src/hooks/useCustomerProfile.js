@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { useNavState } from "../context/NavStateContext";
+import { getAuthToken } from "../utils/authStorage";
 
 const readStoredUserData = () => {
   try {
@@ -23,7 +24,7 @@ export const getCustomerDisplayName = (userData, fallback = "שם") =>
 const useCustomerProfile = () => {
   const { customerProfile, isLoaded, refreshCustomerProfile } = useNavState();
   const [userData, setUserData] = useState(readStoredUserData);
-  const token = localStorage.getItem("auth_token");
+  const token = getAuthToken();
 
   const syncCustomerProfile = useCallback(async ({ force = false } = {}) => {
     if (!token) {
