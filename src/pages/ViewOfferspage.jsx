@@ -211,11 +211,11 @@ const ViewOfferspage = () => {
     });
     return merged;
   }, [approvedBanks, offerBanks]);
-  const [emblaRef, emblaApi] = useEmblaCarousel({
-    loop: carouselBanks.length > 1,
-    direction: "rtl",
-    align: "start",
-  });
+  // const [emblaRef, emblaApi] = useEmblaCarousel({
+  //   loop: carouselBanks.length > 1,
+  //   direction: "rtl",
+  //   align: "start",
+  // });
 
   // const [emblaRef, emblaApi] = useEmblaCarousel({
   //   loop: carouselBanks.length > 1,
