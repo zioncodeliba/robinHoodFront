@@ -357,10 +357,22 @@ const Suggestionspage = () => {
       };
     });
   }, [bankResponses]);
+
+  // const [emblaRef, emblaApi] = useEmblaCarousel({
+  //   loop: visibleOffers.length > 1,
+  //   direction: "rtl",
+  //   align: "start",
+  // });
   const [emblaRef, emblaApi] = useEmblaCarousel({
     loop: visibleOffers.length > 1,
     direction: "rtl",
-    align: "start",
+    breakpoints: {
+      "(max-width: 768px)": {
+        align: "center",
+        containScroll: "trimSnaps",
+        dragFree: false,
+      },
+    },
   });
 
   const hasOffers = visibleOffers.length > 0;
@@ -464,33 +476,39 @@ const Suggestionspage = () => {
                         key={offer.id}
                         aria-hidden={index !== selectedOfferIndex}
                       >
-                        <BankMortgageCard bankData={offer} />
+                        <div className="colin_wrap">
+                            <BankMortgageCard bankData={offer} />
+                            <div className="baskets_list">
+                            <ul className="d_flex">
+                              <li>סל אחיד 1</li>
+                            </ul>
+                          </div>
+                          <div className="note" onClick={() => openPopup(activeOffer.id)}>
+                            <img src={notei} alt="" />
+                            <p>הסבר על המסלולים</p>
+                          </div>
+                          <RoutesBankMortgage color={activeOffer.color} routes={activeOffer.routes} />
+                        </div>
+                      {activeOffer.simulatorchartdata ? (
+                        <ReturnsChart
+                          charttitle={'החזרים'}
+                          interest={'ריבית'}
+                          fund={'קרן'}
+                          dataSets={activeOffer.simulatorchartdata}
+                          kerenColor={"#27450E"}
+                          rivitColor={"#E27600"}
+                        />
+                      ) : null}
+                      <NotePopup isOpen={openPopupId === activeOffer.id} onClose={closePopup} />
+
                       </div>
                     ))}
                   </div>
                 </div>
               </div>
-              <div className="baskets_list">
-                <ul className="d_flex">
-                  <li>סל אחיד 1</li>
-                </ul>
-              </div>
-              <div className="note" onClick={() => openPopup(activeOffer.id)}>
-                <img src={notei} alt="" />
-                <p>הסבר על המסלולים</p>
-              </div>
-              <RoutesBankMortgage color={activeOffer.color} routes={activeOffer.routes} />
-              {activeOffer.simulatorchartdata ? (
-                <ReturnsChart
-                  charttitle={'החזרים'}
-                  interest={'ריבית'}
-                  fund={'קרן'}
-                  dataSets={activeOffer.simulatorchartdata}
-                  kerenColor={"#27450E"}
-                  rivitColor={"#E27600"}
-                />
-              ) : null}
-              <NotePopup isOpen={openPopupId === activeOffer.id} onClose={closePopup} />
+
+              
+
             </div>
           </div>
           {showPager ? (

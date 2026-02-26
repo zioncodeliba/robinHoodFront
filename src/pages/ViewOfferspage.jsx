@@ -217,6 +217,23 @@ const ViewOfferspage = () => {
     align: "start",
   });
 
+  // const [emblaRef, emblaApi] = useEmblaCarousel({
+  //   loop: carouselBanks.length > 1,
+  //   direction: "rtl",
+  //   align: "start",
+  // });
+  const [emblaRef, emblaApi] = useEmblaCarousel({
+    loop: carouselBanks.length > 1,
+    direction: "rtl",
+    breakpoints: {
+      "(max-width: 768px)": {
+        align: "center",
+        containScroll: "trimSnaps",
+        dragFree: false,
+      },
+    },
+  });
+
   useEffect(() => {
     if (offersLoaded && !offersLoading && visibilityLoaded && offerBankIds.length === 0 && allowedBankIds.length === 0) {
       navigate('/homebeforeapproval2', { replace: true });
