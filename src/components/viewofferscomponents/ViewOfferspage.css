@@ -108,7 +108,13 @@
     .bank_expireday_list ul li h4 { font-size: 16px; }
     .viewoffers_page .next_prev_box{position: absolute;bottom: auto;top:350px;}
 
-
+    body .viewoffers_page .viewoffers_carousel { width: calc(100% + 26px); margin-right: -13px; }
+    .viewoffers_page .viewoffers_carousel__container{}
+    .viewoffers_page .viewoffers_carousel__slide { flex: 0 0 calc(100% - 56px); min-width: 0; margin-right:9px;}
+    .viewoffers_page .routes_mobile { max-width: 100%; }
+    .viewoffers_carousel__slide[aria-hidden="true"] .awaiting_offer_card *{opacity: 0;transition: 0.4s ease all;}
+    .viewoffers_carousel__slide[aria-hidden="true"] .awaiting_offer_card{background:linear-gradient(180deg, rgb(171 193 170) 0%, rgb(225 240 223) 100%);}
+    
 
 }
 @media (max-width:374px) {
@@ -177,4 +183,8 @@
     .viewoffers_page .status_summary_sec ul li span { width: 24px; height: 24px; margin-left: 10px; }
     .viewoffers_page .status_summary_sec ul li a { font-size: 10px; line-height: 22px; padding: 0 11px; }
     .viewoffers_page .status_summary_sec .most_offer { line-height: 28px; font-size: 15px; left: 14px; width: calc(100% + 24px); }
+
+
+    
+
 }
