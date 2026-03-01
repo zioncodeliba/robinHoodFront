@@ -201,10 +201,17 @@ const HomeBeforeApproval2 = () => {
         });
     }, [visibleBanks, approvedVisibleBankIds]);
     const carouselBanks = statusList.length ? statusList : [null];
+    const [selectedOfferIndex, setSelectedOfferIndex] = useState(0);
     const [emblaRef, emblaApi] = useEmblaCarousel({
-        loop: statusList.length > 1,
+        loop: carouselBanks.length > 1,
         direction: "rtl",
-        align: "start"
+        breakpoints: {
+            "(max-width: 768px)": {
+                align: "center",
+                containScroll: "trimSnaps",
+                dragFree: false,
+            },
+        },
     });
 
     useEffect(() => {
@@ -213,23 +220,39 @@ const HomeBeforeApproval2 = () => {
         }
     }, [approvedVisibleBankIds, navigate]);
 
+    useEffect(() => {
+        if (carouselBanks.length === 0) {
+            setSelectedOfferIndex(0);
+            return;
+        }
+        setSelectedOfferIndex((prev) =>
+            prev < 0 || prev >= carouselBanks.length ? 0 : prev
+        );
+    }, [carouselBanks.length]);
+
     const updateCarouselControls = useCallback(() => {
-        if (!emblaApi || statusList.length <= 1) {
+        if (!emblaApi || carouselBanks.length <= 1) {
             setCanScrollPrev(false);
             setCanScrollNext(false);
             return;
         }
         setCanScrollPrev(emblaApi.canScrollPrev());
         setCanScrollNext(emblaApi.canScrollNext());
-    }, [emblaApi, statusList.length]);
+    }, [emblaApi, carouselBanks.length]);
 
     useEffect(() => {
         if (!emblaApi) return;
         updateCarouselControls();
-        emblaApi.on("select", updateCarouselControls);
+
+        const handleSelect = () => {
+            setSelectedOfferIndex(emblaApi.selectedScrollSnap());
+            updateCarouselControls();
+        };
+
+        emblaApi.on("select", handleSelect);
         emblaApi.on("reInit", updateCarouselControls);
         return () => {
-            emblaApi.off("select", updateCarouselControls);
+            emblaApi.off("select", handleSelect);
             emblaApi.off("reInit", updateCarouselControls);
         };
     }, [emblaApi, updateCarouselControls]);
@@ -252,12 +275,12 @@ const HomeBeforeApproval2 = () => {
     const offerInfoText = offersCarouselNote || fallbackOfferInfoText;
 
     const handleMobilePrev = () => {
-        if (!emblaApi || statusList.length <= 1) return;
+        if (!emblaApi || carouselBanks.length <= 1) return;
         emblaApi.scrollPrev();
     };
 
     const handleMobileNext = () => {
-        if (!emblaApi || statusList.length <= 1) return;
+        if (!emblaApi || carouselBanks.length <= 1) return;
         emblaApi.scrollNext();
     };
 
@@ -284,7 +307,7 @@ const HomeBeforeApproval2 = () => {
         </>
     );
 
-    const arrowDisabled = statusList.length <= 1 || !emblaApi;
+    const arrowDisabled = carouselBanks.length <= 1 || !emblaApi;
     const prevDisabled = arrowDisabled || !canScrollPrev;
     const nextDisabled = arrowDisabled || !canScrollNext;
 
@@ -293,29 +316,28 @@ const HomeBeforeApproval2 = () => {
         <div className="wrapper">
             <h1>ברוכים הבאים, {displayName}</h1>
             
-            <div
-                className="mobile_header_slider"
-            >
+            <div className="mobile_header_slider">
                 <div className="mobile_header_slider__viewport" ref={emblaRef}>
                     <div className="mobile_header_slider__container">
                         {carouselBanks.map((bank, index) => (
                             <div
                                 className="mobile_header_slider__slide"
                                 key={bank?.id ?? `mobile-bank-placeholder-${index}`}
+                                aria-hidden={index !== selectedOfferIndex}
                             >
                                 {renderHeaderCard(bank)}
                             </div>
                         ))}
                     </div>
                 </div>
-                <div className="next_prev_box">
-                    <button type="button" className="prev" onClick={handleMobilePrev} disabled={prevDisabled}>
-                        <img src={nextprevarrow} alt="" />
-                    </button>
-                    <button type="button" className="next" onClick={handleMobileNext} disabled={nextDisabled}>
-                        <img src={nextprevarrow} alt="" />
-                    </button>
-                </div>
+            </div>
+            <div className="next_prev_box">
+                <button type="button" className="prev" onClick={handleMobilePrev} disabled={prevDisabled}>
+                    <img src={nextprevarrow} alt="" />
+                </button>
+                <button type="button" className="next" onClick={handleMobileNext} disabled={nextDisabled}>
+                    <img src={nextprevarrow} alt="" />
+                </button>
             </div>
             <div className="inner d_flex d_flex_jb">
                 <div className="right_col">

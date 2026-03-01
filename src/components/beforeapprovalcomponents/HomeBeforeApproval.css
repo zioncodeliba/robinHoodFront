@@ -75,41 +75,60 @@
     .frequently_questions_sec{margin-top: 43px;}
     .homebefore_approval_page .status_summary_sec { margin-top: 38px; }
  
-    .homebefore_approval_page .mobile_header_slider .next_prev_box {
+    /* Carousel layout: same as suggestions/viewoffer – full-width slider, peek slides */
+    body .homebefore_approval_page .mobile_header_slider { width: calc(100% + 26px); margin-right: -13px; }
+    .homebefore_approval_page .mobile_header_slider__container { }
+    .homebefore_approval_page .mobile_header_slider__slide { flex: 0 0 calc(100% - 56px); min-width: 0; margin-right: 9px; }
+    /* Arrows: same design/position as suggestions and viewoffer (page-level, not inside slider) */
+    .homebefore_approval_page .next_prev_box {
         position: absolute;
-        top: 80%;
+        top: 282px;
         bottom: auto;
-        left: 0;
-        right: 0;
-        width: 100%;
+        left: -13px;
+        right: -13px;
+        width: calc(100% + 26px);
         min-width: 0;
         height: auto;
         margin: 0;
-        transform: translateY(-50%);
+        padding: 0;
         pointer-events: none;
         z-index: 6;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
     }
-    .homebefore_approval_page .mobile_header_slider .next_prev_box button {
+    .homebefore_approval_page .next_prev_box button {
         pointer-events: all;
-        width: 42px;
-        height: 36px;
-        padding: 0;
-        justify-content: center;
-        border-radius: 999px;
-        box-shadow: 0 4px 16px #27450E2E;
+        height: 38px;
+        width: 44px;
+        padding: 0 9px;
+        border-radius: 50px 0 0 50px;
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        background-color: #A1AE96;
+        border: none;
+        cursor: pointer;
     }
-    .homebefore_approval_page .mobile_header_slider .next_prev_box button img {
-        max-width: 22px;
+    .homebefore_approval_page .next_prev_box button.next { transform: scale(-1); }
+    .homebefore_approval_page .next_prev_box button:hover { background-color: var(--orange); }
+    .homebefore_approval_page .next_prev_box button img { max-width: 28px; }
+    .homebefore_approval_page .next_prev_box button:disabled { opacity: 0.55; cursor: default; }
+    /* Hidden (prev/next) slides: same effect as suggestions/viewoffer – faded gradient, content hidden */
+    .homebefore_approval_page .mobile_header_slider__slide[aria-hidden="true"] .awaiting_approval_box * { opacity: 0; transition: 0.4s ease all; }
+    .homebefore_approval_page .mobile_header_slider__slide[aria-hidden="true"] .awaiting_approval_box {
+        background: linear-gradient(180deg, rgb(171 193 170) 0%, rgb(225 240 223) 100%) !important;
+        border-color: transparent !important;
+        box-shadow: none !important;
+        border-radius: 15px;
     }
-    .homebefore_approval_page .mobile_header_slider .next_prev_box button:disabled {
-        opacity: 0.55;
-    }
+    .homebefore_approval_page .mobile_header_slider__slide[aria-hidden="true"] .awaiting_approval_box::after { opacity: 0; }
     .awaiting_approval_box { min-height:236px; padding: 46px 20px 20px; }
     .homebefore_approval_page .sandicon { margin: 20px auto 0; }
     .awaiting_approval_box::after{content:'';position: absolute;bottom: 0;height: 5px;width: calc(100% - 60px);left: 0;right: 0;margin: 0 auto;background-color: #E27600;border-radius: 10px;}
     .awaiting_approval_box_mobile .tag { margin-left: 44px; }
     .awaiting_approval_box_mobile .notification{position: absolute;left: 8px;top: 6px;display: block;}
-    .awaiting_approval_box_mobile .bank_title1{position: absolute;right: 20px;top:-44px;display: block;}
+    .awaiting_approval_box_mobile .bank_title1{position: absolute;right: 5px;top:-44px;display: block;}
     .awaiting_approval_box_mobile .bank_title1 span{width: 64px;height: 64px;display: flex;align-items: center;justify-content: center;}
     .awaiting_approval_box_mobile .bank_title1 h3{line-height: 24px;color: #27450E;font-size: 18px;line-height: 24px;font-weight: 400;padding-right: 7px;}
 

@@ -83,6 +83,7 @@ const MortgageCycleCheck = () => {
     try {
       setSubmitting(true);
       setApiComplete(false);
+
       const formData = new FormData();
       formData.append("bank_id", bankId);
       formData.append("amount", String(numericAmount));

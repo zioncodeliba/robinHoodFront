@@ -165,7 +165,7 @@
     .suggestions_page .title h1{margin-bottom: 0px;}
     .suggestions_page .bank_mortgage_card{max-width: 100%;}
     .suggestions_page .suggestions_card_carousel__slide .colin_wrap { padding: 30px 0px 0; }
-    .suggestions_page .suggestions_card_carousel__slide{ flex: 0 0 calc(100% - 56px); min-width: 0;margin: auto; margin-right:9px;}
+    .suggestions_page .suggestions_card_carousel__slide{ flex: 0 0 calc(100% - 39px); min-width: 0;margin: auto; margin-right:9px;}
     .suggestions_page .suggestions_card_carousel__slide[aria-hidden="true"] .bank_mortgage_card *{opacity: 0;transition: 0.4s ease all;}
     .suggestions_page .suggestions_card_carousel__slide[aria-hidden="true"] .bank_mortgage_card{background:linear-gradient(180deg, rgb(171 193 170) 0%, rgb(225 240 223) 100%);border-color: transparent !important;}
 

@@ -8,6 +8,7 @@
 .viewoffers_page .viewoffers_carousel__viewport{overflow: hidden;}
 .viewoffers_page .viewoffers_carousel__container{display: flex;touch-action: pan-y;}
 .viewoffers_page .viewoffers_carousel__slide{flex: 0 0 100%;min-width: 0;}
+.viewoffers_page .bank_logo:has(img[src*="discount.png"]){top: -10px;}
 
 .viewoffers_page .awaiting_offer_card{position: relative;background: linear-gradient(180deg, rgba(255, 255, 255, 1) 0%, rgba(225, 240, 223, 1) 100%);min-height: 196px;padding: 28px 20px 43px;margin-top: 70px;margin-bottom: 132px;border-radius: 15px;}
 .viewoffers_page .awaiting_offer_card .tag{line-height: 48px;background-color: var(--white);border-radius: 50px;border: 1px solid var(--orange);display: flex;align-items: center;justify-content: center;position: absolute;top:-30px;left: 0;right: 0;margin: 0 auto;width: fit-content;padding: 0 18px;color: var(--orange);font-size: 16px;font-weight: 500;}
@@ -92,7 +93,7 @@
     .viewoffers_page .awaiting_offer_card .sandicon { margin: 20px auto 0; }
     .viewoffers_page .awaiting_offer_card_mobile .tag { margin-left: 44px; }
     .viewoffers_page .awaiting_offer_card_mobile .notification{position: absolute;left: 8px;top: 6px;display: block;}
-    .viewoffers_page .awaiting_offer_card_mobile .awaiting_offer_bank_title{position: absolute;right: 20px;top:-44px;display: block;}
+    .viewoffers_page .awaiting_offer_card_mobile .awaiting_offer_bank_title{position: absolute;right: 5px;top:-44px;display: block;}
     .viewoffers_page .awaiting_offer_card_mobile .awaiting_offer_bank_title span{width: 64px;height: 64px;display: flex;align-items: center;justify-content: center;}
     .viewoffers_page .awaiting_offer_card_mobile .awaiting_offer_bank_title h3{line-height: 24px;color: #27450E;font-size: 18px;font-weight: 400;padding-right: 7px;}
 
@@ -106,14 +107,21 @@
     .bank_offer_list { width: 100%;margin-bottom: 16px;padding: 10px 15px 35px;}
     .bank_expireday_list{width: 100%; }
     .bank_expireday_list ul li h4 { font-size: 16px; }
-    .viewoffers_page .next_prev_box{position: absolute;bottom: auto;top:350px;}
 
     body .viewoffers_page .viewoffers_carousel { width: calc(100% + 26px); margin-right: -13px; }
     .viewoffers_page .viewoffers_carousel__container{}
     .viewoffers_page .viewoffers_carousel__slide { flex: 0 0 calc(100% - 56px); min-width: 0; margin-right:9px;}
     .viewoffers_page .routes_mobile { max-width: 100%; }
-    .viewoffers_carousel__slide[aria-hidden="true"] .awaiting_offer_card *{opacity: 0;transition: 0.4s ease all;}
-    .viewoffers_carousel__slide[aria-hidden="true"] .awaiting_offer_card{background:linear-gradient(180deg, rgb(171 193 170) 0%, rgb(225 240 223) 100%);}
+    /* Hidden (prev/next) slides: same effect as suggestions carousel – faded gradient, content hidden, border transparent */
+    .viewoffers_page .viewoffers_carousel__slide[aria-hidden="true"] .awaiting_offer_card *,
+    .viewoffers_page .viewoffers_carousel__slide[aria-hidden="true"] .routes_mortgage_sec * { opacity: 0; transition: 0.4s ease all; }
+    .viewoffers_page .viewoffers_carousel__slide[aria-hidden="true"] .awaiting_offer_card,
+    .viewoffers_page .viewoffers_carousel__slide[aria-hidden="true"] .routes_mortgage_sec,
+    .viewoffers_page .viewoffers_carousel__slide[aria-hidden="true"] .routes_mortgage_sec .routes_mobile,
+    .viewoffers_page .viewoffers_carousel__slide[aria-hidden="true"] .routes_mortgage_sec .routes_explanation,
+    .viewoffers_page .viewoffers_carousel__slide[aria-hidden="true"] .routes_mortgage_sec .routes_explanation .list_routes { background: linear-gradient(180deg, rgb(171 193 170) 0%, rgb(225 240 223) 100%) !important; border-color: transparent !important; box-shadow: none !important; border-radius: 15px; }
+    .viewoffers_page .viewoffers_carousel__slide[aria-hidden="true"] .routes_mortgage_sec .routes_mobile::after { opacity: 0; }
+    .viewoffers_page .next_prev_box{position: absolute;bottom: auto;top:332px;}
     
 
 }
