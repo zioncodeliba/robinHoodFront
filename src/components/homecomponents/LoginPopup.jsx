@@ -164,7 +164,7 @@ const LoginPopup = ({showloginPopup}) => {
         disabled={isAppleLoading}
       >
         <img src={appleIcon} alt="" />
-        {isAppleLoading ? 'מתחבר...' : 'כניסה באמצעות אפל'}
+        {isAppleLoading ? 'מתחבר...' : 'כניסה באמצעות Apple'}
       </button>
       {error && (
         <div className="form_error">{error}</div>

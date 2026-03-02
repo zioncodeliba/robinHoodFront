@@ -94,6 +94,8 @@ const OtpScreen = () => {
           <div className="form_input">           
             <input
               type="text"
+              inputMode="numeric"
+              pattern="[0-9]*"
               placeholder="הקלד.."
               className="phone"
               value={phone}

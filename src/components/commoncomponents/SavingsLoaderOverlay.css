@@ -188,8 +188,12 @@ body.savings_loader_overlay_open {
   left: 52%;
 }
 
-.loader1 .savings_loader_overlay__magnifier, .loader3 .savings_loader_overlay__magnifier {
+.loader3 .savings_loader_overlay__magnifier {
   animation: pulseScale 1.5s ease-in-out infinite;
+}
+
+.loader1 .savings_loader_overlay__magnifier {
+  animation: spinMagnifier 9.2s linear infinite reverse;
 }
 
 .loader4 .savings_loader_overlay__magnifier {
@@ -255,6 +259,7 @@ body.savings_loader_overlay_open {
   }
   .savings_loader_overlay__magnifier {
     max-width: 140px;
+    height: 138px;
   }
   .savings_loader_overlay__hero_img--services_01 {
     width: 70px;

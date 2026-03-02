@@ -14,7 +14,7 @@ import appleIcon from '../assets/images/apple_i.svg';
 import googleIcon from '../assets/images/google_i.svg';
 // import otpIcon from '../assets/images/otp.png';
 import otpIcon from '../assets/images/otp.svg';
-import loginman from '../assets/images/login_img.png';
+import loginman from '../assets/images/login_figure.png';
 
 
 const Loginpage = () => {
@@ -199,7 +199,7 @@ const Loginpage = () => {
         disabled={isAppleLoading}
       >
         <img src={appleIcon} alt="" />
-        {isAppleLoading ? 'מתחבר...' : 'כניסה באמצעות אפל'}
+        {isAppleLoading ? 'מתחבר...' : 'כניסה באמצעות Apple'}
       </button>
 
       {/* <div className='forgot_box'>

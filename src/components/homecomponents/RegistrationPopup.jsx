@@ -204,7 +204,7 @@ const RegistrationPopup = ({ showRegistrationPopup }) => {
         disabled={isAppleLoading}
       >
         <img src={appleIcon} alt="" />
-        {isAppleLoading ? 'מתחבר...' : 'הרשמה באמצעות אפל'}
+        {isAppleLoading ? 'מתחבר...' : 'הרשמה באמצעות Apple'}
       </button>
       <button
         type="button"

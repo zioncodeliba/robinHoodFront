@@ -299,7 +299,7 @@ const Header = () => {
                       })
                     }
                   >
-                    <img src={NotificationIcon} alt="" />ההודעות שלי
+                    <img src={NotificationIcon} alt="" />ההתראות שלי
                     {unreadCount > 0 ? (
                       <span className="notification_badge">{badgeText}</span>
                     ) : null}

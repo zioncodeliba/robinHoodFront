@@ -231,7 +231,7 @@ const Registrationpage = () => {
         disabled={isAppleLoading}
       >
         <img src={appleIcon} alt="" />
-        {isAppleLoading ? 'מתחבר...' : 'הרשמה באמצעות אפל'}
+        {isAppleLoading ? 'מתחבר...' : 'הרשמה באמצעות Apple'}
       </button>
       <button
         className='link register_google'
