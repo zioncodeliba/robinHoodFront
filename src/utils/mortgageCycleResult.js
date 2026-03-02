@@ -139,6 +139,7 @@ export const getCalculatorResult = (payload) =>
   payload?.extracted_json?.calculator_result ?? null;
 
 const SCENARIO_CURRENT = "משכנתא נוכחית";
+const SCENARIO_CURRENT_EN = "Current_Mortgage";
 const NO_SAVING_BEST_RESULT = "there is no saving!!";
 
 const normalizeScenarioName = (value) =>
@@ -165,6 +166,10 @@ const getDetailedScenarios = (calcResult) => {
   return {};
 };
 
+const getComparisonScenarioName = (row) =>
+  String(row?.["תרחיש"] ?? row?.Scenario ?? "")
+    .trim();
+
 const getComparisonRow = (calcResult, preferredNames) => {
   const table = getComparisonTable(calcResult);
   if (!table.length) {
@@ -176,7 +181,7 @@ const getComparisonRow = (calcResult, preferredNames) => {
       continue;
     }
     const row =
-      table.find((item) => normalizeScenarioName(item?.["תרחיש"]) === normalizedName) || null;
+      table.find((item) => normalizeScenarioName(getComparisonScenarioName(item)) === normalizedName) || null;
     if (row) return row;
   }
   return null;
@@ -197,7 +202,7 @@ const getScenario = (calcResult, preferredNames) => {
 };
 
 const getRefinanceCurrentScenario = (calcResult) =>
-  getScenario(calcResult, [SCENARIO_CURRENT]);
+  getScenario(calcResult, [SCENARIO_CURRENT, SCENARIO_CURRENT_EN]);
 
 const getRefinanceOptimalScenario = (calcResult) => {
   const bestScenarioName = getBestResultScenarioName(calcResult);
@@ -208,7 +213,7 @@ const getRefinanceOptimalScenario = (calcResult) => {
 };
 
 const getRefinanceCurrentComparison = (calcResult) =>
-  getComparisonRow(calcResult, [SCENARIO_CURRENT]);
+  getComparisonRow(calcResult, [SCENARIO_CURRENT, SCENARIO_CURRENT_EN]);
 
 const getRefinanceOptimalComparison = (calcResult) => {
   const bestScenarioName = getBestResultScenarioName(calcResult);
@@ -254,13 +259,25 @@ export const hasCalculatorOffer = (calcResult) => {
 };
 
 const mapScenarioTrackToRoute = (track, totalAmount) => {
-  const amount = toNumber(track?.["סכום"]);
+  const amount = toNumber(
+    track?.["סכום"] ??
+    track?.Amount ??
+    track?.amount ??
+    track?.loan_value
+  );
   const percent = totalAmount ? (amount / totalAmount) * 100 : 0;
+  const months = toOptionalNumber(
+    track?.["תקופה_חודשים"] ??
+    track?.["תקופה (חודשים)"] ??
+    track?.Term_Months ??
+    track?.months
+  );
   return {
-    name: track?.["מסלול"] || "—",
+    name: track?.["מסלול"] || track?.Track || track?.name || "—",
     percentage: formatPercent(percent),
-    interest: formatRate(track?.["ריבית"]),
+    interest: formatRate(track?.["ריבית"] ?? track?.Interest ?? track?.rate),
     balance: formatCurrency(amount),
+    months,
   };
 };
 
@@ -299,7 +316,9 @@ const getWeightedRateFromScenarioTracks = (tracks, totalAmount) => {
   }
   const weightedSum = tracks.reduce(
     (sum, track) =>
-      sum + toNumber(track?.["ריבית"]) * toNumber(track?.["סכום"]),
+      sum +
+      toNumber(track?.["ריבית"] ?? track?.Interest) *
+      toNumber(track?.["סכום"] ?? track?.Amount),
     0
   );
   if (!weightedSum) {
@@ -325,25 +344,27 @@ export const buildMortgageDataFromOptimal = (payload) => {
 
   const totalAmount =
     toNumber(optimalScenario?.summary?.total_principal) ||
-    sumBy(optimalTracks, (track) => track?.["סכום"]) ||
+    sumBy(optimalTracks, (track) => track?.["סכום"] ?? track?.Amount) ||
     toNumber(payload?.amount);
   const maxMonths = Math.max(
     0,
-    ...optimalTracks.map((track) => toNumber(track?.["תקופה_חודשים"]))
+    ...optimalTracks.map((track) =>
+      toNumber(track?.["תקופה_חודשים"] ?? track?.Term_Months)
+    )
   );
   const totalPayments =
     toNumber(optimalScenario?.summary?.total_repayment) ||
-    toNumber(optimalComparison?.["סך הכל תשלומים"]);
+    toNumber(optimalComparison?.["סך הכל תשלומים"] ?? optimalComparison?.Total_Repayment);
   const firstPayment =
     toNumber(optimalScenario?.summary?.first_payment) ||
-    toNumber(optimalComparison?.["החזר חודשי ראשון"]);
+    toNumber(optimalComparison?.["החזר חודשי ראשון"] ?? optimalComparison?.First_Monthly_Payment);
   const maxPayment =
     toNumber(optimalScenario?.summary?.max_payment) ||
-    toNumber(optimalComparison?.["החזר חודשי מקסימלי"]) ||
+    toNumber(optimalComparison?.["החזר חודשי מקסימלי"] ?? optimalComparison?.Max_Monthly_Payment) ||
     firstPayment;
   const totalInterestIndex = sumBy(
     optimalTracks,
-    (track) => track?.["סהכ_ריבית_והצמדה"]
+    (track) => track?.["סהכ_ריבית_והצמדה"] ?? track?.Total_Interest_and_Indexation
   );
   const routesList = optimalTracks.map((track) =>
     mapScenarioTrackToRoute(track, totalAmount)
@@ -396,33 +417,41 @@ export const buildMortgageDataFromTracks = (payload) => {
   const hasSnpvTracks = tracks.length > 0;
   const totalAmount = hasSnpvTracks
     ? sumBy(tracks, (track) => track?.loan_value)
-    : sumBy(currentScenarioTracks, (track) => track?.["סכום"]);
+    : sumBy(currentScenarioTracks, (track) => track?.["סכום"] ?? track?.Amount);
   const totalInflation = hasSnpvTracks
     ? sumBy(tracks, (track) => track?.loan_value_inflation)
-    : sumBy(currentScenarioTracks, (track) => track?.["סהכ_ריבית_והצמדה"]);
+    : sumBy(
+        currentScenarioTracks,
+        (track) => track?.["סהכ_ריבית_והצמדה"] ?? track?.Total_Interest_and_Indexation
+      );
   const maxMonths = hasSnpvTracks
     ? Math.max(0, ...tracks.map((track) => toNumber(track?.loan_years)))
-    : Math.max(0, ...currentScenarioTracks.map((track) => toNumber(track?.["תקופה_חודשים"])));
+    : Math.max(
+        0,
+        ...currentScenarioTracks.map((track) =>
+          toNumber(track?.["תקופה_חודשים"] ?? track?.Term_Months)
+        )
+      );
   const fallbackTerm = toNumber(frontendData?.max_term);
   const firstPayment =
     toOptionalNumber(frontendData?.first_peyment) ??
     toOptionalNumber(currentScenario?.summary?.first_payment) ??
-    toOptionalNumber(currentComparison?.["החזר חודשי ראשון"]);
+    toOptionalNumber(currentComparison?.["החזר חודשי ראשון"] ?? currentComparison?.First_Monthly_Payment);
   const maxMonthlyPayment =
     (hasSnpvTracks
       ? Math.max(0, ...tracks.map((track) => toNumber(track?.monthly_repayment)))
       : 0) ||
     toOptionalNumber(currentScenario?.summary?.max_payment) ||
-    toOptionalNumber(currentComparison?.["החזר חודשי מקסימלי"]) ||
+    toOptionalNumber(currentComparison?.["החזר חודשי מקסימלי"] ?? currentComparison?.Max_Monthly_Payment) ||
     firstPayment ||
     0;
   const refundPerShekel =
     toOptionalNumber(frontendData?.Refund_amount_per_shekel) ??
-    toOptionalNumber(currentComparison?.["החזר לשקל"]);
+    toOptionalNumber(currentComparison?.["החזר לשקל"] ?? currentComparison?.Return_per_NIS);
   const totalPayments = refundPerShekel
     ? totalAmount * refundPerShekel
     : toNumber(currentScenario?.summary?.total_repayment) ||
-      toNumber(currentComparison?.["סך הכל תשלומים"]);
+      toNumber(currentComparison?.["סך הכל תשלומים"] ?? currentComparison?.Total_Repayment);
 
   const routesList = hasSnpvTracks
     ? tracks.map((track) => {
@@ -480,12 +509,12 @@ export const buildBankMortgageData = (payload) => {
   const outstandingBalance =
     toNumber(currentScenario?.summary?.total_principal) ||
     sumBy(tracks, (track) => track?.loan_value) ||
-    sumBy(currentScenarioTracks, (track) => track?.["סכום"]) ||
+    sumBy(currentScenarioTracks, (track) => track?.["סכום"] ?? track?.Amount) ||
     toNumber(payload?.amount);
 
   const firstPayment =
     toOptionalNumber(currentScenario?.summary?.first_payment) ??
-    toOptionalNumber(currentComparison?.["החזר חודשי ראשון"]);
+    toOptionalNumber(currentComparison?.["החזר חודשי ראשון"] ?? currentComparison?.First_Monthly_Payment);
 
   const combinedGraphMonthsRaw = currentScenario?.combined_graph?.months;
   const termMonthsFromCombinedGraph = Array.isArray(combinedGraphMonthsRaw)
@@ -500,7 +529,12 @@ export const buildBankMortgageData = (payload) => {
     ? Math.max(0, ...tracks.map((track) => toNumber(track?.loan_years)))
     : 0;
   const termMonthsFromScenarioTracks = currentScenarioTracks.length
-    ? Math.max(0, ...currentScenarioTracks.map((track) => toNumber(track?.["תקופה_חודשים"])))
+    ? Math.max(
+        0,
+        ...currentScenarioTracks.map((track) =>
+          toNumber(track?.["תקופה_חודשים"] ?? track?.Term_Months)
+        )
+      )
     : 0;
   const fallbackTermYears =
     toOptionalNumber(currentScenario?.summary?.max_term_years) ??
@@ -516,14 +550,22 @@ export const buildBankMortgageData = (payload) => {
 
   const totalPayments =
     toOptionalNumber(currentScenario?.summary?.total_repayment) ??
-    toOptionalNumber(currentComparison?.["סך הכל תשלומים"]);
+    toOptionalNumber(currentComparison?.["סך הכל תשלומים"] ?? currentComparison?.Total_Repayment);
 
-  const refundPerShekel = toOptionalNumber(currentComparison?.["החזר לשקל"]);
+  const refundPerShekel = toOptionalNumber(
+    currentComparison?.["החזר לשקל"] ?? currentComparison?.Return_per_NIS
+  );
 
-  const summaryIndexation = toOptionalNumber(currentScenario?.summary?.total_indexation);
+  const summaryIndexation = toOptionalNumber(
+    currentScenario?.summary?.total_interest ??
+    currentScenario?.summary?.total_indexation
+  );
   const indexLinkedAmount = summaryIndexation ?? (
     sumBy(tracks, (track) => track?.loan_value_inflation) ||
-    sumBy(currentScenarioTracks, (track) => track?.["סהכ_ריבית_והצמדה"]) ||
+    sumBy(
+      currentScenarioTracks,
+      (track) => track?.["סהכ_ריבית_והצמדה"] ?? track?.Total_Interest_and_Indexation
+    ) ||
     toNumber(currentComparison?.["סהכ ריבית והצמדה"]) ||
     toNumber(currentComparison?.['סה״כ ריבית והצמדה'])
   );
@@ -531,7 +573,7 @@ export const buildBankMortgageData = (payload) => {
   const averageScenarioRate = currentScenarioTracks.length
     ? (() => {
         const rates = currentScenarioTracks
-          .map((track) => toOptionalNumber(track?.["ריבית"]))
+          .map((track) => toOptionalNumber(track?.["ריבית"] ?? track?.Interest))
           .filter((rate) => rate !== null);
         if (!rates.length) return null;
         const sumRates = rates.reduce((sum, rate) => sum + rate, 0);

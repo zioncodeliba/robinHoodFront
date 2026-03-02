@@ -321,12 +321,24 @@ const ViewOfferspage = () => {
         expireoffertext: '',
         details: {
           bank: bank.bankName,
-          amount: formatMoney(bankSummary?.['סכום_הלוואה']),
+          amount: formatMoney(
+            bankSummary?.Loan_Amount ??
+            bankSummary?.['סכום_הלוואה']
+          ),
           years: formatYears(months, bankSummary),
-          firstMonthlyPayment: formatMoney(bankSummary?.['החזר_חודשי_ראשון']),
-          maxMonthlyPayment: formatMoney(bankSummary?.['החזר_חודשי_ראשון']),
+          firstMonthlyPayment: formatMoney(
+            bankSummary?.First_Monthly_Payment ??
+            bankSummary?.['החזר_חודשי_ראשון']
+          ),
+          maxMonthlyPayment: formatMoney(
+            bankSummary?.First_Monthly_Payment ??
+            bankSummary?.['החזר_חודשי_ראשון']
+          ),
         },
-        totalPayments: formatMoney(bankSummary?.['סהכ_החזר_משוער']),
+        totalPayments: formatMoney(
+          bankSummary?.Total_Estimated_Repayment ??
+          bankSummary?.['סהכ_החזר_משוער']
+        ),
       });
     });
     return map;

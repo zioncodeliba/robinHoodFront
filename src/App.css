@@ -32,6 +32,10 @@
 .ai_chat_box .colin .message_box p{color: #27450E;font-size: 14px;line-height: 20px;font-weight: 400;margin-bottom: 16px; font-family: "Arimo", sans-serif;}
 .ai_chat_box .colin .message_box .time{position: absolute;left: 30px;bottom: 18px;color: #27450E;font-size: 12px;line-height: 16px;font-weight: 400;display: inline-flex;align-items: center;}
 .ai_chat_box .colin .message_box .time::before{content:'';background-image: url(./assets/images/read_message.png);background-repeat: no-repeat;background-size: contain;width: 14px;height: 8px;background-position: center;margin-left:1px;}
+.ai_chat_box .colin .message_box .message_edit_button{position:absolute;left:8px;top:8px;width:22px;height:22px;border:none;border-radius:0;background:transparent;display:flex;align-items:center;justify-content:center;color:#27450E;cursor:pointer;transition:color .2s ease, opacity .2s ease;z-index:2;padding:0;}
+.ai_chat_box .colin .message_box .message_edit_button svg{display:block;}
+.ai_chat_box .colin .message_box .message_edit_button:hover{color:#E27600;}
+.ai_chat_box .colin .message_box .message_edit_button:disabled{opacity:0.45;cursor:not-allowed;color:#7d8a80;}
 .ai_chat_box .colin .btn_box{width: 423px;margin-top: 19px;}
 .ai_chat_box .colin .btn_box button{width:calc(50% - 7.5px);border: 1px solid #27450E;border-radius: 0 6px 6px 6px;outline: none;line-height: 41px;text-align: center;background-color: transparent;font-size: 14px;font-weight: 400;color: #1B1E28;cursor: pointer;margin-bottom: 15px;font-family: "Arimo", sans-serif;line-height: 20px;padding: 10.5px 5px;}
 .ai_chat_box .colin .btn_box.btn_box_full button{width:100%;}
@@ -105,6 +109,10 @@
 .ai_chat_box .send_message .send:hover{background-color: #27450E;}
 .ai_chat_box .send_message .send:disabled{background-color: #cfd5d1;box-shadow: none;cursor: not-allowed;}
 .ai_chat_box .send_message .send:disabled:hover{background-color: #cfd5d1;}
+.ai_chat_box .ai_chat_whatsapp_fab{position:absolute;right:16px;bottom:76px;width:56px;height:56px;border-radius:50%;display:flex;align-items:center;justify-content:center;z-index:26;text-decoration:none;filter:drop-shadow(0 10px 20px rgba(0,0,0,0.25));transition:transform .2s ease, filter .2s ease;}
+.ai_chat_box .ai_chat_whatsapp_fab img{width:100%;height:100%;display:block;}
+.ai_chat_box .ai_chat_whatsapp_fab:hover{transform:translateY(-1px) scale(1.03);filter:drop-shadow(0 14px 24px rgba(0,0,0,0.30));}
+.ai_chat_box .ai_chat_whatsapp_fab:focus-visible{outline:2px solid #E27600;outline-offset:3px;}
 
 .calculator_box{width:350px;margin-top: 19px;}
 .calculator_box .wrap>div{width:100%;}
@@ -173,6 +181,8 @@
   .ai_chat_box .colin .btn_box { width: 100%; margin-top: 15px; }
   .ai_chat_box .colin .btn_box button { width: calc(50% - 5px); margin-bottom: 10px; }
   .ai_chat_box .colin .message_box .time { left: 9px; bottom: 3px; }
+  .ai_chat_box .colin .message_box .message_edit_button { left: 6px; top: 6px; width: 22px; height: 22px; }
+  .ai_chat_box .ai_chat_whatsapp_fab{right:12px;bottom:72px;width:52px;height:52px;}
   .ai_chat_box .colin .input_box { width: calc(100vw - 137px); margin-top: 15px; }
   .calculator_box { width: calc(100% + 50px); margin-top: 15px; margin-right: -50px; }
   /* .aichat_page .calculator_box { width: calc(100% + 32px); margin-right: -32px; }

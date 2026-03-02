@@ -7,6 +7,7 @@ import bouticon from '../assets/images/bout.png';
 import removeIcon from '../assets/images/remove.png';
 import viewicon from '../assets/images/pdf_view.svg';
 import sendicon from '../assets/images/send.svg';
+import whatsappFabIcon from '../assets/images/whats_app.svg';
 import { getGatewayBase } from "../utils/apiBase";
 import { getAuthToken } from "../utils/authStorage";
 
@@ -16,6 +17,12 @@ const DEFAULT_STEP_AMOUNT = 10000;
 const DEFAULT_MIN_TERM = 5;
 const DEFAULT_MAX_TERM = 30;
 const DEFAULT_STEP_TERM = 1;
+const DATA_GOV_CKAN_BASE = 'https://data.gov.il/api/3/action/datastore_search';
+const DATA_GOV_CITIES_RESOURCE_ID = '5c78e9fa-c2e2-4771-93ff-7f400a12f7ba';
+const DATA_GOV_STREETS_RESOURCE_ID = '9ad3862c-8391-4b2f-84a4-2d4c68625f4b';
+const CITY_FETCH_PAGE_SIZE = 1000;
+const STREET_FETCH_PAGE_SIZE = 1000;
+const WHATSAPP_SUPPORT_LINK = 'https://wa.me/972504071205';
 const FALLBACK_COUNTRIES = [
   'ישראל',
   'ארצות הברית',
@@ -63,6 +70,7 @@ const AIChatpage = () => {
   const [mortgageYears, setMortgageYears] = useState(DEFAULT_MIN_TERM);
   const [isLoading, setIsLoading] = useState(true);
   const [isSending, setIsSending] = useState(false);
+  const [isRollingBack, setIsRollingBack] = useState(false);
   const [error, setError] = useState('');
   const [hasHistory, setHasHistory] = useState(false);
   const [pinnedBlockKey, setPinnedBlockKey] = useState(null);
@@ -80,6 +88,11 @@ const AIChatpage = () => {
   const [signatureTemplatesError, setSignatureTemplatesError] = useState('');
   const [signatureTemplateDownloadingKey, setSignatureTemplateDownloadingKey] = useState('');
   const [isCountryDropdownOpen, setIsCountryDropdownOpen] = useState(false);
+  const [selectedResidenceCity, setSelectedResidenceCity] = useState(null);
+  const [citySuggestions, setCitySuggestions] = useState([]);
+  const [citySuggestionsLoading, setCitySuggestionsLoading] = useState(false);
+  const [streetSuggestions, setStreetSuggestions] = useState([]);
+  const [streetSuggestionsLoading, setStreetSuggestionsLoading] = useState(false);
 
   const authToken = useMemo(() => getAuthToken(), []);
   const signatureCanvasRefs = useRef([]);
@@ -96,6 +109,12 @@ const AIChatpage = () => {
   const optionsInFlightRef = useRef(new Map());
   const sessionInitRef = useRef(false);
   const signatureTemplatesLoadedRef = useRef(false);
+  const citySuggestionsCacheRef = useRef(new Map());
+  const allCitiesRef = useRef([]);
+  const allCitiesInFlightRef = useRef(null);
+  const streetSuggestionsCacheRef = useRef(new Map());
+  const allStreetsByCityRef = useRef(new Map());
+  const allStreetsInFlightRef = useRef(new Map());
 
   useEffect(() => {
     mortgageBlocksRef.current = mortgageBlocks;
@@ -289,14 +308,357 @@ const AIChatpage = () => {
   const isButtonBlockKey = (blockKey) =>
     getButtonOptionsForBlock(blockKey).some((option) => option.option_type === 'button');
 
-  const loadHistory = async (sessionIdValue) => {
+  const normalizeHistoryItems = (history) => {
+    if (!Array.isArray(history)) return [];
+    return history
+      .filter((item) => item?.is_active !== false)
+      .sort((left, right) => new Date(left?.timestamp || 0) - new Date(right?.timestamp || 0));
+  };
+
+  const fetchActiveHistory = async (sessionIdValue) => {
     const history = await request(`/sessions/${sessionIdValue}/history-for-chat`);
+    return normalizeHistoryItems(history);
+  };
+
+  const countCoBorrowerYesAnswers = (historyItems) => {
+    let coBorrowerYesCount = 0;
+    historyItems.forEach((item) => {
+      const answerText = item?.user_input || item?.option_label;
+      if (!answerText) return;
+      if (!isCoBorrowerQuestionText(item?.block_message)) return;
+      if (String(answerText).includes('כן')) {
+        coBorrowerYesCount += 1;
+      }
+    });
+    return coBorrowerYesCount;
+  };
+
+  const normalizeLocationText = (value) => String(value || '')
+    .replace(/\\n/g, ' ')
+    .replace(/[״"'`.,!?;:()/_-]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  const normalizeLocationLookup = (value) => normalizeLocationText(value).toLowerCase();
+  const normalizeCityCode = (value) => {
+    const normalized = String(value ?? '').trim();
+    if (!normalized) return '';
+    const numeric = Number(normalized);
+    return Number.isFinite(numeric) ? String(numeric) : normalized;
+  };
+
+  const isResidenceCityQuestionText = (text) => {
+    const normalized = normalizeLocationLookup(text);
+    return normalized.includes('עיר') && normalized.includes('מגורים');
+  };
+
+  const isResidenceAddressQuestionText = (text) => {
+    const normalized = normalizeLocationLookup(text);
+    if (!normalized.includes('כתובת')) return false;
+    const isEmailAddressQuestion =
+      normalized.includes('מייל') ||
+      normalized.includes('אימייל') ||
+      normalized.includes('email') ||
+      normalized.includes('דוא') ||
+      normalized.includes('@');
+    return !isEmailAddressQuestion;
+  };
+
+  const mapCityRecord = (record) => {
+    const code = normalizeCityCode(record?.['סמל_ישוב']);
+    const name = String(record?.['שם_ישוב'] ?? '').trim();
+    if (!code || code === '0' || !name) return null;
+    if (normalizeLocationLookup(name) === normalizeLocationLookup('לא רשום')) return null;
+    return { code, name };
+  };
+
+  const mapStreetRecord = (record) => {
+    const cityCode = normalizeCityCode(record?.['סמל_ישוב']);
+    const streetCode = String(record?.['סמל_רחוב'] ?? '').trim();
+    const name = String(record?.['שם_רחוב'] ?? '').trim();
+    if (!cityCode || cityCode === '0' || !streetCode || !name) return null;
+    return { cityCode, streetCode, name };
+  };
+
+  const fetchDataGovRecords = async ({ resourceId, limit, offset = 0, query = '', filters = null }) => {
+    const url = new URL(DATA_GOV_CKAN_BASE);
+    url.searchParams.set('resource_id', resourceId);
+    url.searchParams.set('limit', String(limit));
+    url.searchParams.set('offset', String(Math.max(0, Number(offset) || 0)));
+    if (query) {
+      url.searchParams.set('q', query);
+    }
+    if (filters) {
+      url.searchParams.set('filters', JSON.stringify(filters));
+    }
+    const response = await fetch(url.toString());
+    if (!response.ok) {
+      throw new Error('שגיאה בטעינת נתוני כתובות');
+    }
+    const payload = await response.json().catch(() => null);
+    if (!payload?.success) {
+      throw new Error('שגיאה בטעינת נתוני כתובות');
+    }
+    return Array.isArray(payload?.result?.records) ? payload.result.records : [];
+  };
+
+  const fetchAllCitiesFromApi = async () => {
+    if (allCitiesRef.current.length > 0) {
+      return allCitiesRef.current;
+    }
+    if (allCitiesInFlightRef.current) {
+      return allCitiesInFlightRef.current;
+    }
+
+    const promise = (async () => {
+      const seen = new Set();
+      const allCities = [];
+      let offset = 0;
+      let pageCount = 0;
+
+      while (pageCount < 100) {
+        const records = await fetchDataGovRecords({
+          resourceId: DATA_GOV_CITIES_RESOURCE_ID,
+          limit: CITY_FETCH_PAGE_SIZE,
+          offset,
+        });
+
+        if (records.length === 0) {
+          break;
+        }
+
+        records.forEach((record) => {
+          const parsed = mapCityRecord(record);
+          if (!parsed) return;
+          if (seen.has(parsed.code)) return;
+          seen.add(parsed.code);
+          allCities.push(parsed);
+        });
+
+        if (records.length < CITY_FETCH_PAGE_SIZE) {
+          break;
+        }
+
+        offset += CITY_FETCH_PAGE_SIZE;
+        pageCount += 1;
+      }
+
+      allCities.sort((left, right) => left.name.localeCompare(right.name, 'he'));
+      allCitiesRef.current = allCities;
+      citySuggestionsCacheRef.current.clear();
+      return allCities;
+    })();
+
+    allCitiesInFlightRef.current = promise;
+    try {
+      return await promise;
+    } finally {
+      allCitiesInFlightRef.current = null;
+    }
+  };
+
+  const fetchCitySuggestionsFromApi = async (query = '') => {
+    const normalizedQuery = normalizeLocationLookup(query);
+    const cacheKey = normalizedQuery;
+    const cached = citySuggestionsCacheRef.current.get(cacheKey);
+    if (cached) return cached;
+
+    const allCities = await fetchAllCitiesFromApi();
+    if (!normalizedQuery) {
+      citySuggestionsCacheRef.current.set(cacheKey, allCities);
+      return allCities;
+    }
+
+    const suggestions = allCities.filter((city) =>
+      normalizeLocationLookup(city.name).includes(normalizedQuery),
+    );
+    citySuggestionsCacheRef.current.set(cacheKey, suggestions);
+    return suggestions;
+  };
+
+  const fetchStreetSuggestionsFromApi = async (cityCode, query = '') => {
+    const normalizedCityCode = normalizeCityCode(cityCode);
+    if (!normalizedCityCode) return [];
+
+    const normalizedQuery = normalizeLocationLookup(query);
+    const cacheKey = `${normalizedCityCode}::${normalizedQuery}`;
+    const cached = streetSuggestionsCacheRef.current.get(cacheKey);
+    if (cached) return cached;
+
+    const fetchAllStreetsForCityFromApi = async (selectedCityCode) => {
+      if (allStreetsByCityRef.current.has(selectedCityCode)) {
+        return allStreetsByCityRef.current.get(selectedCityCode) || [];
+      }
+      if (allStreetsInFlightRef.current.has(selectedCityCode)) {
+        return allStreetsInFlightRef.current.get(selectedCityCode);
+      }
+
+      const promise = (async () => {
+        const seen = new Set();
+        const streets = [];
+        let offset = 0;
+        let pageCount = 0;
+
+        while (pageCount < 400) {
+          const records = await fetchDataGovRecords({
+            resourceId: DATA_GOV_STREETS_RESOURCE_ID,
+            limit: STREET_FETCH_PAGE_SIZE,
+            offset,
+            filters: { סמל_ישוב: Number(selectedCityCode) },
+          });
+
+          if (records.length === 0) {
+            break;
+          }
+
+          records.forEach((record) => {
+            const parsed = mapStreetRecord(record);
+            if (!parsed || parsed.cityCode !== selectedCityCode) return;
+            if (seen.has(parsed.streetCode)) return;
+            seen.add(parsed.streetCode);
+            streets.push(parsed);
+          });
+
+          if (records.length < STREET_FETCH_PAGE_SIZE) {
+            break;
+          }
+
+          offset += STREET_FETCH_PAGE_SIZE;
+          pageCount += 1;
+        }
+
+        streets.sort((left, right) => left.name.localeCompare(right.name, 'he'));
+        allStreetsByCityRef.current.set(selectedCityCode, streets);
+        return streets;
+      })();
+
+      allStreetsInFlightRef.current.set(selectedCityCode, promise);
+      try {
+        return await promise;
+      } finally {
+        allStreetsInFlightRef.current.delete(selectedCityCode);
+      }
+    };
+
+    const allStreetsForCity = await fetchAllStreetsForCityFromApi(normalizedCityCode);
+    if (!normalizedQuery) {
+      streetSuggestionsCacheRef.current.set(cacheKey, allStreetsForCity);
+      return allStreetsForCity;
+    }
+
+    const suggestions = allStreetsForCity.filter((street) =>
+      normalizeLocationLookup(street.name).includes(normalizedQuery),
+    );
+    streetSuggestionsCacheRef.current.set(cacheKey, suggestions);
+    return suggestions;
+  };
+
+  const resolveResidenceCityByName = async (cityName) => {
+    const normalizedCityName = normalizeLocationLookup(cityName);
+    if (!normalizedCityName) return null;
+    const suggestions = await fetchCitySuggestionsFromApi(cityName);
+    if (suggestions.length === 0) return null;
+    const exactMatch = suggestions.find(
+      (item) => normalizeLocationLookup(item.name) === normalizedCityName,
+    );
+    if (exactMatch) return exactMatch;
+    if (suggestions.length === 1) return suggestions[0];
+    const startsWithMatches = suggestions.filter((item) =>
+      normalizeLocationLookup(item.name).startsWith(normalizedCityName),
+    );
+    if (startsWithMatches.length === 1) {
+      return startsWithMatches[0];
+    }
+    return null;
+  };
+
+  const deriveLatestResidenceCityFromMessages = (messageList) => {
+    if (!Array.isArray(messageList) || messageList.length === 0) return null;
+    const botMessageByBlockKey = new Map();
+    messageList.forEach((message) => {
+      if (message.role === 'bot' && message.blockKey) {
+        botMessageByBlockKey.set(message.blockKey, message.text);
+      }
+    });
+
+    let latestCity = null;
+    messageList.forEach((message) => {
+      if (message.role !== 'user' || !message.blockKey) return;
+      const botText = botMessageByBlockKey.get(message.blockKey);
+      if (!isResidenceCityQuestionText(botText)) return;
+      const cityName = String(message.text || '').trim();
+      if (!cityName) return;
+      latestCity = cityName;
+    });
+    return latestCity;
+  };
+
+  const rollbackToMessageBlock = async ({
+    blockKey,
+    messageHistoryId = null,
+    messageIndex = null,
+    reloadSession = false,
+  }) => {
+    if (!sessionId) {
+      throw new Error('לא נמצאה שיחה פעילה');
+    }
+    if (!blockKey) {
+      throw new Error('לא נמצאה שאלה לעריכה');
+    }
+
+    const activeHistory = await fetchActiveHistory(sessionId);
+    const rollbackCandidates = activeHistory.filter((item) => item.block_key === blockKey);
+    const rollbackTarget = messageHistoryId
+      ? rollbackCandidates.find((item) => item.id === messageHistoryId)
+      : rollbackCandidates[rollbackCandidates.length - 1];
+
+    if (!rollbackTarget) {
+      throw new Error('לא נמצאה נקודת חזרה עבור השאלה');
+    }
+
+    await request(`/sessions/${sessionId}/rollback`, {
+      method: 'PATCH',
+      body: JSON.stringify({ history_id: rollbackTarget.id }),
+    });
+
+    if (!reloadSession && Number.isInteger(messageIndex) && messageIndex >= 0) {
+      const trimmedMessages = messages.slice(0, messageIndex + 1);
+      const keptMessageIds = new Set(trimmedMessages.map((message) => message.id));
+      const keptBlockKeys = new Set(
+        trimmedMessages
+          .filter((message) => message.role === 'bot' && message.blockKey)
+          .map((message) => message.blockKey),
+      );
+      setMessages(trimmedMessages);
+      setButtonAnswersByMessageId((prev) => Object.fromEntries(
+        Object.entries(prev).filter(([entryMessageId]) => keptMessageIds.has(entryMessageId)),
+      ));
+      setMortgageBlocks((prev) => Object.fromEntries(
+        Object.entries(prev).filter(([entryBlockKey]) => keptBlockKeys.has(entryBlockKey)),
+      ));
+      const latestResidenceCity = deriveLatestResidenceCityFromMessages(trimmedMessages);
+      setSelectedResidenceCity(latestResidenceCity ? { code: null, name: latestResidenceCity } : null);
+    }
+
+    const recalculatedHistory = await fetchActiveHistory(sessionId);
+    setRequiredSignatureCount(Math.max(1, 1 + countCoBorrowerYesAnswers(recalculatedHistory)));
+
+    if (reloadSession) {
+      await loadSession();
+    }
+
+    return rollbackTarget;
+  };
+
+  const loadHistory = async (sessionIdValue) => {
+    const history = await fetchActiveHistory(sessionIdValue);
     const historyMessages = [];
     const historyButtonAnswers = {};
     let firstBlockKey = null;
+    let latestResidenceCityFromHistory = null;
     const historyAnswers = new Map();
     const historyMortgageBlocks = new Map();
-    let coBorrowerYesCount = 0;
+    const coBorrowerYesCount = countCoBorrowerYesAnswers(history);
     history.forEach((item) => {
       let botMessageId = null;
       if (item.block_message) {
@@ -310,28 +672,31 @@ const AIChatpage = () => {
           text: item.block_message,
           blockKey: item.block_key,
           timestamp: item.timestamp,
+          historyId: item.id,
         });
       }
       const answerText = item.user_input || item.option_label;
       if (answerText) {
+        if (isResidenceCityQuestionText(item.block_message)) {
+          const normalizedCityName = String(answerText || '').trim();
+          if (normalizedCityName) {
+            latestResidenceCityFromHistory = normalizedCityName;
+          }
+        }
         if (botMessageId) {
           historyButtonAnswers[botMessageId] = {
-            selectedId: item.option_id ?? null,
+            selectedId: item.option_id ?? item.selected_option_id ?? null,
             selectedLabel: item.option_label || item.user_input || '',
             answered: true,
           };
         }
         if (item.block_key) {
-          const hasOptionAnswer = item.option_id !== null && item.option_id !== undefined
+          const optionId = item.option_id ?? item.selected_option_id ?? null;
+          const hasOptionAnswer = optionId !== null && optionId !== undefined
             ? true
             : Boolean(item.option_label);
           if (hasOptionAnswer) {
             historyAnswers.set(item.block_key, true);
-          }
-          if (isCoBorrowerQuestionText(item.block_message)) {
-            if (String(answerText).includes('כן')) {
-              coBorrowerYesCount += 1;
-            }
           }
           const parsedMortgage = parseMortgageAnswer(answerText);
           if (parsedMortgage) {
@@ -344,6 +709,7 @@ const AIChatpage = () => {
           text: answerText,
           blockKey: item.block_key,
           timestamp: item.timestamp,
+          historyId: item.id,
         });
       }
     });
@@ -353,6 +719,9 @@ const AIChatpage = () => {
     hasHistoryRef.current = hasItems;
     setHasHistory(hasItems);
     historyAnswerByBlockRef.current = historyAnswers;
+    setSelectedResidenceCity(
+      latestResidenceCityFromHistory ? { code: null, name: latestResidenceCityFromHistory } : null,
+    );
     setRequiredSignatureCount(Math.max(1, 1 + coBorrowerYesCount));
     if (historyMortgageBlocks.size > 0) {
       setMortgageBlocks((prev) => {
@@ -563,6 +932,24 @@ const AIChatpage = () => {
     const normalized = `${label} ${message}`.toLowerCase();
     return normalized.includes('ארץ') || normalized.includes('מדינה');
   }, [inputOption, isDateInput, currentBlock?.message]);
+  const isResidenceCityInput = useMemo(() => {
+    if (!inputOption || isDateInput || inputOption.option_type === 'attach') {
+      return false;
+    }
+    const label = String(inputOption?.label || '').replace(/\s+/g, ' ').trim();
+    const message = String(currentBlock?.message || '').replace(/\s+/g, ' ').trim();
+    return isResidenceCityQuestionText(`${label} ${message}`);
+  }, [inputOption, isDateInput, currentBlock?.message]);
+  const isResidenceAddressInput = useMemo(() => {
+    if (!inputOption || isDateInput || inputOption.option_type === 'attach') {
+      return false;
+    }
+    const label = String(inputOption?.label || '').replace(/\s+/g, ' ').trim();
+    const message = String(currentBlock?.message || '').replace(/\s+/g, ' ').trim();
+    return isResidenceAddressQuestionText(`${label} ${message}`);
+  }, [inputOption, isDateInput, currentBlock?.message]);
+  const isApiDropdownSelectionInput =
+    isCountrySelectionInput || isResidenceCityInput || isResidenceAddressInput;
   const countryOptions = useMemo(() => {
     try {
       if (typeof Intl === 'undefined' || typeof Intl.DisplayNames !== 'function') {
@@ -601,6 +988,136 @@ const AIChatpage = () => {
     }
     return countryOptions.filter((country) => country.toLowerCase().includes(normalizedQuery));
   }, [isCountrySelectionInput, countryOptions, inputValue]);
+
+  useEffect(() => {
+    if (!isResidenceCityInput) {
+      setCitySuggestions([]);
+      setCitySuggestionsLoading(false);
+      return undefined;
+    }
+
+    let isCancelled = false;
+    const timer = window.setTimeout(async () => {
+      setCitySuggestionsLoading(true);
+      try {
+        const nextSuggestions = await fetchCitySuggestionsFromApi(inputValue);
+        if (!isCancelled) {
+          setCitySuggestions(nextSuggestions);
+        }
+      } catch {
+        if (!isCancelled) {
+          setCitySuggestions([]);
+        }
+      } finally {
+        if (!isCancelled) {
+          setCitySuggestionsLoading(false);
+        }
+      }
+    }, 220);
+
+    return () => {
+      isCancelled = true;
+      window.clearTimeout(timer);
+    };
+  }, [isResidenceCityInput, inputValue]);
+
+  useEffect(() => {
+    if (!isResidenceAddressInput) return undefined;
+    if (!selectedResidenceCity?.name || selectedResidenceCity?.code) return undefined;
+
+    let isCancelled = false;
+    const timer = window.setTimeout(async () => {
+      try {
+        const resolved = await resolveResidenceCityByName(selectedResidenceCity.name);
+        if (!isCancelled && resolved) {
+          setSelectedResidenceCity(resolved);
+        }
+      } catch {
+        // Ignore resolution failures and keep free-text city fallback.
+      }
+    }, 120);
+
+    return () => {
+      isCancelled = true;
+      window.clearTimeout(timer);
+    };
+  }, [isResidenceAddressInput, selectedResidenceCity?.name, selectedResidenceCity?.code]);
+
+  useEffect(() => {
+    if (!isResidenceAddressInput) {
+      setStreetSuggestions([]);
+      setStreetSuggestionsLoading(false);
+      return undefined;
+    }
+    if (!selectedResidenceCity?.code) {
+      setStreetSuggestions([]);
+      setStreetSuggestionsLoading(false);
+      return undefined;
+    }
+
+    let isCancelled = false;
+    const timer = window.setTimeout(async () => {
+      setStreetSuggestionsLoading(true);
+      try {
+        const nextSuggestions = await fetchStreetSuggestionsFromApi(selectedResidenceCity.code, inputValue);
+        if (!isCancelled) {
+          setStreetSuggestions(nextSuggestions);
+        }
+      } catch {
+        if (!isCancelled) {
+          setStreetSuggestions([]);
+        }
+      } finally {
+        if (!isCancelled) {
+          setStreetSuggestionsLoading(false);
+        }
+      }
+    }, 220);
+
+    return () => {
+      isCancelled = true;
+      window.clearTimeout(timer);
+    };
+  }, [isResidenceAddressInput, selectedResidenceCity?.code, inputValue]);
+
+  const dropdownOptions = useMemo(() => {
+    if (isCountrySelectionInput) {
+      return filteredCountryOptions.map((country) => ({
+        key: `country-${country}`,
+        value: country,
+        label: country,
+      }));
+    }
+    if (isResidenceCityInput) {
+      return citySuggestions.map((city) => ({
+        key: `city-${city.code}`,
+        value: city.name,
+        label: city.name,
+        city,
+      }));
+    }
+    if (isResidenceAddressInput) {
+      return streetSuggestions.map((street) => ({
+        key: `street-${street.cityCode}-${street.streetCode}`,
+        value: street.name,
+        label: street.name,
+      }));
+    }
+    return [];
+  }, [
+    isCountrySelectionInput,
+    filteredCountryOptions,
+    isResidenceCityInput,
+    citySuggestions,
+    isResidenceAddressInput,
+    streetSuggestions,
+  ]);
+
+  const isDropdownLoading = isResidenceCityInput
+    ? citySuggestionsLoading
+    : isResidenceAddressInput
+      ? streetSuggestionsLoading
+      : false;
 
   useLayoutEffect(() => {
     const container = scrollRef.current;
@@ -732,9 +1249,9 @@ const AIChatpage = () => {
   }, [isCountrySelectionInput, currentBlock?.id]);
 
   useEffect(() => {
-    if (isCountrySelectionInput) return;
+    if (isApiDropdownSelectionInput) return;
     setIsCountryDropdownOpen(false);
-  }, [isCountrySelectionInput, currentBlock?.id]);
+  }, [isApiDropdownSelectionInput, currentBlock?.id]);
 
   useEffect(() => {
     if (!isCountryDropdownOpen) return undefined;
@@ -791,13 +1308,14 @@ const AIChatpage = () => {
     !isMortgageParameters &&
     !shouldShowSignature &&
     !currentBlock?.is_terminal;
-  const isSendAreaDisabled = isLoading || isSending || !isInputModeAvailable;
+  const isSendAreaDisabled = isLoading || isSending || isRollingBack || !isInputModeAvailable;
   const inputPlaceholder = useMemo(() => {
     if (isLoading) return 'טוען שיחה...';
     if (currentBlock?.is_terminal) return 'השיחה הסתיימה';
     if (isMortgageParameters) return 'יש לבחור פרטי משכנתא למעלה';
     if (shouldShowSignature) return 'יש להשלים חתימה כדי להמשיך';
     if (hasChoiceOptions) return 'יש לבחור אחת מהאפשרויות למעלה';
+    if (isResidenceAddressInput && !selectedResidenceCity?.name) return 'יש לבחור עיר מגורים קודם';
     if (!inputOption) return 'אין שדה קלט בשלב זה';
     return inputOption?.label || 'נא להקליד כאן...';
   }, [
@@ -806,6 +1324,8 @@ const AIChatpage = () => {
     isMortgageParameters,
     shouldShowSignature,
     hasChoiceOptions,
+    isResidenceAddressInput,
+    selectedResidenceCity?.name,
     inputOption,
   ]);
 
@@ -815,20 +1335,27 @@ const AIChatpage = () => {
       handleDateInputWrapperClick();
       return;
     }
-    if (isCountrySelectionInput) {
+    if (isApiDropdownSelectionInput) {
       setIsCountryDropdownOpen(true);
     }
   };
 
   const handleInputFocus = () => {
     if (isSendAreaDisabled) return;
-    if (isCountrySelectionInput) {
+    if (isApiDropdownSelectionInput) {
       setIsCountryDropdownOpen(true);
     }
   };
 
-  const handleCountrySelect = (country) => {
-    setInputValue(country);
+  const handleDropdownSelect = (option) => {
+    if (!option) return;
+    setInputValue(option.value || option.label || '');
+    if (isResidenceCityInput) {
+      const selectedCity = option.city || null;
+      setSelectedResidenceCity(selectedCity);
+      setStreetSuggestions([]);
+      streetSuggestionsCacheRef.current.clear();
+    }
     setIsCountryDropdownOpen(false);
   };
 
@@ -850,6 +1377,13 @@ const AIChatpage = () => {
     if (isIdentityNumberInput || isPhoneNumberInput) {
       setInputValue(stripToDigits(nextValue));
       return;
+    }
+    if (isResidenceCityInput) {
+      setSelectedResidenceCity({
+        code: null,
+        name: nextValue,
+      });
+      setStreetSuggestions([]);
     }
     setInputValue(nextValue);
   };
@@ -982,6 +1516,17 @@ const AIChatpage = () => {
       setError('נא להזין ערך');
       return;
     }
+    if (isResidenceAddressInput && !selectedResidenceCity?.name) {
+      setError('יש לבחור עיר מגורים לפני הזנת כתובת');
+      return;
+    }
+    if (isResidenceCityInput) {
+      const normalizedTypedCity = normalizeLocationLookup(trimmed);
+      const normalizedSelectedCity = normalizeLocationLookup(selectedResidenceCity?.name || '');
+      if (!selectedResidenceCity || normalizedTypedCity !== normalizedSelectedCity) {
+        setSelectedResidenceCity({ code: null, name: trimmed });
+      }
+    }
     const isNumericTextInput = isPriceAmountInput || isIdentityNumberInput || isPhoneNumberInput;
     const digitsOnlyValue = isNumericTextInput ? stripToDigits(trimmed) : '';
     if (isNumericTextInput && !digitsOnlyValue) {
@@ -1012,6 +1557,7 @@ const AIChatpage = () => {
           id: createLiveMessageId('user', currentBlock?.block_key),
           role: 'user',
           text: displayText || option.label,
+          blockKey: currentBlock?.block_key,
           timestamp: new Date().toISOString(),
         },
       ]);
@@ -1294,14 +1840,14 @@ const AIChatpage = () => {
   const isBlockingOverlayVisible = isLoading || signatureSaving;
 
   useEffect(() => {
-    if (!shouldAutoFocusInput || isSending || isBlockingOverlayVisible) return undefined;
+    if (!shouldAutoFocusInput || isSending || isRollingBack || isBlockingOverlayVisible) return undefined;
     const input = chatInputRef.current;
     if (!input) return undefined;
     const timer = window.setTimeout(() => {
       input.focus({ preventScroll: true });
     }, 80);
     return () => window.clearTimeout(timer);
-  }, [shouldAutoFocusInput, isSending, isBlockingOverlayVisible, currentBlock?.block_key]);
+  }, [shouldAutoFocusInput, isSending, isRollingBack, isBlockingOverlayVisible, currentBlock?.block_key]);
 
   const buttonBlockIndex = useMemo(() => {
     const order = [];
@@ -1324,19 +1870,72 @@ const AIChatpage = () => {
     return indexByBlock;
   }, [messages]);
 
-  const handleButtonOptionClick = async (messageId, blockKey, option) => {
+  const noEditFromIndex = useMemo(() => messages.findIndex((message) => {
+    if (message.role !== 'bot') return false;
+    const normalized = String(message.text || '')
+      .replace(/\\n/g, ' ')
+      .replace(/[״"'`.,!?;:()-]/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim();
+    return (
+      normalized.includes('מעולה סיימנו עם כל הפרטים הראשוניים') &&
+      normalized.includes('עכשיו נעבור לשאלות')
+    );
+  }), [messages]);
+
+  const answeredBlockKeySet = useMemo(() => {
+    const answered = new Set();
+    messages.forEach((message) => {
+      if (message.role === 'user' && message.blockKey) {
+        answered.add(message.blockKey);
+      }
+    });
+    return answered;
+  }, [messages]);
+
+  const handleButtonOptionClick = async ({
+    messageId,
+    blockKey,
+    option,
+    isActiveBlock,
+    messageText,
+    messageHistoryId,
+    messageIndex,
+  }) => {
     const blockState = buttonBlocks[blockKey];
     const messageAnswer = buttonAnswersByMessageId[messageId];
-    if (!messageId || !blockKey || isSending) return;
+    if (!messageId || !blockKey || isSending || isRollingBack) return;
     if (messageAnswer?.answeredToken === activeBlockToken || blockState?.answeredToken === activeBlockToken) return;
+    if (!sessionId) return;
+
+    const isRollbackFlow = !isActiveBlock;
     const isCoBorrowerQuestion =
-      currentBlock?.block_key === blockKey &&
-      isCoBorrowerQuestionText(currentBlock?.message);
+      isRollbackFlow
+        ? isCoBorrowerQuestionText(messageText)
+        : currentBlock?.block_key === blockKey && isCoBorrowerQuestionText(currentBlock?.message);
     const shouldAddSignature = isCoBorrowerQuestion && String(option.label || '').includes('כן');
+
+    if (isRollbackFlow) {
+      setIsRollingBack(true);
+      try {
+        await rollbackToMessageBlock({
+          blockKey,
+          messageHistoryId,
+          messageIndex,
+        });
+      } catch (err) {
+        setError(err?.message || 'שגיאה בחזרה לשלב קודם');
+        return;
+      } finally {
+        setIsRollingBack(false);
+      }
+    }
+
     upsertButtonAnswerForMessage(messageId, {
       selectedId: option.id,
       selectedLabel: option.label,
     });
+
     const success = await sendAnswer(option, null, option.label, { appendUserMessage: false });
     if (success) {
       upsertButtonAnswerForMessage(messageId, { answered: true, answeredToken: activeBlockToken });
@@ -1344,6 +1943,26 @@ const AIChatpage = () => {
       if (shouldAddSignature) {
         setRequiredSignatureCount((prev) => prev + 1);
       }
+    }
+  };
+
+  const handleInputEditClick = async ({
+    blockKey,
+    messageHistoryId,
+  }) => {
+    if (!blockKey || isSending || isRollingBack) return;
+    setError('');
+    setIsRollingBack(true);
+    try {
+      await rollbackToMessageBlock({
+        blockKey,
+        messageHistoryId,
+        reloadSession: true,
+      });
+    } catch (err) {
+      setError(err?.message || 'שגיאה בפתיחת העריכה');
+    } finally {
+      setIsRollingBack(false);
     }
   };
 
@@ -1384,6 +2003,17 @@ const AIChatpage = () => {
               const mortgageBlock = mortgageBlocks[message.blockKey];
               const isMortgageBlockMessage = isBot && mortgageBlock;
               const isActiveMortgageBlock = isMortgageBlockMessage && isActiveBlock && isMortgageParameters;
+              const hasAnsweredBlock = answeredBlockKeySet.has(message.blockKey);
+              const isHistoryUserAnswer = !isBot && Boolean(message.historyId);
+              const isBeforeNoEditBoundary = noEditFromIndex === -1 || index < noEditFromIndex;
+              const shouldRenderEditButton =
+                isHistoryUserAnswer &&
+                isBeforeNoEditBoundary &&
+                Boolean(message.blockKey) &&
+                hasAnsweredBlock &&
+                !isButtonBlockKey(message.blockKey) &&
+                !mortgageBlocks[message.blockKey] &&
+                !currentBlock?.is_terminal;
               const timeLabel = formatMessageTime(message.timestamp);
               const messageClass = isBot
                 ? (isButtonBlockMessage
@@ -1410,6 +2040,26 @@ const AIChatpage = () => {
                       {isPinnedMessage ? renderMessageParagraphs(message.text) : (
                         <p>{renderMessageText(message.text)}</p>
                       )}
+                      {shouldRenderEditButton && (
+                        <button
+                          type="button"
+                          className="message_edit_button"
+                          onClick={() => handleInputEditClick({
+                            blockKey: message.blockKey,
+                            messageHistoryId: message.historyId,
+                          })}
+                          disabled={isSending || isRollingBack}
+                          aria-label="ערוך תשובה"
+                          title="ערוך תשובה"
+                        >
+                          <svg viewBox="0 0 24 24" aria-hidden="true">
+                            <path
+                              d="M4 16.7V20h3.3l9.7-9.7-3.3-3.3L4 16.7Zm15.6-9.1a.9.9 0 0 0 0-1.3L17.7 4.4a.9.9 0 0 0-1.3 0L15 5.8l3.3 3.3 1.3-1.5Z"
+                              fill="currentColor"
+                            />
+                          </svg>
+                        </button>
+                      )}
                       {timeLabel && <span className="time">{timeLabel}</span>}
                     </div>
                     {isActiveBlock && !currentBlock?.is_terminal && isMortgageParameters && (
@@ -1424,7 +2074,7 @@ const AIChatpage = () => {
                               step={DEFAULT_STEP_AMOUNT}
                               unit="₪"
                               onChange={(e) => setMortgageAmount(Number(e.target.value))}
-                              disabled={isSending}
+                              disabled={isSending || isRollingBack}
                             />
                           </div>
                           <div className="refund_period">
@@ -1436,7 +2086,7 @@ const AIChatpage = () => {
                               step={DEFAULT_STEP_TERM}
                               unit="שנים"
                               onChange={(e) => setMortgageYears(Number(e.target.value))}
-                              disabled={isSending}
+                              disabled={isSending || isRollingBack}
                             />
                           </div>
                         </div>
@@ -1444,7 +2094,7 @@ const AIChatpage = () => {
                           החזר חודשי: <span>₪{formatNumber(mortgageMonthly)}</span>
                         </div>
                         <div className="btn_box btn_box_full d_flex d_flex_jb">
-                          <button onClick={handleSendInput} disabled={isSending}>
+                          <button onClick={handleSendInput} disabled={isSending || isRollingBack}>
                             {isSending ? 'שולח...' : 'המשך'}
                           </button>
                         </div>
@@ -1488,8 +2138,16 @@ const AIChatpage = () => {
                         {buttonOptionsForMessage.map((option) => (
                           <button
                             key={option.id}
-                            onClick={() => handleButtonOptionClick(message.id, message.blockKey, option)}
-                            disabled={isSending || !isActiveBlock || messageAnswer.answeredToken === activeBlockToken}
+                            onClick={() => handleButtonOptionClick({
+                              messageId: message.id,
+                              blockKey: message.blockKey,
+                              option,
+                              isActiveBlock,
+                              messageText: message.text,
+                              messageHistoryId: message.historyId,
+                              messageIndex: index,
+                            })}
+                            disabled={isSending || isRollingBack || messageAnswer.answeredToken === activeBlockToken}
                             className={
                               (messageAnswer.selectedId !== null &&
                                 messageAnswer.selectedId !== undefined &&
@@ -1682,6 +2340,18 @@ const AIChatpage = () => {
               visibleButtonOptions.length === 0 &&
               !inputOption && <div className="ai_chat_status">אין אפשרויות זמינות.</div>}
           </div>
+
+          <a
+            className="ai_chat_whatsapp_fab"
+            href={WHATSAPP_SUPPORT_LINK}
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="מעבר לוואטסאפ"
+            title="מעבר לוואטסאפ"
+          >
+            <img src={whatsappFabIcon} alt="" aria-hidden="true" />
+          </a>
+
           <div className="send_message d_flex d_flex_ac d_flex_jb">
             <div className="form_input" ref={countryInputWrapperRef} onClick={handleInputWrapperClick}>
               <input
@@ -1703,22 +2373,46 @@ const AIChatpage = () => {
                   }
                 }}
               />
-              {isCountrySelectionInput && isCountryDropdownOpen && !isSendAreaDisabled && (
-                <div className="ai_country_dropdown" role="listbox" aria-label="רשימת מדינות">
-                  {filteredCountryOptions.length > 0 ? (
-                    filteredCountryOptions.map((country) => (
+              {isApiDropdownSelectionInput && isCountryDropdownOpen && !isSendAreaDisabled && (
+                <div
+                  className="ai_country_dropdown"
+                  role="listbox"
+                  aria-label={
+                    isCountrySelectionInput
+                      ? 'רשימת מדינות'
+                      : isResidenceCityInput
+                        ? 'רשימת ערים'
+                        : 'רשימת כתובות'
+                  }
+                >
+                  {dropdownOptions.length > 0 ? (
+                    dropdownOptions.map((option) => (
                       <button
-                        key={country}
+                        key={option.key}
                         type="button"
                         className="ai_country_option"
                         onMouseDown={(event) => event.preventDefault()}
-                        onClick={() => handleCountrySelect(country)}
+                        onClick={() => handleDropdownSelect(option)}
                       >
-                        {country}
+                        {option.label}
                       </button>
                     ))
                   ) : (
-                    <div className="ai_country_empty">לא נמצאו מדינות</div>
+                    <div className="ai_country_empty">
+                      {isDropdownLoading
+                        ? (
+                          isResidenceCityInput
+                            ? 'טוען ערים...'
+                            : 'טוען כתובות...'
+                        )
+                        : isResidenceAddressInput && !selectedResidenceCity?.name
+                          ? 'יש לבחור עיר מגורים קודם'
+                          : isResidenceCityInput
+                            ? 'לא נמצאו ערים'
+                            : isResidenceAddressInput
+                              ? 'לא נמצאו כתובות'
+                              : 'לא נמצאו מדינות'}
+                    </div>
                   )}
                 </div>
               )}
