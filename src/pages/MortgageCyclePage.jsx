@@ -54,6 +54,9 @@ const normalizeScenarioName = (value) =>
     .replace(/\s+/g, " ")
     .trim();
 
+const getComparisonScenarioName = (row) =>
+  String(row?.["תרחיש"] ?? row?.Scenario ?? "").trim();
+
 const toNumber = (value) => {
   if (value === null || value === undefined || value === "") return null;
   if (typeof value === "number") return Number.isFinite(value) ? value : null;
@@ -71,6 +74,12 @@ const formatDecimal = (value) => {
   const num = toNumber(value);
   if (num === null) return "—";
   return Number(num).toLocaleString("he-IL", { maximumFractionDigits: 2 });
+};
+
+const formatPercent = (value) => {
+  const num = toNumber(value);
+  if (num === null) return "—";
+  return `${Number(num).toLocaleString("he-IL", { maximumFractionDigits: 2 })}%`;
 };
 
 
@@ -168,8 +177,12 @@ const MortgageCyclePage = () => {
   );
 
   const routesFromCurrentMortgage = useMemo(() => {
-    const tracks =
-      bankResponse?.extracted_json?.calculator_result?.detailed_scenarios?.["משכנתא נוכחית"]?.tracks;
+    const scenarios = bankResponse?.extracted_json?.calculator_result?.detailed_scenarios;
+    const currentScenario =
+      scenarios?.Current_Mortgage ||
+      scenarios?.["משכנתא נוכחית"] ||
+      null;
+    const tracks = currentScenario?.tracks;
     if (!Array.isArray(tracks) || tracks.length === 0) return [];
 
     const formatCurrency = (value) => {
@@ -186,23 +199,26 @@ const MortgageCyclePage = () => {
 
     return tracks.map((track, index) => {
       const amount = Number(
+        track?.Amount ??
         track?.["סכום"] ??
         track?.amount ??
         track?.loan_value ??
         0
       );
       const months = Number(
+        track?.Term_Months ??
         track?.["תקופה_חודשים"] ??
         track?.["תקופה (חודשים)"] ??
         track?.months
       );
       return {
         name:
+          track?.Track ||
           track?.["מסלול"] ||
           track?.["סוג_מסלול"] ||
           track?.name ||
           `מסלול ${index + 1}`,
-        interest: formatRate(track?.["ריבית"] ?? track?.rate),
+        interest: formatRate(track?.Interest ?? track?.["ריבית"] ?? track?.rate),
         balance: formatCurrency(amount),
         amount: Number.isFinite(amount) ? amount : 0,
         months: Number.isFinite(months) ? months : null,
@@ -231,7 +247,7 @@ const MortgageCyclePage = () => {
     }
 
     const findScenarioByKeyword = (keyword) =>
-      scenarioNames.find((name) => name.includes(keyword)) || null;
+      scenarioNames.find((name) => name.toLowerCase().includes(keyword.toLowerCase())) || null;
 
     const mappedFromBest =
       (normalized.includes("אופטימ") && findScenarioByKeyword("אופטימ")) ||
@@ -247,13 +263,23 @@ const MortgageCyclePage = () => {
     }
 
     const optimalScenario =
+      findScenarioByKeyword("Optimal_Refinance_Mortgage") ||
+      findScenarioByKeyword("optimal") ||
       findScenarioByKeyword("מחזור אופטימלי") ||
       findScenarioByKeyword("אופטימ");
-    if (optimalScenario && optimalScenario !== "משכנתא נוכחית") {
+    if (
+      optimalScenario &&
+      optimalScenario !== "משכנתא נוכחית" &&
+      optimalScenario !== "Current_Mortgage"
+    ) {
       return optimalScenario;
     }
 
-    return scenarioNames.find((name) => name !== "משכנתא נוכחית") || null;
+    return (
+      scenarioNames.find(
+        (name) => name !== "משכנתא נוכחית" && name !== "Current_Mortgage"
+      ) || null
+    );
   }, [bestNameRaw, calcResult]);
 
   const comparisonRow = useMemo(() => {
@@ -262,12 +288,12 @@ const MortgageCyclePage = () => {
 
     const findByScenarioName = (scenarioName) => {
       if (!scenarioName) return null;
-      const exact = table.find((row) => String(row?.["תרחיש"] || "").trim() === scenarioName);
+      const exact = table.find((row) => getComparisonScenarioName(row) === scenarioName);
       if (exact) return exact;
       const normalizedTarget = normalizeScenarioName(scenarioName);
       return (
         table.find(
-          (row) => normalizeScenarioName(row?.["תרחיש"]) === normalizedTarget
+          (row) => normalizeScenarioName(getComparisonScenarioName(row)) === normalizedTarget
         ) || null
       );
     };
@@ -281,7 +307,7 @@ const MortgageCyclePage = () => {
   }, [bestNameRaw, calcResult, selectedScenarioName]);
 
   const totalSavingsDisplay = useMemo(
-    () => formatCurrency(comparisonRow?.["חיסכון ₪"]),
+    () => formatCurrency(comparisonRow?.["חיסכון ₪"] ?? comparisonRow?.Savings_NIS),
     [comparisonRow]
   );
 
@@ -290,31 +316,46 @@ const MortgageCyclePage = () => {
       {
         id: 1,
         label: "חיסכון חודשי",
-        value: formatCurrency(comparisonRow?.["חיסכון חודשי ממוצע"]),
+        value: formatCurrency(
+          comparisonRow?.["חיסכון חודשי ממוצע"] ?? comparisonRow?.Average_Monthly_Savings
+        ),
       },
       {
         id: 2,
         label: "חיסכון באחוזים",
-        value: "—",
+        value: formatPercent(comparisonRow?.internal_rate_of_return),
       },
       {
         id: 3,
         label: "החזר חודשי צפוי",
-        value: formatCurrency(comparisonRow?.["החזר חודשי מקסימלי"]),
+        value: formatCurrency(
+          comparisonRow?.["החזר חודשי מקסימלי"] ??
+          comparisonRow?.First_Monthly_Payment
+        ),
       },
       {
         id: 4,
         label: "החזר לשקל:",
-        value: formatDecimal(comparisonRow?.["החזר לשקל"]),
+        value: formatDecimal(comparisonRow?.["החזר לשקל"] ?? comparisonRow?.Return_per_NIS),
       },
     ],
     [comparisonRow]
   );
 
   const savingsByYearsData = useMemo(() => {
-    const savingsGraph = calcResult?.best_res?.["גרף חיסכון בשנים"];
-    const years = Array.isArray(savingsGraph?.["שנים"]) ? savingsGraph["שנים"] : [];
-    const savings = Array.isArray(savingsGraph?.["חיסכון"]) ? savingsGraph["חיסכון"] : [];
+    const savingsGraph =
+      calcResult?.best_res?.Savings_Graph_By_Years ||
+      calcResult?.best_res?.["גרף חיסכון בשנים"];
+    const years = Array.isArray(savingsGraph?.Years)
+      ? savingsGraph.Years
+      : Array.isArray(savingsGraph?.["שנים"])
+        ? savingsGraph["שנים"]
+        : [];
+    const savings = Array.isArray(savingsGraph?.Savings)
+      ? savingsGraph.Savings
+      : Array.isArray(savingsGraph?.["חיסכון"])
+        ? savingsGraph["חיסכון"]
+        : [];
     const len = Math.max(years.length, savings.length);
     if (!len) return [];
 
@@ -334,7 +375,10 @@ const MortgageCyclePage = () => {
     const scenarios = calcResult?.detailed_scenarios;
     if (!scenarios || typeof scenarios !== "object") return [];
 
-    const currentGraph = scenarios["משכנתא נוכחית"]?.combined_graph;
+    const currentGraph =
+      scenarios?.Current_Mortgage?.combined_graph ||
+      scenarios?.["משכנתא נוכחית"]?.combined_graph ||
+      null;
     const selectedGraph = selectedScenarioName
       ? scenarios[selectedScenarioName]?.combined_graph
       : null;

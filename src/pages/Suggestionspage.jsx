@@ -153,7 +153,6 @@ const Suggestionspage = () => {
   const getSummary = (response) =>
     response?.extracted_json?.calculator_result?.proposed_mix?.summary ||
     response?.extracted_json?.calculator_result?.proposed_mix?.metrics ||
-    response?.extracted_json?.calculator_result?.optimal_mix?.metrics ||
     null;
 
   const getYears = (response, summary) => {
@@ -163,6 +162,8 @@ const Suggestionspage = () => {
       return String(years).replace(/\.0$/, '');
     }
     const fallbackYears =
+      summary?.Max_Term_Years ??
+      summary?.Term_Years ??
       summary?.['תקופה_מקסימלית'] ??
       summary?.['תקופה_בשנים'] ??
       summary?.['תקופה'];
@@ -172,25 +173,26 @@ const Suggestionspage = () => {
 
   const getRoutes = (response) => {
     const calc = response?.extracted_json?.calculator_result || null;
-    const tracksDetail =
-      calc?.proposed_mix?.tracks_detail ||
-      calc?.optimal_mix?.tracks_detail ||
-      null;
+    const tracksDetail = calc?.proposed_mix?.tracks_detail || null;
     if (Array.isArray(tracksDetail) && tracksDetail.length > 0) {
       const mappedTracks = tracksDetail.map((track) => {
         const amount = toNumber(
+          track?.Amount ??
           track?.['סכום'] ??
           track?.amount ??
           track?.loan_value ??
           track?.balance
         ) || 0;
         const rawPercent = toNumber(
+          track?.Percentage ??
+          track?.percent ??
           track?.['אחוז'] ??
           track?.['אחוז מסכום ההלוואה'] ??
           track?.percentage ??
           track?.['שיעור']
         );
         const rawInterest = toNumber(
+          track?.Interest ??
           track?.['ריבית'] ??
           track?.['שיעור_ריבית'] ??
           track?.['ריבית שנתית'] ??
@@ -198,16 +200,19 @@ const Suggestionspage = () => {
           track?.rate
         );
         const rawMonthlyPayment = toNumber(
+          track?.Monthly_Payment ??
           track?.['החזר_חודשי'] ??
           track?.monthly_payment ??
           track?.payment
         );
         const rawMonths = toNumber(
+          track?.Term_Months ??
           track?.['תקופה_חודשים'] ??
           track?.['תקופה (חודשים)'] ??
           track?.months
         );
         const name =
+          track?.Name ||
           track?.['סוג_מסלול'] ||
           track?.['שם'] ||
           track?.['מסלול'] ||
@@ -247,31 +252,38 @@ const Suggestionspage = () => {
       }));
     }
 
-    const table =
-      calc?.optimal_mix?.table ||
-      calc?.proposed_mix?.table ||
-      null;
+    const table = calc?.proposed_mix?.table || null;
     if (!Array.isArray(table)) return [];
     const total = table.reduce(
-      (sum, row) => sum + (toNumber(row?.['סכום']) || 0),
+      (sum, row) =>
+        sum + (
+          toNumber(
+            row?.Amount ??
+            row?.['סכום']
+          ) || 0
+        ),
       0
     );
     return table.map((row) => {
-      const amount = toNumber(row?.['סכום']) || 0;
+      const amount = toNumber(
+        row?.Amount ??
+        row?.['סכום']
+      ) || 0;
       const percent = total ? Math.round((amount / total) * 100) : 0;
       return {
-        label: row?.['סוג_מסלול'] || row?.['שם'] || row?.['מסלול'] || 'מסלול',
-        name: row?.['סוג_מסלול'] || row?.['שם'] || row?.['מסלול'] || 'מסלול',
+        label: row?.Name || row?.['סוג_מסלול'] || row?.['שם'] || row?.['מסלול'] || 'מסלול',
+        name: row?.Name || row?.['סוג_מסלול'] || row?.['שם'] || row?.['מסלול'] || 'מסלול',
         amount,
         months: toNumber(
+          row?.Term_Months ??
           row?.['תקופה_חודשים'] ??
           row?.['תקופה (חודשים)'] ??
           row?.months
         ),
         percent,
         percentage: formatPercent(percent) || '0%',
-        interest: formatPercent(row?.['ריבית']) || '—',
-        balance: formatCurrency(row?.['החזר_חודשי'] ?? amount),
+        interest: formatPercent(row?.Interest ?? row?.['ריבית']) || '—',
+        balance: formatCurrency(row?.Monthly_Payment ?? row?.['החזר_חודשי'] ?? amount),
       };
     });
   };
@@ -279,8 +291,16 @@ const Suggestionspage = () => {
   const buildChartDataFromGraph = (graph) => {
     if (!graph || typeof graph !== 'object') return null;
     const months = Array.isArray(graph.months) ? graph.months : [];
-    const interest = Array.isArray(graph.interest_payment) ? graph.interest_payment : [];
-    const principal = Array.isArray(graph.principal_repayment) ? graph.principal_repayment : [];
+    const interest = Array.isArray(graph.interest_payment)
+      ? graph.interest_payment
+      : Array.isArray(graph.interest_component)
+        ? graph.interest_component
+        : [];
+    const principal = Array.isArray(graph.principal_repayment)
+      ? graph.principal_repayment
+      : Array.isArray(graph.principal_component)
+        ? graph.principal_component
+        : [];
     const length = Math.min(months.length || 0, interest.length || 0, principal.length || 0);
     if (length === 0) return null;
 
@@ -339,7 +359,10 @@ const Suggestionspage = () => {
       const meta = BANK_META[bankId] || {};
       const summary = getSummary(response);
       const bankTitle = response?.extracted_json?.data?.bank_title;
-      const amount = toNumber(summary?.['סכום_הלוואה']) ?? response?.amount ?? null;
+      const amount = toNumber(
+        summary?.Loan_Amount ??
+        summary?.['סכום_הלוואה']
+      ) ?? response?.amount ?? null;
       return {
         id: bankId,
         name: meta.name || bankTitle || `בנק ${bankId}`,
@@ -349,9 +372,18 @@ const Suggestionspage = () => {
         status: { type: "conditional" },
         amount,
         years: getYears(response, summary),
-        maxMonthlyPayment: toNumber(summary?.['החזר_חודשי_ראשון']),
-        firstMonthlyPayment: toNumber(summary?.['החזר_חודשי_ראשון']),
-        totalPayments: toNumber(summary?.['סהכ_החזר_משוער']),
+        maxMonthlyPayment: toNumber(
+          summary?.First_Monthly_Payment ??
+          summary?.['החזר_חודשי_ראשון']
+        ),
+        firstMonthlyPayment: toNumber(
+          summary?.First_Monthly_Payment ??
+          summary?.['החזר_חודשי_ראשון']
+        ),
+        totalPayments: toNumber(
+          summary?.Total_Estimated_Repayment ??
+          summary?.['סהכ_החזר_משוער']
+        ),
         routes: getRoutes(response),
         simulatorchartdata: getChartData(response),
       };

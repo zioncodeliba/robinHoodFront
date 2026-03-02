@@ -15,10 +15,30 @@
 .broker_info_sec .the_customers{    background-color: #C9D6C5; border: 1px solid #FFFFFF; border-radius: 10px; font-size: 18px; line-height: 48px; color: var(--green); text-align: center; margin-bottom: 15px;}
 .broker_info_sec .the_customers strong{font-size: 18px;}
 
+.broker_info_sec .new_link_actions{display: flex;flex-direction: column;align-items: stretch;justify-content: center;gap: 10px;}
 .broker_info_sec .new_link_send{background-color: var(--orange);text-align: center;cursor: pointer;padding: 0;border: none;color: var(--white);font-size: 20px;line-height: 49px;box-shadow: 0 4px 30px #00000040;border-radius: 10px;width: 100%;position: relative;}
 .broker_info_sec .new_link_send:hover{background-color:var(--green);}
 .broker_info_sec .new_link_send img{position: absolute;left:17px;top: 0;bottom: 0;margin: auto;}
 .broker_info_sec .new_link_send::after{content:'';position: absolute;top: 0;bottom: 0;right: 6px;width: 5px;background-color: var(--white);border-radius: 10px;margin: auto;height: 75%;}
+.broker_info_sec .copy_current_link{background-color: #FFFFFF;text-align: center;cursor: pointer;padding: 0;border: 1px solid var(--green);color: var(--green);font-size: 18px;line-height: 49px;box-shadow: 0 4px 30px #00000026;border-radius: 10px;width: 100%;position: relative;}
+.broker_info_sec .copy_current_link:hover{background-color: #EAF1E7;}
+.broker_info_sec .copy_current_link img{position: absolute;left:15px;top: 0;bottom: 0;margin: auto;opacity: 0.85;}
+.broker_info_sec .copy_current_link::after{content:'';position: absolute;top: 0;bottom: 0;right: 6px;width: 5px;background-color: #D2E2CE;border-radius: 10px;margin: auto;height: 75%;}
+.broker_info_sec .new_link_actions button:disabled{opacity: 0.7;cursor: not-allowed;}
+
+.broker_warning_popup{position: fixed;inset: 0;z-index: 1200;display: flex;align-items: center;justify-content: center;padding: 16px;}
+.broker_warning_backdrop{position: absolute;inset: 0;background: rgba(0,0,0,0.5);border: none;cursor: pointer;}
+.broker_warning_card{position: relative;z-index: 1;width: min(560px, calc(100% - 24px));background: #FFFFFF;border-radius: 16px;padding: 24px 22px;box-shadow: 0 14px 40px rgba(0,0,0,0.24);text-align: right;}
+.broker_warning_card h2{margin: 0 0 12px;color: var(--green);font-size: 22px;line-height: 28px;font-weight: 700;}
+.broker_warning_card p{margin: 0;color: #27450E;font-size: 16px;line-height: 24px;}
+.broker_warning_card p + p{margin-top: 8px;}
+.broker_warning_actions{display: flex;align-items: center;justify-content: flex-end;gap: 10px;margin-top: 20px;}
+.broker_warning_actions button{border-radius: 999px;padding: 11px 18px;font-size: 15px;line-height: 20px;cursor: pointer;border: 1px solid transparent;transition: 0.2s ease all;}
+.broker_warning_actions .warning_cancel{background: #FFFFFF;border-color: #B7C8AE;color: #27450E;}
+.broker_warning_actions .warning_cancel:hover{background: #F3F7F1;}
+.broker_warning_actions .warning_confirm{background: var(--orange);color: #FFFFFF;}
+.broker_warning_actions .warning_confirm:hover{background: var(--green);}
+.broker_warning_actions button:disabled{opacity: 0.7;cursor: not-allowed;}
 
 /* broker_statement_list */
 .broker_statement_list{background-color: var(--white);box-shadow: 0 4px 30px #00000040;margin-top: 60px;}
@@ -32,9 +52,11 @@
 .broker_statement_list .month_tab li.active::after{opacity:1;}
 .broker_statement_list .show_link{}
 .broker_statement_list .show_link li:not(:last-child){margin-left:21px;}
-.broker_statement_list .show_link .link{cursor: pointer;font-size: 14px;font-weight: 400;text-decoration: underline;line-height: 24px;}
+.broker_statement_list .show_link .link{cursor: pointer;font-size: 14px;font-weight: 400;text-decoration: underline;line-height: 24px;border: none;background: transparent;color: var(--green);padding: 0;}
+.broker_statement_list .show_link .link.active{font-weight: 600;color: var(--orange);}
 
 .broker_statement_list .statement_inner{padding:25px 50px 38px;}
+.broker_statement_list .statement_state{width: 100%;text-align: center;color: var(--green);font-size: 18px;line-height: 24px;padding: 36px 0;}
 .broker_statement_list .statement_inner .colin{margin-left: 36px;width: calc(33.33% - 24px);}
 .broker_statement_list .statement_inner .colin:last-child{margin-left: 0;}
 .broker_statement_list .statement_inner ul{display: flex;align-items: center;justify-content: flex-start;margin-bottom: 9px;}
@@ -46,6 +68,7 @@
 .broker_statement_list .statement_inner .details li+li{font-size: 16px;}
 .broker_statement_list .statement_inner .details li:last-child{padding-right: 0;}
 .broker_statement_list .statement_inner .details span{display: block;padding: 0 19px 0 5px;border-radius: 0 20px 20px 0;color: var(--white);font-size: 16px;font-weight: 400;}
+.broker_statement_list .statement_inner .details .status .step_link{display: block;text-decoration: none;color: inherit;}
 .broker_statement_list .statement_inner .details .no_offer_received span{background-color: #FF0000;}
 .broker_statement_list .statement_inner .details .not_registered span{background-color: #ACACAC;}
 .broker_statement_list .statement_inner .details .offer_accepted span{background-color: #00905F;}
@@ -105,6 +128,7 @@
     .broker_info_sec{max-width:388px;margin: 0 auto;}
     .broker_info_sec .col:nth-child(2){display: flex;flex-direction: column-reverse;}
     .broker_info_sec .the_customers { max-width: 261px; margin: 0 auto 11px; }
+    .broker_info_sec .new_link_actions{max-width: 261px; margin: 0 auto; flex-direction: column;}
     .broker_info_sec .your_balance { font-size: 16px; line-height: 45px; margin-bottom: 0px; }
     .broker_info_sec .your_balance strong { font-size: 16px;}
     .broker_info_sec .col:not(:last-child) { margin-bottom: 11px; }
@@ -122,6 +146,11 @@
 
     .broker_statement_list .statement_inner { padding: 15px 10px 30px; }
     .broker_homepage { padding: 22px 0 121px; }
+    .broker_warning_card{padding: 18px 16px;}
+    .broker_warning_card h2{font-size: 18px;line-height: 24px;}
+    .broker_warning_card p{font-size: 14px;line-height: 21px;}
+    .broker_warning_actions{flex-direction: column-reverse;align-items: stretch;}
+    .broker_warning_actions button{width: 100%;}
 
 
 
