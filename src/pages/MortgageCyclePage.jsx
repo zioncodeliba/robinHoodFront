@@ -4,7 +4,7 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import '../components/mortgagecyclecomponents/MortgageCyclepage.css';
 
 import prevIcon from '../assets/images/prev_icon.png';
-import congoIcon from '../assets/images/congo_icon.png';
+import congoIcon from '../assets/images/congrats_icon.png';
 import offerman from '../assets/images/offer_man.png';
 
 // page components

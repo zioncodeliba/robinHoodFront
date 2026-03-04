@@ -5,7 +5,7 @@ import "../components/treatmentstatuscomponents/treatmentstatuspage.css";
 import noteicon from "../assets/images/note_i.svg";
 import yesicon from "../assets/images/yes.svg";
 import treatmentstatusImage from "../assets/images/treatmentstatus_img.png";
-import treatmentstatusImagemob from "../assets/images/treatmentstatus_img_mobile.png";
+import treatmentstatusImagemob from "../assets/images/treatmentstatus_figure.png";
 import { useNavState } from "../context/NavStateContext";
 import { clearAuthToken, getAuthToken } from "../utils/authStorage";
 

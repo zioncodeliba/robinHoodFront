@@ -3,8 +3,8 @@ import React, { useMemo } from "react";
 import { useLocation } from "react-router-dom";
 import '../components/newmortgagecomponents/newmortgagepage.css';
 import HomeImage from '../assets/images/h_img1.png';
-import offer_i from '../assets/images/offer_i.png';
-import robin_man from '../assets/images/robin_man.png';
+import offer_i from '../assets/images/offer_i.svg';
+import robin_man from '../assets/images/viewoffer_figure.png';
 
 
 import RoutesExplanation from '../components/newmortgagecomponents/RoutesExplanation';

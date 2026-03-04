@@ -51,10 +51,10 @@ const LoaderHero = ({ heroContent, loaderClass }) => (
 );
 
 const LOADER_MESSAGES = {
-  loader1: 'בודק אפשרויות חיסכון…',
-  loader2: 'מריץ אלפי תרחישים…',
-  loader3: 'מחשב תמהיל חכם עבורך…',
-  loader4: 'עוד רגע..מסכם את התוצאות…',
+  loader1: { before: 'בודק אפשרויות חיסכון', after: '' },
+  loader2: { before: 'מריץ אלפי תרחישים', after: '' },
+  loader3: { before: 'מחשב תמהיל חכם עבורך', after: '' },
+  loader4: { before: 'עוד רגע', after: 'מסכם את התוצאות' },
 };
 
 const LOADER_HERO_IMAGES = {
@@ -75,6 +75,7 @@ const LOADER_HERO_IMAGES = {
 
 const SavingsLoaderOverlay = ({ onComplete, apiComplete }) => {
   const [active, setActive] = useState('loader1');
+  const [sequenceDone, setSequenceDone] = useState(false);
   const completedRef = useRef(false);
 
   useEffect(() => {
@@ -86,15 +87,21 @@ const SavingsLoaderOverlay = ({ onComplete, apiComplete }) => {
     const t1 = setTimeout(() => setActive('loader2'), 5000);
     const t2 = setTimeout(() => setActive('loader3'), 10000);
     const t3 = setTimeout(() => setActive('loader4'), 15000);
-    return () => { clearTimeout(t1); clearTimeout(t2); clearTimeout(t3); };
+    const t4 = setTimeout(() => setSequenceDone(true), 20000);
+    return () => {
+      clearTimeout(t1);
+      clearTimeout(t2);
+      clearTimeout(t3);
+      clearTimeout(t4);
+    };
   }, []);
 
   useEffect(() => {
-    if (active === 'loader4' && apiComplete && !completedRef.current) {
+    if (active === 'loader4' && apiComplete && sequenceDone && !completedRef.current) {
       completedRef.current = true;
       onComplete?.();
     }
-  }, [active, apiComplete, onComplete]);
+  }, [active, apiComplete, sequenceDone, onComplete]);
 
   if (typeof document === 'undefined') return null;
 
@@ -107,7 +114,31 @@ const SavingsLoaderOverlay = ({ onComplete, apiComplete }) => {
         loaderClass={loaderClass}
       />
       <p className="savings_loader_overlay__text" role="status" aria-live="polite">
-        {message}
+        {loaderClass === 'loader4' ? (
+          <>
+            <span className="savings_loader_overlay__message">{message.before}</span>
+            <span className="savings_loader_overlay__dots" aria-hidden="true">
+              <span className="savings_loader_overlay__dot">.</span>
+              <span className="savings_loader_overlay__dot">.</span>
+              <span className="savings_loader_overlay__dot">.</span>
+            </span>
+            <span className="savings_loader_overlay__message">{message.after}</span>
+            <span className="savings_loader_overlay__dots" aria-hidden="true">
+              <span className="savings_loader_overlay__dot">.</span>
+              <span className="savings_loader_overlay__dot">.</span>
+              <span className="savings_loader_overlay__dot">.</span>
+            </span>
+          </>
+        ) : (
+          <>
+            <span className="savings_loader_overlay__message">{message.before}</span>
+            <span className="savings_loader_overlay__dots" aria-hidden="true">
+              <span className="savings_loader_overlay__dot">.</span>
+              <span className="savings_loader_overlay__dot">.</span>
+              <span className="savings_loader_overlay__dot">.</span>
+            </span>
+          </>
+        )}
       </p>
     </div>
   );

@@ -114,7 +114,7 @@ body.savings_loader_overlay_open {
 .savings_loader_overlay__brand img {
   display: block;
   width: 470px;
-  height: auto;
+  height: 130px;
   transform: scale(0.5);
 }
 
@@ -193,11 +193,20 @@ body.savings_loader_overlay_open {
 }
 
 .loader1 .savings_loader_overlay__magnifier {
-  animation: spinMagnifier 9.2s linear infinite reverse;
+  animation: moveCircle 3s linear infinite;
 }
 
 .loader4 .savings_loader_overlay__magnifier {
   animation: spinMagnifier 9.2s linear infinite reverse;
+}
+
+@keyframes moveCircle {
+  0% {
+    transform: rotate(0deg) translateX(40px) rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg) translateX(40px) rotate(-360deg);
+  }
 }
 
 @keyframes pulseScale {
@@ -234,7 +243,7 @@ body.savings_loader_overlay_open {
   position: absolute;
   top: 57.8%;
   left: 50%;
-  width: 65.94%;
+  width: 75.94%;
   margin: 0;
   transform: translateX(-50%);
   color: #27450e;
@@ -245,11 +254,49 @@ body.savings_loader_overlay_open {
   z-index: 4;
 }
 
+.savings_loader_overlay__dots {
+  display: inline-block;
+  direction: rtl; /* animate visually from right to left */
+  margin-right: 2px;
+}
+.savings_loader_overlay__dot {
+  display: inline-block;
+  opacity: 0;
+  animation: savingsLoaderDots 1.4s ease-in-out infinite;
+}
+
+.savings_loader_overlay__dot:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.savings_loader_overlay__dot:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+@keyframes savingsLoaderDots {
+  0%,
+  20% {
+    opacity: 0;
+  }
+  30%,
+  60% {
+    opacity: 1;
+  }
+  70%,
+  100% {
+    opacity: 0;
+  }
+}
+
 @media (max-width: 767px) {
   .savings_loader_overlay__magnifier {
     left: 40%;
     top: 44%;
     scale: 0.5;
+  }
+  .loader1 .savings_loader_overlay__magnifier {
+    left: 33%;
+    top: 42%;
   }
   .savings_loader_overlay__brand img {
     width: 100%;
@@ -280,5 +327,11 @@ body.savings_loader_overlay_open {
   .savings_loader_overlay__text {
     font-size: 16px;
     line-height: 22px;
+  }
+}
+@media (max-width: 376px) {
+  .loader1 .savings_loader_overlay__magnifier {
+    left: 33%;
+    top: 38%;
   }
 }

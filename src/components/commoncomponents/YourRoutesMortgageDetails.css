@@ -42,15 +42,15 @@
     .routes_explanation .title_routes,
     .routes_explanation .list_routes ul{ padding-right: 0px; }
     .simulator_data_box .routes_explanation .list_routes ul li{padding-right: 30px !important;}
-    .routes_explanation .list_routes::after { right: 26px; }
+    .routes_explanation .list_routes::after { right: 6px; }
     .routes_explanation ul li { width: 96px; }
     .routes_explanation ul li:nth-child(2) { width: 111px; padding-left: 0; }
-    .routes_explanation ul li:nth-child(4) { width: 114px; }
+    .routes_explanation ul li:nth-child(4) { width: 104px; }
     .routes_mortgage_sec .emi_details{margin: 0;}
     .routes_mortgage_sec .bank_logo { top: -30px; width: 60px; height: 60px; right: 21px; }
     .routes_mortgage_sec { margin-top:0; border-radius: 0; background-color: transparent; box-shadow: none; padding: 0;}
     .routes_mobile{ margin-bottom: 0; max-width: calc(100% - 50px); margin: 0 auto; padding: 32px 24px 14px; border-radius: 15px;     background: #FFFFFF;background: linear-gradient(180deg, rgba(255, 255, 255, 1) 0%, rgba(225, 240, 223, 1) 100%);        position: relative;box-shadow: 0 4px 60px #27450E0D;}
-    .routes_mobile::after{content:'';position: absolute;bottom: 0;left: 0;right: 0;margin: 0 auto;width: calc(100% - 50px);background-color:var(--bgcolor);height: 5px;border-radius: 10px;}
+    .routes_mobile::after{content:'';position: absolute;bottom: 0;left: 0;right: 0;margin: 0 auto;width: calc(100% - 50px);background-color:#E27600;height: 5px;border-radius: 10px;}
     .routes_mortgage_sec .emi_details li{margin: 0; text-align: start; border: none; }
     .routes_mortgage_sec .emi_details li p{color: #27450E;font-weight: 700;font-size: 18px;line-height: 24px;}
     .routes_mortgage_sec .emi_details li h3{color: #27450E;font-weight: 400;font-size: 18px;line-height: 24px;}

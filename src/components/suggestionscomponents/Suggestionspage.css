@@ -22,6 +22,9 @@
     background: linear-gradient(180deg, rgba(255, 255, 255, 1) 0%, rgba(225, 240, 223, 1) 100%);}
 .bank_mortgage_card::after{content:'';position: absolute;bottom: -1px;left: 0;right: 0;margin: 0 auto;width: calc(100% - 50px);height: 5px;background-color: var(--color);border-radius: 10px;}
 .bank_mortgage_card .bank_icon{position: absolute;width: 60px;height: 60px;border-radius: 50%;right: 20px;top: -28px;display: flex; align-items: center; justify-content: center;}
+/* בנק דיסקונט, בנק מרכנתיל: logo size and position */
+.suggestions_page .bank_mortgage_card[data-bank-id="4"] .bank_icon,
+.suggestions_page .bank_mortgage_card[data-bank-id="12"] .bank_icon{width: 90px;top: -32px;}
 .bank_mortgage_card .tag { font-size: 12px; line-height: 26px; font-weight: 400; padding: 0 12px; color: var(--white); background-color:var(--color); border-radius:20px; text-align: center; position: absolute; left:37px; top: -13px; }
 .bank_mortgage_card h2{text-align: right;font-size: 18px;line-height: 24px;font-weight: 400;margin-bottom: 8px;}
 .bank_mortgage_card ul{}
@@ -152,7 +155,7 @@
     .routes_bank_mortgage .list_routes ul li:first-child{width: 92px;padding-right: 22px;justify-content: flex-end;}
     .routes_bank_mortgage .list_routes ul li:nth-child(2){width: calc((100% - 92px) / 3);text-align: center;}
     .routes_bank_mortgage .list_routes ul li:nth-child(3){width: calc((100% - 92px) / 3);text-align: center;}
-    .routes_bank_mortgage .list_routes ul li:last-child{width: calc((100% - 92px) / 3);padding-left: 0;text-align: right;}
+    .routes_bank_mortgage .list_routes ul li:last-child{width: calc((100% - 0px) / 3);padding-left: 0;text-align: right;}
     .routes_bank_mortgage .list_routes ul li:first-child > span{width: 92px;max-width: none;margin-right: 0;padding: 0;}
     .routes_bank_mortgage .routes_toggle_btn{font-size: 16px;line-height: 26px;padding: 0 14px;}
 

@@ -51,7 +51,7 @@ const BANK_META = {
     id: 4,
     name: "בנק דיסקונט",
     name_en: "Discount",
-    color: "#27450E",
+    color: "#62A93B",
     bankLogo: BANK_LOGOS.discount,
   },
   8: {

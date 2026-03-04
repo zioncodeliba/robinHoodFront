@@ -9,6 +9,7 @@ import notifiIcon from '../assets/images/notifi.png';
 import removeIcon from '../assets/images/remove.png';
 import notificationsman from '../assets/images/notifications_man.png';
 import robinman from '../assets/images/robin_man.png';
+import notificationsFigure from '../assets/images/notifications_figure.png';
 
 
 const EnvelopeStatusIcon = ({ isRead }) => (
@@ -265,7 +266,7 @@ const Notificationspage = () => {
                 alt=""
               />
               <img
-                src={robinman}
+                src={notificationsFigure}
                 className="notificationsman mobile_img"
                 alt=""
               />

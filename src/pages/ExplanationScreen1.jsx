@@ -3,8 +3,8 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from 'react-router-dom';
 
 import brand from '../assets/images/logoup.svg';
-import screenImage from '../assets/images/explanationscreen_image1-1.png';
-import screenImage2 from '../assets/images/explanationscreen_image2-2.png';
+import screenImage from '../assets/images/explanation_screen1_leaf.png';
+import screenImage2 from '../assets/images/explanation_screen2_leaf.png';
 
 const EXPLANATION_STEPS = [
   {

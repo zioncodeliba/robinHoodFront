@@ -35,7 +35,7 @@ const BankMortgageCard = ({bankData}) => {
         return null;
     };
   return (
-    <div className="bank_mortgage_card" style={{ '--color': bankData.color }}> 
+    <div className="bank_mortgage_card" data-bank-id={bankData?.id} style={{ '--color': bankData.color }}> 
 
         <div className="bank_icon"> 
             <img src={bankImage} alt={bankData.name} />

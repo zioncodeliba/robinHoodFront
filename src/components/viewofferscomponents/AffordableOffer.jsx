@@ -1,7 +1,7 @@
 // Homepage.jsx
 import React from "react";
 
-import offermanImage from "../../assets/images/offer_man.png";
+import offermanImage from "../../assets/images/viewoffer_figure.png";
 
 const AffordableOffer = ({ savings }) => {
   const hasSavings = Number.isFinite(savings);

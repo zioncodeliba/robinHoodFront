@@ -6,8 +6,11 @@
 .homebefore_approval_page .bank_title span{width: 63px;height: 63px;display: flex;align-items: center;justify-content: center;    margin: 0 auto;}
 .homebefore_approval_page .bank_title h3{font-size: 18px;line-height: 24px;font-weight: 400;}
 
+/* Wider bank logo only for ?bankId=4&status=sent or ?bankId=12&status=sent */
+.homebefore_approval_page.homebefore_approval_page--wide-logo .bank_title span{width: 93px;}
+
 .awaiting_approval_box{position: relative;background: #FFFFFF; background: linear-gradient(180deg, rgba(255, 255, 255, 1) 0%, rgba(225, 240, 223, 1) 100%);min-height: 196px; padding: 28px 20px 43px;margin-top: 46px;border-radius: 15px;}
-.awaiting_approval_box .tag{line-height: 48px;background-color: var(--white);border-radius: 50px;border: 1px solid var(--orange);display: flex;align-items: center;justify-content: center;position: absolute;top:-30px;left: 0;right: 0;margin: 0 auto;width:fit-content;padding: 0 18px;color: var(--orange);font-size: 16px;font-weight: 500;}
+.awaiting_approval_box .tag{letter-spacing: 0;line-height: 48px;background-color: var(--white);border-radius: 50px;border: 1px solid var(--orange);display: flex;align-items: center;justify-content: center;position: absolute;top:-30px;left: 0;right: 0;margin: 0 auto;width:fit-content;padding: 0 18px;color: var(--orange);font-size: 16px;font-weight: 500;}
 .awaiting_approval_box .tag img{margin-left: 5px;}
 .awaiting_approval_box ul{}
 .awaiting_approval_box ul li{min-width:120px;text-align: center;position: relative;}
@@ -65,8 +68,9 @@
 }
 .awaiting_approval_box .notification{display: none;}
 @media (max-width:767px){
+    .awaiting_approval_box .tag img {width: 15px;}
     .homebefore_approval_page { padding: 22px 13px 178px; }
-    .homebefore_approval_page .prev_page_link {        left: 27px; right: auto; top: 29px; }
+    .homebefore_approval_page .prev_page_link {        left: 27px; right: auto; top: 47px; }
     .homebefore_approval_page h1 { margin-bottom: 40px; font-weight: 300; }
     .homebefore_approval_page .inner { background-color: transparent; border-radius: 0; box-shadow: none; padding: 0; margin-top: 46px;}
     .homebefore_approval_page .inner>div { width: 100%; }
@@ -141,8 +145,8 @@
 }
 
 
-@media (max-width:413px){
-    
+@media (max-width:476px){
+    .homebefore_approval_page .prev_page_link { top: 29px; }
 
 }
 

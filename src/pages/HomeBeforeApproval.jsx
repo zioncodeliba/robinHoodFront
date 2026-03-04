@@ -3,7 +3,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import '../components/beforeapprovalcomponents/HomeBeforeApproval.css'
 
-import timeicon from "../assets/images/tt.png";
+import timeicon from "../assets/images/homebeforeapproval_clock.png";
 import offericon from "../assets/images/offer_i.png";
 import previcon from '../assets/images/prev_icon.png';
 
@@ -78,6 +78,9 @@ const HomeBeforeApproval = () => {
     const statusKey = params.get("status");
     const statusTextParam = params.get("statusText");
 
+    const isWideLogoBankSent = (bankIdParam === 4 || bankIdParam === 12) && statusKey === "sent";
+    const isPoalimSent = bankIdParam === 3 && statusKey === "sent";
+
     const statusLabels = {
         sent: "בקשה נשלחה לבנק",
         awaiting_approval: "ממתין לאישור הבנק",
@@ -140,14 +143,20 @@ const HomeBeforeApproval = () => {
 
  
   return (
-    <div className="homebefore_approval_page ">
+    <div className={`homebefore_approval_page ${isWideLogoBankSent ? "homebefore_approval_page--wide-logo" : ""}`}>
         <button type="button" onClick={handleBackToHome} className="prev_page_link"><img src={previcon} alt="" /></button>
         <div className="wrapper">
             <h1>ברוכים הבאים, {displayName}</h1>
             <div className="bank_title">
                 {selectedBank ? (
                     <>
-                        <span><img src={selectedBank.logo} alt="" /></span>
+                        <span>
+                            <img
+                                src={selectedBank.logo}
+                                alt=""
+                                style={isPoalimSent ? { filter: "drop-shadow(0px 4px 2px rgba(0, 0, 0, 0.25))" } : undefined}
+                            />
+                        </span>
                         <h3>{selectedBank.name}</h3>
                     </>
                 ) : (

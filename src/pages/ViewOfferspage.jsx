@@ -507,6 +507,21 @@ const ViewOfferspage = () => {
     );
   }, [offerBankIdsSet, mortgageDataByBankId, offersCarouselNoteVisible, renderAwaitingApprovalCard]);
 
+  const orderedCarouselBanks = useMemo(() => {
+    if (carouselBanks.length === 0) return [];
+    const offers = [];
+    const awaiting = [];
+    carouselBanks.forEach((bank) => {
+      if (!bank) return;
+      if (offerBankIdsSet.has(bank.id)) {
+        offers.push(bank);
+      } else {
+        awaiting.push(bank);
+      }
+    });
+    return [...offers, ...awaiting];
+  }, [carouselBanks, offerBankIdsSet]);
+
   const arrowDisabled = carouselBanks.length <= 1 || !emblaApi;
   const prevDisabled = arrowDisabled || !canScrollPrev;
   const nextDisabled = arrowDisabled || !canScrollNext;
@@ -515,11 +530,11 @@ const ViewOfferspage = () => {
     <div className="viewoffers_page">
       <div className="wrapper">
         <h1>ברוכים הבאים, {displayName}</h1>
-        {carouselBanks.length > 0 ? (
+        {orderedCarouselBanks.length > 0 ? (
           <div className="viewoffers_carousel">
             <div className="viewoffers_carousel__viewport" ref={emblaRef}>
               <div className="viewoffers_carousel__container">
-                {carouselBanks.map((bank, index) => (
+                {orderedCarouselBanks.map((bank, index) => (
                   <div
                     className="viewoffers_carousel__slide"
                     key={bank?.id ?? `offer-bank-placeholder-${index}`}

@@ -11,7 +11,7 @@
 .viewoffers_page .bank_logo:has(img[src*="discount.png"]){top: -10px;}
 
 .viewoffers_page .awaiting_offer_card{position: relative;background: linear-gradient(180deg, rgba(255, 255, 255, 1) 0%, rgba(225, 240, 223, 1) 100%);min-height: 196px;padding: 28px 20px 43px;margin-top: 70px;margin-bottom: 132px;border-radius: 15px;}
-.viewoffers_page .awaiting_offer_card .tag{line-height: 48px;background-color: var(--white);border-radius: 50px;border: 1px solid var(--orange);display: flex;align-items: center;justify-content: center;position: absolute;top:-30px;left: 0;right: 0;margin: 0 auto;width: fit-content;padding: 0 18px;color: var(--orange);font-size: 16px;font-weight: 500;}
+.viewoffers_page .awaiting_offer_card .tag{letter-spacing: -0.5px;line-height: 48px;background-color: var(--white);border-radius: 50px;border: 1px solid var(--orange);display: flex;align-items: center;justify-content: center;position: absolute;top:-30px;left: 0;right: 0;margin: 0 auto;width: fit-content;padding: 0 18px;color: var(--orange);font-size: 16px;font-weight: 500;}
 .viewoffers_page .awaiting_offer_card .tag img{margin-left: 5px;}
 .viewoffers_page .awaiting_offer_card .awaiting_offer_bank_title{display: flex;align-items: center;justify-content: center;gap: 8px;margin-top: 12px;}
 .viewoffers_page .awaiting_offer_card .awaiting_offer_bank_title span{width: 64px;height: 64px;display: flex;align-items: center;justify-content: center;}
@@ -94,13 +94,13 @@
     .viewoffers_page .awaiting_offer_card_mobile .tag { margin-left: 44px; }
     .viewoffers_page .awaiting_offer_card_mobile .notification{position: absolute;left: 8px;top: 6px;display: block;}
     .viewoffers_page .awaiting_offer_card_mobile .awaiting_offer_bank_title{position: absolute;right: 5px;top:-44px;display: block;}
-    .viewoffers_page .awaiting_offer_card_mobile .awaiting_offer_bank_title span{width: 64px;height: 64px;display: flex;align-items: center;justify-content: center;}
+    .viewoffers_page .awaiting_offer_card_mobile .awaiting_offer_bank_title span{width: 55px;height: 64px;display: flex;align-items: center;justify-content: center;}
     .viewoffers_page .awaiting_offer_card_mobile .awaiting_offer_bank_title h3{line-height: 24px;color: #27450E;font-size: 18px;font-weight: 400;padding-right: 7px;}
 
     .viewoffers_page .inner { background-color: transparent; box-shadow: none; border-radius: 0; position: relative; padding: 0; max-width: 100%; margin: 20px auto 0; }
     .affordable_offer_sec { width: 100%; }
     .affordable_offer_sec .btn { padding: 7px 20px; left: -13px; bottom: -21px; border-radius: 0 20px 20px 0; }
-    .affordable_offer_sec>img { top: -10px; right: 10px;}
+    .affordable_offer_sec>img { top: -10px; right: 10px;width:40%;}
     .viewoffers_page .offer_col { width: 100%; margin-top: 77px; }
     .viewoffers_page .offer_col>img { right: 3px; }
     .my_statuses_summary_sec { width: 100%; margin-top: 30px; }

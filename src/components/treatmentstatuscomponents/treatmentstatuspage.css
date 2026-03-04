@@ -24,6 +24,8 @@
 .treatment_status_page .step_box ul li.open .yes{opacity: 1;}
 .treatment_status_page .step_box ul li.open .number{background-color: #4FBB88;color: var(--white);border-color: #71D8B5;}
 .treatment_status_page .img{ margin: -100px auto 0; margin-left: 5%; display: block; width: fit-content;}
+/* When fourth li in ul.d_flex.d_flex_jc has .open, hide mobile figure */
+.treatment_status_page:has(.step_box ul.d_flex.d_flex_jc li:nth-child(4).open) .img .mobile_img{display: none;}
 
 /* responsive */
 @media (max-width:1399px) {
@@ -35,7 +37,7 @@
     .treatment_status_page .step_box { margin-top: 20px; }
     .treatment_status_page .step_box ul li .note { font-size: 22px; line-height: 30px; margin-top: 20px;}
     .treatment_status_page .step_box ul li .note img { margin-left: 13px; max-width: 24px; }
-    .treatment_status_page .img { max-width: 410px; }
+    .treatment_status_page .img { max-width: 250px; }
 }
 @media (max-width:1279px) {
     .treatment_status_page .step_box { max-width: calc(100% - 40px);}
@@ -65,7 +67,7 @@
     .treatment_status_page .step_box ul li.open::before {height: 115%;opacity: 1;}
     .treatment_status_page .step_box ul li .yes { position: absolute; left: 30px; top: 0; } 
     .treatment_status_page .step_box ul li .number { width: 42px; height: 42px; font-size: 14px; }
-    .treatment_status_page .img { margin: 0; margin-left: 0; display: block; width: fit-content; position: absolute; left: -20px; bottom: 190px; }
+    .treatment_status_page .img { margin: 0; margin-left: 0; display: block; width: fit-content; position: absolute; left: -50px; bottom: 176px; }
     .treatment_status_page { padding: 40px 0 180px; }
 }
 @media (max-width:390px) {

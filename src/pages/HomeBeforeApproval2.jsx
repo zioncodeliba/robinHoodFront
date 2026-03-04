@@ -8,7 +8,7 @@ import nextprevarrow from "../assets/images/np_arrow.svg";
 import timeicon from "../assets/images/tt.svg";
 import offericon from "../assets/images/offer_i.svg";
 // import offericon from "../assets/images/offer_i.png";
-import sandicon from "../assets/images/sandicon.png";
+import sandicon from "../assets/images/sandicon.svg";
 import noteIcon from "../assets/images/note_i_o.svg";
 
 import {
@@ -22,13 +22,19 @@ import { useNavState } from "../context/NavStateContext";
 import FrequentlyQuestions from '../components/beforeapprovalcomponents/FrequentlyQuestions';
 import StatusSummary from '../components/commoncomponents/StatusSummary';
 
+import leumiNoShadow from "../assets/images/leumi_icon_no_shadow.png";
+import mizrahiNoShadow from "../assets/images/mizrahi_no_shadow.png";
+import discountNoShadow from "../assets/images/discont_no_shadow.png";
+import benleumiNoShadow from "../assets/images/benleumi_no_shadow.png";
+import marcantilNoShadow from "../assets/images/marcantil_no_shadow.png";
+
 const BANK_LOGOS = {
     hapoalim: "/banks/hapoalim.png",
-    leumi: "/banks/leumi.png",
-    mizrahi: "/banks/mizrahi.png",
-    discount: "/banks/discount.png",
-    international: "/banks/international.png",
-    mercantile: "/banks/mercantile.png",
+    leumi: leumiNoShadow,
+    mizrahi: mizrahiNoShadow,
+    discount: discountNoShadow,
+    international: benleumiNoShadow,
+    mercantile: marcantilNoShadow,
 };
 
 const BANK_LIST = [
@@ -145,16 +151,20 @@ const HomeBeforeApproval2 = () => {
 
     const questionsdata = [
         {
-            question: "כמה זמן לוקח האישור העקרוני?",
-            answer: "האישור העקרוני לוקח בדרך כלל בין 3-5 ימי עסקים, תלוי בבנק ובמורכבות הבקשה."
+            question: "מה זה אישור עקרוני?",
+            answer: "בדיקת מימון ראשונית מהבנקים שמגדירה כמה תוכלו לקבל ובאילו תנאים. השלב הראשון להשוואה אמיתית בין הצעות - לפני התחייבות."
         },
         {
-            question: "מה קורה אם האישור נדחה?",
-            answer: "במקרה של דחייה, נעזור לך להבין את הסיבות ולהגיש בקשה מתוקנת או לבנק אחר."
+            question: "האם זה משפיע על דירוג האשראי?",
+            answer: "הבנקים רשאים לבצע בדיקת אשראי כחלק מההליך, כפי שהיה קורה בפנייה ישירה. רובין מרכז את ההגשה בסמיכות כדי לאפשר השוואה חכמה ויעילה."
         },
         {
-            question: "האם אני יכול לבטל את הבקשה?",
-            answer: "אפשר לבטל את הבקשה כל עוד היא עדיין לא יצאה לטיפול.  אם התהליך כבר התחיל – לא ניתן לבטל, אבל תמיד אפשר לפנות אלינו וננסה לעזור."
+            question: "כמה זמן לוקח לקבל הצעות?",
+            answer: "ברוב המקרים עד 5-3 ימי עסקים. המערכת מגישה במקביל למספר בנקים כדי לחסוך זמן ולהציג לכם אפשרויות במקום אחד."
+        },
+        {
+            question: "האם אני מתחייב לקחת משכנתא?",
+            answer: "לא. אתם רואים את כל ההצעות, משווים תנאים - ומחליטים אם ואיך להתקדם."
         }
     ];
 
