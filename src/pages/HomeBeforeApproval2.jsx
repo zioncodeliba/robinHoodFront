@@ -201,11 +201,24 @@ const HomeBeforeApproval2 = () => {
         });
     }, [visibleBanks, approvedVisibleBankIds]);
     const carouselBanks = statusList.length ? statusList : [null];
-    const [emblaRef, emblaApi] = useEmblaCarousel({
+
+    // const [emblaRef, emblaApi] = useEmblaCarousel({
+    //     loop: statusList.length > 1,
+    //     direction: "rtl",
+    //     align: "start"
+    // });
+     const [emblaRef, emblaApi] = useEmblaCarousel({
         loop: statusList.length > 1,
         direction: "rtl",
-        align: "start"
-    });
+        breakpoints: {
+          "(max-width: 767px)": {
+            align: "center",
+            containScroll: "trimSnaps",
+            dragFree: false,
+          },
+        },
+      });
+
 
     useEffect(() => {
         if (approvedVisibleBankIds.length > 0) {

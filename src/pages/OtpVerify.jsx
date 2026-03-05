@@ -10,7 +10,12 @@ import {
 
 import nextI from '../assets/images/next_icon.svg';
 import brand from '../assets/images/logoup_m.svg';
-import otpverifiy from '../assets/images/otp_verify.svg';
+import otpverifiy from '../assets/images/otp_verify1.svg';
+
+import brandDesktop from '../assets/images/brand.svg';
+import previcon from '../assets/images/prev_icon.svg';
+import leavesright from '../assets/images/leaves_right.png';
+import schedulemeetingsman from '../assets/images/schedulemeetings_man.png';
 
 // const OtpVerify = () => {
 //   const location = useLocation();
@@ -330,9 +335,16 @@ const OtpVerify = () => {
 
   return (
     <div className="otp_screen otp_verify">
+      <img src={leavesright} className="leavesright" alt="" />
+      <img src={schedulemeetingsman} className="schedulemeetingsman" alt="" />
+      <div className="had_col">
+        <Link to="/" className="brand_desktop" ><img src={brandDesktop}  alt="" /></Link>
+      </div>
+
       <Link to="/login-with-otp" className="next"><img src={nextI} alt="" /></Link>
 
       <div className="wrap">
+         <Link to="/login" className="prev_page_link"><img src={previcon} alt="" />חזור </Link>
         <Link to="/" className="brand"><img src={brand} alt="" /></Link>
 
         <div className="col">
@@ -402,6 +414,7 @@ const OtpVerify = () => {
 
           </div>
 
+        </div>
           <button
             className="btn"
             onClick={() => handleVerifyOtp()}
@@ -409,7 +422,6 @@ const OtpVerify = () => {
           >
             {isSubmitting ? 'מאמת...' : 'כניסה'}
           </button>
-        </div>
       </div>
     </div>
   );
