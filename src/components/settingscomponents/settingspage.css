@@ -18,7 +18,7 @@
 .settings_page .terms_conditions{font-size: 18px; line-height: 24px; display: block; margin: 0 auto; width: fit-content; text-decoration: underline;font-weight: 500;margin-top: 120px;}
 .settings_page .save_settings{border: none !important;margin:36px auto 0; display: block;}
 .settings_page .settings_img{width:calc(100% - 600px);}
-.settings_page .settings_img img{display: block;margin: 100px auto 0;}
+.settings_page .settings_img img{display: block;margin: 100px auto 0;width: 690px;}
 
 /* responsive */
 @media (max-width:1850px) {

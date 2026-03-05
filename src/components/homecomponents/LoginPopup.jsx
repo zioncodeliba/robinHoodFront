@@ -11,7 +11,7 @@ import {
 
 import appleIcon from '../../assets/images/apple_i.svg';
 import googleIcon from '../../assets/images/google_i.svg';
-import otpIcon from '../../assets/images/otp.png';
+import otpIcon from '../../assets/images/otp.svg';
 
 
 const LoginPopup = ({showloginPopup}) => {

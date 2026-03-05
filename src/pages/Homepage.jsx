@@ -72,8 +72,8 @@ const Homepage = () => {
   );
   const isDesktop = window.innerWidth >= 1024;
 
-  const openLoginPopup = () => {
-    window.dispatchEvent(new CustomEvent('auth:open-login'));
+  const openRegistrationPopup = () => {
+    window.dispatchEvent(new CustomEvent('auth:open-registration'));
   };
 
   const handleProtectedClick = (event, mortgageType) => {
@@ -81,7 +81,7 @@ const Homepage = () => {
       if (isDesktop) {
         event.preventDefault();
         event.stopPropagation();
-        openLoginPopup();
+        openRegistrationPopup();
       }
       return;
     }
@@ -348,7 +348,7 @@ const Homepage = () => {
     <div className="homepage d_flex">
       <div className="right_col">
         <h1>ברוכים הבאים <span>{displayName}</span>.</h1>
-        <p>המקום שיוציא עבורכם את המשכנתא וההלוואה
+        <p>המקום שיוציא עבורכם את המשכנתא
           המשתלמת ביותר עם שירותי השוואה, ניתוח, ליווי
           אישי, ניטור משכנתא מתקדם וצ’אט חדשני שפשוט
           יעבדו בשבילכם</p>

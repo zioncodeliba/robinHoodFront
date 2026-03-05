@@ -29,7 +29,7 @@
     background: linear-gradient(-90deg, rgba(255, 255, 255, 1) 0%, rgba(225, 240, 223, 1) 100%);
     padding:15px 146px 43px 34px;}
 .affordable_offer_sec::before { content: ''; position: absolute; inset: 0; border-radius:15px; padding: 1px; background: linear-gradient(to top, #ffffff08, #E27600); -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0); mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0); -webkit-mask-composite: xor; mask-composite: exclude; pointer-events: none; }
-.affordable_offer_sec>img{position: absolute;top:-10px;right: 0;}
+.affordable_offer_sec>img{position: absolute;top:-10px;right: 0;    width: 140px;}
 .affordable_offer_sec h3{color: var(--black);font-size: 18px;line-height: 20px;margin-bottom: 10px;}
 .affordable_offer_sec h4{font-size:32px;line-height: 20px;font-weight: bold;}
 .affordable_offer_sec h4 i{font-size: 15px;line-height: 8px;font-style: normal;}

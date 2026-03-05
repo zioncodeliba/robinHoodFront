@@ -64,10 +64,15 @@ const Header = () => {
   };
 
   useEffect(() => {
-    const handler = () => openLoginPopup();
-    window.addEventListener('auth:open-login', handler);
+    const handleOpenLogin = () => openLoginPopup();
+    const handleOpenRegistration = () => openRegistrationPopup();
+
+    window.addEventListener('auth:open-login', handleOpenLogin);
+    window.addEventListener('auth:open-registration', handleOpenRegistration);
+
     return () => {
-      window.removeEventListener('auth:open-login', handler);
+      window.removeEventListener('auth:open-login', handleOpenLogin);
+      window.removeEventListener('auth:open-registration', handleOpenRegistration);
     };
   }, []);
 

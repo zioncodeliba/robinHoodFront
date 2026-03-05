@@ -17,6 +17,12 @@
     background-position: 18px;}
 
 /* responsive */
+@media (min-width:1024px) {
+    .homepage ul li a span {
+        background-image: none;
+    }
+}
+
 @media (max-width:1850px) {
     .homepage { padding: 60px 80px 190px; }
     .homepage .right_col { width: 55%; }

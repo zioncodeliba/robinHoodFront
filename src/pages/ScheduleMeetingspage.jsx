@@ -154,7 +154,7 @@ const ScheduleMeetingspage = () => {
           <span className="close" onClick={() => navigate(-1)}><img src={close} alt="" /></span>
           <img src={congo} alt="" />
           <h2>ב ר כ ו ת !!!<br/>
-            על החלטתך למחזר את המשכנתא</h2>
+          על החלטתך להשוות את השכנתא</h2>
           <p>יש לנו תמהיל משכנתא מותאם אישית שיחסוך לך עשרות אלפי שקלים...</p>
           <p>על מנת להנות מכל הטוב הזה < br/>
             פשוט בחרו <strong>שעה ויום</strong> ותאמו שיחה<br/>

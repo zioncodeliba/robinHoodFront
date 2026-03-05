@@ -4,10 +4,12 @@ import { useNavigate } from 'react-router-dom';
 import CustomRangeInput from '../components/simulatorcomponents/CustomRangeInput';
 import '../components/simulatorcomponents/Simulatorpage.css';
 import bouticon from '../assets/images/bout.png';
+import aichatFigure from '../assets/images/aichat_figure.png';
 import removeIcon from '../assets/images/remove.png';
 import viewicon from '../assets/images/pdf_view.svg';
 import sendicon from '../assets/images/send.svg';
-import whatsappFabIcon from '../assets/images/whats_app.svg';
+import whatsappFabIcon from '../assets/images/aichat_whatsapp.png';
+import aichatSignPen from '../assets/images/aichat_signpen.png';
 import { getGatewayBase } from "../utils/apiBase";
 import { getAuthToken } from "../utils/authStorage";
 
@@ -1126,18 +1128,8 @@ const AIChatpage = () => {
     let rafId = null;
 
     const applyScroll = () => {
-      if (isMortgageParameters && currentBlock?.block_key) {
-        const target = container.querySelector(`[data-block-key="${currentBlock.block_key}"]`);
-        if (target) {
-          const containerRect = container.getBoundingClientRect();
-          const targetRect = target.getBoundingClientRect();
-          const delta = targetRect.top - containerRect.top - paddingTop;
-          container.scrollTop = Math.max(0, container.scrollTop + delta);
-          return;
-        }
-      }
       const maxScroll = container.scrollHeight - container.clientHeight;
-      container.scrollTop = Math.max(0, maxScroll - paddingTop);
+      container.scrollTop = Math.max(0, maxScroll);
     };
 
     rafId = window.requestAnimationFrame(applyScroll);
@@ -1347,7 +1339,10 @@ const AIChatpage = () => {
     }
   };
 
-  const handleDropdownSelect = (option) => {
+  const handleDropdownSelect = (option, event) => {
+    if (event && typeof event.stopPropagation === 'function') {
+      event.stopPropagation();
+    }
     if (!option) return;
     setInputValue(option.value || option.label || '');
     if (isResidenceCityInput) {
@@ -1975,7 +1970,7 @@ const AIChatpage = () => {
         </div>
         <div className="ai_chat_box">
           <div className="had d_flex d_flex_jc d_flex_ac">
-            <img src={bouticon} alt="" /> <span>רובין העוזר האישי שלך למשכנתא</span>
+            <img src={aichatFigure} alt="" /> <span>רובין העוזר האישי שלך למשכנתא</span>
           </div>
           {isBlockingOverlayVisible && (
             <div className="ai_chat_loading_overlay" role="status" aria-live="polite">
@@ -2020,6 +2015,7 @@ const AIChatpage = () => {
                   ? (buttonPosition % 2 === 0 ? 'user_chat' : 'boat_chat')
                   : 'boat_chat')
                 : 'user_chat';
+              const messageIconSrc = messageClass === 'user_chat' ? aichatFigure : bouticon;
               if (!isBot && (isButtonBlockKey(message.blockKey) || mortgageBlocks[message.blockKey])) {
                 return null;
               }
@@ -2034,7 +2030,7 @@ const AIChatpage = () => {
                   className={`colin ${messageClass}`}
                   data-block-key={isBot ? message.blockKey : undefined}
                 >
-                  <div className="icon"><img src={bouticon} alt="" /></div>
+                  <div className="icon"><img src={messageIconSrc} alt="" /></div>
                   <div className="text">
                     <div className="message_box">
                       {isPinnedMessage ? renderMessageParagraphs(message.text) : (
@@ -2190,6 +2186,7 @@ const AIChatpage = () => {
                         <div className="signature_label">{signatureLabel}</div>
                         <div className="signature signature_pad">
                           {!isSignatureReady && <span>נא לחתום כאן</span>}
+                          <img src={aichatSignPen} alt="" className="signature_pen_icon" aria-hidden="true" />
                           <button
                             type="button"
                             className={`signature_clear_icon ${isSignatureReady ? 'is-visible' : ''}`}
@@ -2392,7 +2389,7 @@ const AIChatpage = () => {
                         type="button"
                         className="ai_country_option"
                         onMouseDown={(event) => event.preventDefault()}
-                        onClick={() => handleDropdownSelect(option)}
+                        onClick={(event) => handleDropdownSelect(option, event)}
                       >
                         {option.label}
                       </button>

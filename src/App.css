@@ -24,7 +24,7 @@
 .ai_chat_loading_box{display:flex;align-items:center;gap:10px;color:#27450E;font-size:16px;font-weight:500;background:#fff;border:1px solid #27450E2B;border-radius:999px;padding:12px 18px;box-shadow:0 6px 24px rgba(0,0,0,0.08);}
 .ai_chat_loading_spinner{width:18px;height:18px;border:2px solid #c9d8be;border-top-color:#E27600;border-radius:50%;animation:ai-chat-spin .8s linear infinite;}
 @keyframes ai-chat-spin{to{transform:rotate(360deg);}}
-.ai_chat_box .inner{padding:22px 50px 120px;    height: 100%; overflow: auto; overscroll-behavior: contain;-webkit-overflow-scrolling: touch;}
+.ai_chat_box .inner{padding:22px 50px 120px;  padding-bottom: 160px;  height: 100%; overflow: auto; overscroll-behavior: contain;-webkit-overflow-scrolling: touch;}
 .ai_chat_box .colin{max-width:fit-content;display: flex;flex-wrap: wrap;margin-top: 19px !important;margin-bottom: 19px !important;}
 .ai_chat_box .colin .icon{max-width: 68px;margin-left: 7px;}
 .ai_chat_box .colin .text{width:calc(100% - 75px);padding-top: 12px;}
@@ -63,6 +63,7 @@
 .ai_chat_box .order_benefit .signature span{color: #27450E;font-size: 18px;line-height: 24px;position: absolute;left: 12px;bottom:11px;}
 .ai_chat_box .order_benefit .signature.signature_pad{height: 140px;background-image: none;}
 .ai_chat_box .order_benefit .signature.signature_pad span{pointer-events: none;}
+.ai_chat_box .order_benefit .signature.signature_pad .signature_pen_icon{position:absolute;right:12px;bottom:11px;width:34px;height:auto;pointer-events:none;}
 .ai_chat_box .order_benefit .signature_canvas{width: 100%;height: 100%;display: block;touch-action: none;}
 .ai_chat_box .order_benefit .signature_group{margin-bottom: 14px;}
 .ai_chat_box .order_benefit .signature_label{font-size: 14px;color:#27450E;margin-bottom: 6px;text-align: right;}
@@ -109,7 +110,7 @@
 .ai_chat_box .send_message .send:hover{background-color: #27450E;}
 .ai_chat_box .send_message .send:disabled{background-color: #cfd5d1;box-shadow: none;cursor: not-allowed;}
 .ai_chat_box .send_message .send:disabled:hover{background-color: #cfd5d1;}
-.ai_chat_box .ai_chat_whatsapp_fab{position:absolute;right:16px;bottom:76px;width:56px;height:56px;border-radius:50%;display:flex;align-items:center;justify-content:center;z-index:26;text-decoration:none;filter:drop-shadow(0 10px 20px rgba(0,0,0,0.25));transition:transform .2s ease, filter .2s ease;}
+.ai_chat_box .ai_chat_whatsapp_fab{box-shadow: 0px 0px 30px 0px rgba(39, 69, 14, 0.4);border: 1px solid #fff;position:absolute;left:36px;bottom:76px;width:56px;height:56px;border-radius:50%;display:flex;align-items:center;justify-content:center;z-index:26;text-decoration:none;filter:drop-shadow(0 10px 20px rgba(0,0,0,0.25));transition:transform .2s ease, filter .2s ease;}
 .ai_chat_box .ai_chat_whatsapp_fab img{width:100%;height:100%;display:block;}
 .ai_chat_box .ai_chat_whatsapp_fab:hover{transform:translateY(-1px) scale(1.03);filter:drop-shadow(0 14px 24px rgba(0,0,0,0.30));}
 .ai_chat_box .ai_chat_whatsapp_fab:focus-visible{outline:2px solid #E27600;outline-offset:3px;}
@@ -337,9 +338,19 @@ body{background-repeat: no-repeat;background-size: cover;}
 /* New-loan (mortgage) page: background scrolls with content, no repeat, full width and height */
 .main:has(.mortgagepage){background-attachment: local; background-repeat: no-repeat; background-size: cover; background-position: top center;}
 /* AI chat page: scroll happens inside .ai_chat_box .inner, so put scrollable background there */
-.main:has(.aichat_page) .ai_chat_box .inner{background-image: url(../src/assets/images/bg_layer.jpg); background-repeat: no-repeat !important; background-attachment: local; background-size: auto 500vh; background-position: top center;}
-.main .l_left {position: absolute; left: 0; top: 19%; }
+.main:has(.aichat_page) .ai_chat_box .inner{/*background-image: url(../src/assets/images/bg_layer.jpg);*/ background-repeat: no-repeat !important; background-attachment: local; background-size: auto 500vh; background-position: top center;}
+.main .l_left {position: absolute; left: 13px; top: 19%; }
 .main .l_right{position: absolute; right:0; bottom: -100px;}
+/* Hide left leaf on schedule meetings page only */
+.main:has(.schedule_meetings_page) .l_left{display: none;}
+/* Hide both leaves on notifications page only */
+.main:has(.notifications_page) .l_left,
+.main:has(.notifications_page) .l_right{display: none;}
+/* Hide both leaves on settings page only */
+.main:has(.settings_page) .l_left,
+.main:has(.settings_page) .l_right{display: none;}
+/* Simulator page: custom top padding for .main */
+.main:has(.simulator_page){padding-top: 123px;}
 
 .main.hidepan .l_left,
 .main.hidepan .l_right{display: none !important;}
@@ -386,6 +397,13 @@ header .left_col>div>.btn{margin: 0 37px;position: relative;top: 5px;}
 header .left_col>div>.btn.login_records{margin: 0 13px 0 37px;padding:15px 27px;}
 header .left_col>div>.btn.registration{margin: 0;padding:15px 27px;background-color: var(--green);}
 header .left_col>div>.btn.registration:hover{background-color: var(--orange);}
+
+@media (min-width:1024px) {
+  header .left_col>div>.btn.login_records,
+  header .left_col>div>.btn.registration {
+    box-shadow: none;
+  }
+}
 
 .das_top_title{text-align: center;}
 .das_top_title h1{font-size: 22px;line-height: 24px;margin-bottom: 27px;}
