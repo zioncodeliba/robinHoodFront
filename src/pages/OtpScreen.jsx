@@ -3,8 +3,12 @@ import { Link, useNavigate } from 'react-router-dom';
 import { getGatewayApiBase } from "../utils/apiBase";
 
 import brand from '../assets/images/logoup_m.svg';
+import brandDesktop from '../assets/images/brand.svg';
 import nextI from '../assets/images/next_icon.svg';
 import phoneotp from '../assets/images/phone_otp_i.svg';
+import previcon from '../assets/images/prev_icon.svg';
+import leavesright from '../assets/images/leaves_right.png';
+import schedulemeetingsman from '../assets/images/schedulemeetings_man.png';
 
 const OtpScreen = () => {
   const navigate = useNavigate();
@@ -81,9 +85,15 @@ const OtpScreen = () => {
 
   return (
     <div className="otp_screen">
+      <img src={leavesright} className="leavesright" alt="" />
+      <img src={schedulemeetingsman} className="schedulemeetingsman" alt="" />
+      <div className="had_col">
+        <Link to="/" className="brand_desktop" ><img src={brandDesktop}  alt="" /></Link>
+      </div>
       <Link to="/login" className="next"><img src={nextI} alt="" /></Link>
 
       <div className="wrap">
+        <Link to="/login" className="prev_page_link"><img src={previcon} alt="" />חזור </Link>
         <Link to="/" className="brand"><img src={brand} alt="" /></Link>
 
         <div className="col">
@@ -118,6 +128,7 @@ const OtpScreen = () => {
 
           </div>
 
+        </div>
           <button
             className="btn"
             onClick={handleSubmit}
@@ -125,7 +136,6 @@ const OtpScreen = () => {
           >
             {isSubmitting ? 'שולח...' : 'שליחה'}
           </button>
-        </div>
       </div>
     </div>
   );
