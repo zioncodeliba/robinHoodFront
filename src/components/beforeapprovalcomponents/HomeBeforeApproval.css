@@ -11,7 +11,7 @@
 
 .awaiting_approval_box{position: relative;background: #FFFFFF; background: linear-gradient(180deg, rgba(255, 255, 255, 1) 0%, rgba(225, 240, 223, 1) 100%);min-height: 196px; padding: 28px 20px 43px;margin-top: 46px;border-radius: 15px;}
 .awaiting_approval_box .tag{letter-spacing: 0;line-height: 48px;background-color: var(--white);border-radius: 50px;border: 1px solid var(--orange);display: flex;align-items: center;justify-content: center;position: absolute;top:-30px;left: 0;right: 0;margin: 0 auto;width:fit-content;padding: 0 18px;color: var(--orange);font-size: 16px;font-weight: 500;}
-.awaiting_approval_box .tag img{margin-left: 5px;}
+.awaiting_approval_box .tag img{margin-left: 5px;width: 20px;}
 .awaiting_approval_box ul{}
 .awaiting_approval_box ul li{min-width:120px;text-align: center;position: relative;}
 .awaiting_approval_box ul li span{width: 56px;height: 56px;background-color: #27450E;border-radius: 50%;display: flex;align-items: center;justify-content: center;margin:0 auto;font-size: 28.8px;border: 2px solid var(--white);color: var(--white);box-shadow: 0 4px 30px #E2760045;}
@@ -136,6 +136,13 @@
     .awaiting_approval_box_mobile .bank_title1 span{width: 64px;height: 64px;display: flex;align-items: center;justify-content: center;}
     .awaiting_approval_box_mobile .bank_title1 h3{line-height: 24px;color: #27450E;font-size: 18px;line-height: 24px;font-weight: 400;padding-right: 7px;}
 
+     body .homebefore_approval_page  .mobile_header_slider { width: calc(100% + 26px); margin-right: -13px; }
+    .viewoffers_page .viewoffers_carousel__container{}
+    .homebefore_approval_page .mobile_header_slider__slide { flex: 0 0 calc(100% - 56px); min-width: 0; margin-right:9px;}
+    .homebefore_approval_page .awaiting_approval_box { max-width: 100%; }
+    .mobile_header_slider__slide[aria-hidden="true"] .awaiting_approval_box *{opacity: 0;transition: 0.4s ease all;}
+    .mobile_header_slider__slide[aria-hidden="true"] .awaiting_approval_box{background:linear-gradient(180deg, rgb(171 193 170) 0%, rgb(225 240 223) 100%);}
+    
 
 
 }
