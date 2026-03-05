@@ -11,7 +11,7 @@
 
 .awaiting_approval_box{position: relative;background: #FFFFFF; background: linear-gradient(180deg, rgba(255, 255, 255, 1) 0%, rgba(225, 240, 223, 1) 100%);min-height: 196px; padding: 28px 20px 43px;margin-top: 46px;border-radius: 15px;}
 .awaiting_approval_box .tag{letter-spacing: 0;line-height: 48px;background-color: var(--white);border-radius: 50px;border: 1px solid var(--orange);display: flex;align-items: center;justify-content: center;position: absolute;top:-30px;left: 0;right: 0;margin: 0 auto;width:fit-content;padding: 0 18px;color: var(--orange);font-size: 16px;font-weight: 500;}
-.awaiting_approval_box .tag img{margin-left: 5px;}
+.awaiting_approval_box .tag img{margin-left: 5px;width: 20px;}
 .awaiting_approval_box ul{}
 .awaiting_approval_box ul li{min-width:120px;text-align: center;position: relative;}
 .awaiting_approval_box ul li span{width: 56px;height: 56px;background-color: #27450E;border-radius: 50%;display: flex;align-items: center;justify-content: center;margin:0 auto;font-size: 28.8px;border: 2px solid var(--white);color: var(--white);box-shadow: 0 4px 30px #E2760045;}
