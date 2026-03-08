@@ -43,6 +43,16 @@
 .ai_chat_box .colin .btn_box{width: 423px;margin-top: 19px;}
 .ai_chat_box .colin .btn_box button{width:calc(50% - 7.5px);border: 1px solid #27450E;border-radius: 0 6px 6px 6px;outline: none;line-height: 41px;text-align: center;background-color: transparent;font-size: 14px;font-weight: 400;color: #1B1E28;cursor: pointer;margin-bottom: 15px;font-family: "Arimo", sans-serif;line-height: 20px;padding: 10.5px 5px;}
 .ai_chat_box .colin .btn_box.btn_box_full button{width:100%;}
+.ai_chat_box .colin .btn_box.btn_box_with_restart{justify-content:flex-start;flex-wrap:nowrap;gap:8px;}
+.ai_chat_box .colin .btn_box.btn_box_with_restart button{margin-bottom:0;}
+.ai_chat_box .colin .btn_box.btn_box_with_restart button:not(.message_restart_option){width:auto;flex:1 1 0;min-width:0;}
+.ai_chat_box .colin .btn_box .message_restart_option{width:69px;min-width:69px;height:43px;border:none;border-radius:0 6px 6px 6px;background-color:#E2000B;color:var(--white);box-shadow:0 4px 30px rgba(226,118,0,0.39);display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:10px;line-height:11px;font-weight:400;padding:0;transition:background-color .2s ease, opacity .2s ease;}
+.ai_chat_box .colin .btn_box .message_restart_option:hover{background-color:#c5000a;}
+.ai_chat_box .colin .btn_box .message_restart_option:focus{outline:2px solid #E27600;outline-offset:2px;}
+.ai_chat_box .colin .btn_box .message_restart_option:disabled{opacity:0.5;cursor:not-allowed;background-color:#E2000B;}
+.ai_chat_box .colin .btn_box.btn_box_with_restart .message_restart_option{flex:0 0 69px;}
+.ai_chat_box .colin .btn_box .message_restart_option:nth-child(2n){border-radius:0 6px 6px 6px;}
+.ai_chat_box .colin .btn_box .message_restart_option span{display:block;}
 .ai_chat_box .colin .btn_box button.active{background-color: #E27600;box-shadow: 0 4px 30px #E2760063;color: var(--white);border-color: #E27600;}
 .ai_chat_box .colin .btn_box button:focus{border-color: #E27600;}
 .ai_chat_box .colin .btn_box button:nth-child(2n){border-radius:6px 0px 6px 6px;}
@@ -189,6 +199,7 @@
   .ai_chat_box .colin { margin-top: 15px !important; margin-bottom: 15px !important;max-width: 100% !important;}
   .ai_chat_box .colin .btn_box { width: 100%; margin-top: 15px; }
   .ai_chat_box .colin .btn_box button { width: calc(50% - 5px); margin-bottom: 10px; }
+  .ai_chat_box .colin .btn_box.btn_box_with_restart { gap: 6px; }
   .ai_chat_box .colin .message_box .time { left: 9px; bottom: 3px; }
   .ai_chat_box .colin .message_box .message_edit_button { left: 6px; top: 6px; width: 22px; height: 22px; }
   .ai_chat_box .ai_chat_whatsapp_fab{right:12px;bottom:72px;width:52px;height:52px;}
@@ -215,6 +226,7 @@
   .signature_docs_footer button{width: auto;}
   .aichat_page .calculator_box .range_box .tooltip {box-sizing: border-box; top: -37px !important;}
   .aichat_page .calculator_box .range_box .arrow { top: 50px; margin-top: -38px; right: 32px; }
+  .routes_bank_mortgage .list_routes::after {right: 2%;}
 
 
 }
