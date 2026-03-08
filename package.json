@@ -19,7 +19,12 @@
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "eject": "react-scripts eject",
+    "branch:avideveloper": "git checkout avideveloper",
+    "git:status": "git status",
+    "git:commit": "git add -A && git commit",
+    "git:push": "git push -u origin avideveloper",
+    "git:sync": "git add -A && git status"
   },
   "eslintConfig": {
     "extends": [

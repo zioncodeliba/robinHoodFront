@@ -9,8 +9,9 @@ const formatNumber = (num) => {
 
 const CustomRangeInput = ({ value, min, max, step, unit, onChange, disabled = false }) => {
   const inputRef = useRef(null);
+  const rangeWrapRef = useRef(null);
   const isThumbDraggingRef = useRef(false);
-  
+
   const getBubblePosition = useCallback((currentValue) => {
     const percentage = ((currentValue - min) / (max - min)) * 100;
     return percentage;
@@ -19,7 +20,6 @@ const CustomRangeInput = ({ value, min, max, step, unit, onChange, disabled = fa
   const bubblePosition = getBubblePosition(value);
   const bubbleRightOffset = 100 - bubblePosition;
 
-  // משתנה CSS כדי לצבוע את חלק ה-track לפני ה-thumb
   const inputStyle = {
     '--track-fill-percentage': `${bubblePosition}%`,
     direction: 'ltr',
@@ -33,12 +33,13 @@ const CustomRangeInput = ({ value, min, max, step, unit, onChange, disabled = fa
     });
   }, [onChange]);
 
+  // Use the visible track (range_wrap) for coordinates so drag/tap match the bar and can reach min/max
   const updateValueFromClientX = useCallback((clientX) => {
     if (disabled) return;
-    const input = inputRef.current;
-    if (!input) return;
+    const trackEl = rangeWrapRef.current || inputRef.current;
+    if (!trackEl) return;
 
-    const rect = input.getBoundingClientRect();
+    const rect = trackEl.getBoundingClientRect();
     if (!rect.width) return;
 
     let ratio = (clientX - rect.left) / rect.width;
@@ -53,6 +54,13 @@ const CustomRangeInput = ({ value, min, max, step, unit, onChange, disabled = fa
 
     emitValueChange(nextValue);
   }, [disabled, emitValueChange, max, min, step]);
+
+  const handleTrackPointerDown = useCallback((e) => {
+    if (disabled) return;
+    if (e.target.closest('.tooltip')) return;
+    e.preventDefault();
+    updateValueFromClientX(e.clientX);
+  }, [disabled, updateValueFromClientX]);
 
   const handleThumbPointerDown = useCallback((event) => {
     if (disabled) return;
@@ -76,9 +84,14 @@ const CustomRangeInput = ({ value, min, max, step, unit, onChange, disabled = fa
   }, []);
 
   return (
-    <div className="range_box" dir="ltr"> 
-        <div className="range_wrap">
-          <div 
+    <div className="range_box" dir="ltr">
+        <div
+          ref={rangeWrapRef}
+          className="range_wrap"
+          onPointerDown={handleTrackPointerDown}
+          style={{ touchAction: 'none' }}
+        >
+          <div
             className="tooltip"
             style={{ right: `${bubbleRightOffset}%`, top: '-48px' }}
             onPointerDown={handleThumbPointerDown}
@@ -97,9 +110,12 @@ const CustomRangeInput = ({ value, min, max, step, unit, onChange, disabled = fa
             step={step}
             value={value}
             onChange={onChange}
-            style={inputStyle}
+            style={{ ...inputStyle, pointerEvents: 'none' }}
             className="custom-range-slider "
             disabled={disabled}
+            aria-valuemin={min}
+            aria-valuemax={max}
+            aria-valuenow={value}
           />
         </div>
         <div className="minmax_text " dir="ltr">

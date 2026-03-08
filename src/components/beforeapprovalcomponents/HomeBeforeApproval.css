@@ -1,7 +1,7 @@
 /* homebefore_approval */
-.homebefore_approval_page{padding: 69px 0 143px;}
+.homebefore_approval_page{padding: 39px 0 0;}
 .homebefore_approval_page .wrapper{max-width: 836px;}
-.homebefore_approval_page h1 { text-align: center; font-size: 22px; line-height: 24px;margin-bottom: 35px;}
+.homebefore_approval_page h1 { text-align: center; font-size: 22px; line-height: 24px;margin-bottom: 5px;}
 .homebefore_approval_page .bank_title{width:fit-content;margin: 0 auto;}
 .homebefore_approval_page .bank_title span{width: 63px;height: 63px;display: flex;align-items: center;justify-content: center;    margin: 0 auto;}
 .homebefore_approval_page .bank_title h3{font-size: 18px;line-height: 24px;font-weight: 400;}

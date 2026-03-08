@@ -20,10 +20,16 @@
 .treatment_status_page .step_box ul li .number{width: 56px;height: 56px;border-radius: 50%;background-color: var(--white);color:#27450E;font-size: 18.59px;font-weight: 900;display: flex;align-items: center;justify-content: center;box-shadow: 0 5px 39px #00B87A5C;border: 1.33px solid var(--white);position: relative;z-index: 2;}
 .treatment_status_page .step_box ul li .note{font-size:29px;line-height: 32px;color: var(--green);font-weight: 300;display: flex;align-items: center;margin-top: 24px;position: relative;z-index: 2;}
 .treatment_status_page .step_box ul li .note img{margin-left: 19px;}
+.treatment_status_page .step_box ul li .note{cursor: pointer;}
 .treatment_status_page .step_box ul li .yes{margin-top: 44px;position: relative;z-index: 2;opacity: 0;}
 .treatment_status_page .step_box ul li.open .yes{opacity: 1;}
 .treatment_status_page .step_box ul li.open .number{background-color: #4FBB88;color: var(--white);border-color: #71D8B5;}
 .treatment_status_page .img{ margin: -100px auto 0; margin-left: 5%; display: block; width: fit-content;}
+.note_popup h2 {padding-bottom: 30px;}
+.note_popup .close {top: 16px;}
+/* note_popup – same as suggestions page, so popup is visible here */
+.treatment_status_page .note_popup{display: block;top: 300px;width: 100%;margin: 0 auto;left: 0;padding-top: 30px; height: auto;}
+
 /* When fourth li in ul.d_flex.d_flex_jc has .open, hide mobile figure */
 .treatment_status_page:has(.step_box ul.d_flex.d_flex_jc li:nth-child(4).open) .img .mobile_img{display: none;}
 

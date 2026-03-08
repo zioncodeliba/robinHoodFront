@@ -31,6 +31,9 @@ body {overflow-y: hidden;}
 
 .mortgagecyclecheck_page .next_prev_btnk{margin-top: 40px;}
 
+.uploaded_list .delete_btn {width: 23px;}
+.uploaded_list .view_btn {width: 30px;}
+
 /* error popup */
 .mortgage_fileError_popup{width: 730px;background-color: #24242475;border-radius: 20px;padding: 58px 40px 24px;position: absolute;top: 0;left: 0;right: 0;margin: auto;z-index: 2;backdrop-filter: blur(70px);visibility: hidden;transition: 0.4s ease all;}
 .mortgage_fileError_popup.open{visibility: visible;}
