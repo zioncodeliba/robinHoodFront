@@ -1,9 +1,8 @@
 // Homepage.jsx
-import React, { useCallback, useEffect, useMemo } from "react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import '../components/mortgagecyclecomponents/MortgageCyclepage.css';
 
-import prevIcon from '../assets/images/prev_icon.png';
 import congoIcon from '../assets/images/congrats_icon.png';
 import offerman from '../assets/images/offer_man.png';
 
@@ -13,6 +12,7 @@ import RoutesBankMortgage from '../components/suggestionscomponents/RoutesBankMo
 import SavingsList from '../components/mortgagecyclecomponents/SavingsList';
 import BarChartsavings from '../components/mortgagecyclecomponents/BarChartsavings';
 import ReturnsChart from '../components/commoncomponents/ReturnsChart';
+import ScheduleMeetingsPopup from "../components/schedulemeetingscomponents/ScheduleMeetingsPopup";
 import {
   buildBankMortgageData,
   loadMortgageCycleResult,
@@ -22,6 +22,7 @@ import {
   fetchBankVisibilityMeCached,
 } from "../utils/authGetCache";
 import { clearAuthToken, getAuthToken } from "../utils/authStorage";
+import { loadUpcomingBookedMeeting } from "../utils/meetingBookingStorage";
 
 const SUPPORTED_BANK_IDS = [3, 2, 1, 4, 8, 12];
 
@@ -86,6 +87,8 @@ const formatPercent = (value) => {
 const MortgageCyclePage = () => {
   const location = useLocation();
   const navigate = useNavigate();
+  const [isScheduleModalOpen, setIsScheduleModalOpen] = useState(false);
+  const [bookedMeeting, setBookedMeeting] = useState(() => loadUpcomingBookedMeeting());
   const storedResult = useMemo(() => loadMortgageCycleResult(), []);
   const bankResponse = location.state?.bankResponse || storedResult;
   const calcResult = bankResponse?.extracted_json?.calculator_result;
@@ -170,6 +173,39 @@ const MortgageCyclePage = () => {
       document.removeEventListener("visibilitychange", handleVisibilityChange);
     };
   }, [handleAuthFailure, navigate]);
+
+  useEffect(() => {
+    if (!isScheduleModalOpen) return undefined;
+    const originalOverflow = document.body.style.overflow;
+    const closeOnEsc = (event) => {
+      if (event.key === "Escape") {
+        setIsScheduleModalOpen(false);
+      }
+    };
+
+    document.body.style.overflow = "hidden";
+    window.addEventListener("keydown", closeOnEsc);
+
+    return () => {
+      document.body.style.overflow = originalOverflow;
+      window.removeEventListener("keydown", closeOnEsc);
+    };
+  }, [isScheduleModalOpen]);
+
+  useEffect(() => {
+    const syncBookedMeeting = () => {
+      setBookedMeeting(loadUpcomingBookedMeeting());
+    };
+
+    syncBookedMeeting();
+    window.addEventListener("focus", syncBookedMeeting);
+    window.addEventListener("storage", syncBookedMeeting);
+
+    return () => {
+      window.removeEventListener("focus", syncBookedMeeting);
+      window.removeEventListener("storage", syncBookedMeeting);
+    };
+  }, []);
 
   const bankMortgageData = useMemo(
     () => buildBankMortgageData(bankResponse),
@@ -311,6 +347,25 @@ const MortgageCyclePage = () => {
     [comparisonRow]
   );
 
+  const bookedMeetingButtonText = useMemo(() => {
+    if (!bookedMeeting?.start_at) return "";
+    const startAt = new Date(bookedMeeting.start_at);
+    if (!Number.isFinite(startAt.getTime())) return "";
+
+    const dateLabel = new Intl.DateTimeFormat("he-IL", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+    }).format(startAt);
+    const timeLabel = new Intl.DateTimeFormat("he-IL", {
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false,
+    }).format(startAt);
+
+    return `נקבעה פגישה בתאריך ${dateLabel} בשעה ${timeLabel}`;
+  }, [bookedMeeting]);
+
   const savingsListData = useMemo(
     () => [
       {
@@ -449,10 +504,31 @@ const MortgageCyclePage = () => {
               <img src={offerman} className="mobile_img" alt="" />
             </div>
             <p>זה הסכום שתחסכו עד סוף תקופת המשכנתא.</p>
-            <Link to="/schedulemeetings" className="btn"> 
-              <em className="desktop_img">למחזור משכנתא לחץ כאן</em>
-              <em className="mobile_img">לתיאום שיחת מחזור משכנתא לחץ כאן</em>
-            </Link>
+            <button
+              type="button"
+              className="btn"
+              onClick={() => setIsScheduleModalOpen(true)}
+            >
+              {bookedMeetingButtonText ? (
+                <>
+                  <em className="desktop_img">
+                    {bookedMeetingButtonText}
+                    <br />
+                    לחץ כדי לשנות
+                  </em>
+                  <em className="mobile_img">
+                    {bookedMeetingButtonText}
+                    <br />
+                    לחץ כדי לשנות
+                  </em>
+                </>
+              ) : (
+                <>
+                  <em className="desktop_img">למחזור משכנתא לחץ כאן</em>
+                  <em className="mobile_img">לתיאום שיחת מחזור משכנתא לחץ כאן</em>
+                </>
+              )}
+            </button>
             <span>השיחה ללא עלות וללא התחייבות</span>
           </div>
           <SavingsList data={savingsListData} />
@@ -462,6 +538,27 @@ const MortgageCyclePage = () => {
           </div>
         </div>
       </div>
+      {isScheduleModalOpen ? (
+        <div
+          className="schedule_meetings_modal_overlay"
+          role="presentation"
+          onClick={() => setIsScheduleModalOpen(false)}
+        >
+          <div
+            className="schedule_meetings_modal_dialog"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="schedule-meetings-modal-title"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <ScheduleMeetingsPopup
+              onClose={() => setIsScheduleModalOpen(false)}
+              onBooked={() => setBookedMeeting(loadUpcomingBookedMeeting())}
+              titleId="schedule-meetings-modal-title"
+            />
+          </div>
+        </div>
+      ) : null}
     </div>  
   );
 };
