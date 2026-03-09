@@ -1,10 +1,11 @@
 // Homepage.jsx
-import React from "react";
+import React, { useState } from "react";
 
-import noteicon from '../../assets/images/note_i.png'
-
+import noteicon from '../../assets/images/note_i.png';
+import closePopupImg from '../../assets/images/close_popup.png';
 
 const BankMortgage = ({ data }) => {
+    const [notePopupOpen, setNotePopupOpen] = useState(false);
 
     const bankData = data || {
         name: "בנק לאומי",
@@ -44,10 +45,45 @@ const BankMortgage = ({ data }) => {
           ))}
         </ul>
       </div>
-      <div className="routs_note">
+      <div
+        className="routs_note"
+        role="button"
+        tabIndex={0}
+        onClick={() => setNotePopupOpen(true)}
+        onKeyDown={(e) => e.key === "Enter" && setNotePopupOpen(true)}
+      >
         <img src={noteicon} alt="" />
         <p>הסבר על המסלולים</p>
       </div>
+
+      {notePopupOpen && (
+        <div className="note_popup note_popup open">
+          <span className="close" onClick={() => setNotePopupOpen(false)}>
+            <img src={closePopupImg} alt="" />
+          </span>
+          <div className="inner">
+            <h2>בדקו בחינם כדאיות למחזור משכנתא!</h2>
+            <p style={{ whiteSpace: "pre-line" }}>
+              העלו דוח יתרה לסילוק, ותוך פחות מ־30 שניות תדעו אם משתלם לכם למחזר את המשכנתא.
+            </p>
+            <div className="col">
+              <h2>הסבר על מסמך משכנתא</h2>
+              <p style={{ whiteSpace: "pre-line" }}>
+                מסמך משכנתא או בשמו הרשמי
+                &quot;דוח יתרה לסילוק משכנתא&quot;
+                הינו דוח אשר מציג את הסכום המדויק לסגירת המשכנתא. דוח זה הכרחי לבדיקת כדאיות למחזור משכנתא.
+                את הדוח משיגים מהבנק בו מתנהלת המשכנתא דרך אפליקצית הבנק/ אתר הבנק /הסניף.
+              </p>
+            </div>
+            <div className="col">
+              <h2>הסבר על מחזור משכנתא</h2>
+              <p style={{ whiteSpace: "pre-line" }}>
+                מחזור משכנתא הוא החלפת המשכנתא הקיימת בחדשה באותו בנק או בבנק אחר כדי לשפר תנאים (ריבית, תקופה והחזר חודשי).
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 };

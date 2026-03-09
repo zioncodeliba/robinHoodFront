@@ -1,7 +1,7 @@
-
-import React from "react";
+import React, { useState } from "react";
 import './RoutesExplanation.css';
 import notificationicon from '../../assets/images/notification_i.svg';
+import closePopupImg from '../../assets/images/close_popup.png';
 
 const getMonthsValue = (route) => {
   const months = Number(
@@ -30,6 +30,7 @@ const toNumber = (value) => {
 };
 
 const RoutesExplanation = ({ routes, color = "#E4061F", totalPayments }) => {
+  const [notePopupOpen, setNotePopupOpen] = useState(false);
   const fallbackRoutes = [
     { name: 'ק"צ', percentage: "40%", months: 108, interest: "5%", balance: "640,000 ₪" },
     { name: 'מ"צ', percentage: "40%", months: 108, interest: "5%", balance: "368,000 ₪" },
@@ -48,10 +49,46 @@ const RoutesExplanation = ({ routes, color = "#E4061F", totalPayments }) => {
   return (
     <div className="routes_explanation" style={{ "--routes-color": color }}>
         <h2>התמהיל שלך</h2>
-        <div className="note d_flex d_flex_ac d_flex_jc">
+        <div
+          className="note d_flex d_flex_ac d_flex_jc"
+          role="button"
+          tabIndex={0}
+          onClick={() => setNotePopupOpen(true)}
+          onKeyDown={(e) => e.key === "Enter" && setNotePopupOpen(true)}
+        >
           <img src={notificationicon} alt="" />
           <span>הסבר על המסלולים</span>
         </div>
+
+        {notePopupOpen && (
+          <div className="note_popup note_popup open">
+            <span className="close" onClick={() => setNotePopupOpen(false)}>
+              <img src={closePopupImg} alt="" />
+            </span>
+            <div className="inner">
+              <div className="col">
+                <h2>קבועה לא צמודה ( קל&quot;צ)</h2>
+                <p>ריבית קבועה, ללא הצמדה למדד. החזר חודשי יציב וידוע מראש.</p>
+              </div>
+              <div className="col">
+                <h2>קבועה צמודה (ק&quot;צ)</h2>
+                <p>ריבית קבועה, צמודה למדד. ריבית התחלתית נמוכה יותר,עם סיכון לעלייה בהחזר החודשי.</p>
+              </div>
+              <div className="col">
+                <h2>משתנה לא צמודה (מל&quot;צ)</h2>
+                <p>ריבית מתעדכנת כל תקופת זמן מוגדרת,ללא הצמדה למדד. שילוב של גמישות ויציבות.</p>
+              </div>
+              <div className="col">
+                <h2>משתנה צמודה (מ&quot;צ)</h2>
+                <p>ריבית מתעדכנת כל תקופת זמן מוגדרת,צמודה למדד, עם סיכון לעלייה בהחזר החודשי.</p>
+              </div>
+              <div className="col">
+                <h2>פריים</h2>
+                <p>ריבית משתנה לפי בנק ישראל. מסלול גמיש עם אפשרות לשינויים בהחזר.</p>
+              </div>
+            </div>
+          </div>
+        )}
         <ul className="title_routes d_flex d_flex_ac">
           <li>מסלולים</li>
           <li>מס׳ חודשים</li>

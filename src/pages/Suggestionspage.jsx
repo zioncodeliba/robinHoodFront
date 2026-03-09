@@ -512,10 +512,10 @@ const Suggestionspage = () => {
                             <BankMortgageCard bankData={offer} />
                             <div className="baskets_list">
                             <ul className="d_flex">
-                              <li>סל אחיד 1</li>
+                              <li>סל מוצע 1</li>
                             </ul>
                           </div>
-                          <div className="note" onClick={() => openPopup(activeOffer.id)}>
+                          <div className="note" onClick={() => openPopup(offer.id)}>
                             <img src={notei} alt="" />
                             <p>הסבר על המסלולים</p>
                           </div>
@@ -531,7 +531,7 @@ const Suggestionspage = () => {
                           rivitColor={"#E27600"}
                         />
                       ) : null}
-                      <NotePopup isOpen={openPopupId === activeOffer.id} onClose={closePopup} />
+                      <NotePopup isOpen={openPopupId === offer.id} onClose={closePopup} />
 
                       </div>
                     ))}

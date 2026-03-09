@@ -83,6 +83,10 @@
     .treatment_status_page .img {    bottom: 174px; max-width: 280px;}
     .treatment_status_page .step_box ul li .yes { left: 20px; top: 0; max-width: 40px; bottom: 0; margin: auto; }
 }
+
+@media (max-width:376px) {
+    .treatment_status_page .note_popup {top: 100px;}
+}
 @supports (-webkit-touch-callout: none) and (max-width: 767px) {
     .treatment_status_page { padding: 40px 0 250px; }
 

@@ -6,12 +6,43 @@
 .mortgage_cycle_page .check_nav .title::after { right: auto; left: 100%; }
 .mortgage_cycle_page .wrapper{max-width: 1308px;margin-top: 28px;}
 .mortgage_cycle_page .right_col{width: 826px;padding-top: 44.39px;}
-.mortgage_cycle_page .routs_note{display: flex;align-items: center;margin-top: 8px;}
+.mortgage_cycle_page .routs_note{display: flex;align-items: center;margin-top: 8px;cursor: pointer;}
 .mortgage_cycle_page .routs_note img{margin-left: 20px;width: 24px;}
 .mortgage_cycle_page .routs_note p{color: var(--green);font-size: 14px;line-height: 1;font-weight: 500;text-decoration: underline;}
 
-.congratulation{position: absolute;bottom:calc(100% + 34px);right: 0;}
-.congratulation .img{margin-left: 12px;}
+/* note_popup – same design as suggestions/treatment, only on this page */
+.mortgage_cycle_page .note_popup{
+  display: block;
+  position: absolute;
+  top: 0;
+  width: 30%;
+  left: 0;
+  margin: 0 auto;
+  padding: 26px 28px 15px 57px;
+  padding-top: 20px;
+  background-color: #24242475;
+  border-radius: 20px;
+  backdrop-filter: blur(70px);
+  z-index: 2;
+  right: 0;
+  overflow-y: hidden;
+  transition: 0.4s ease all;
+  visibility: hidden;
+  opacity: 0;
+  height: auto;
+}
+.mortgage_cycle_page .note_popup.open{ visibility: visible; opacity: 1; }
+.mortgage_cycle_page .note_popup .close{ position: absolute; left: 24px; top: 29px; cursor: pointer; }
+.mortgage_cycle_page .note_popup .close img{ max-width: 40px; }
+.mortgage_cycle_page .note_popup .col{ margin-bottom: 0; }
+.mortgage_cycle_page .note_popup h2{ color: var(--white); font-size: 20px; line-height: 24px; padding: 30px 0 0; }
+.mortgage_cycle_page .note_popup h2:first-of-type{ padding-top: 0;text-align: right; }
+.mortgage_cycle_page .note_popup .col h2{ padding: 18px 0 0; }
+.mortgage_cycle_page .note_popup p{ color: var(--white); font-size: 16px; line-height: 24px; font-weight: 400; letter-spacing: 0.5px; }
+.mortgage_cycle_page .note_popup .inner{ text-align: right; }
+
+.congratulation{position: absolute;bottom:calc(100% + 34px);right: 0; width: 240px;    column-gap: 10px;}
+.congratulation .img{width: 25%;}
 .congratulation h3,
 .congratulation p{font-size: 18px;line-height: 1;}
 
@@ -195,6 +226,24 @@ background: linear-gradient(180deg, rgba(255, 255, 255, 1) 0%, rgba(225, 240, 22
     .bank_mortgage_sec .bank_icon { width: 55px; height: 60px; right:10px; top: -31px; }
     .bank_mortgage_sec .tag { font-size: 14px; line-height: 36px; padding: 0 24px; left: 33px; }
     .mortgage_cycle_page .routs_note { margin-right: 55px;margin-bottom: 11px;}
+    .mortgage_cycle_page .note_popup{
+      display: flex;
+      flex-direction: column;
+      position: fixed;
+      top: 100px;
+      left: 0;
+      right: 0;
+      width: calc(100% - 52px);
+      margin: 0 auto;
+      height: calc(100vh - 240px);
+      padding: 35px 0 0 0;
+      overflow: hidden;
+      align-items: flex-end;
+      border-radius: 20px;
+    }
+    .mortgage_cycle_page .note_popup .close{ flex-shrink: 0; position: absolute; left: 18px; top: 26px; padding: 0; z-index: 1; }
+    .mortgage_cycle_page .note_popup .inner{ flex: 1; min-height: 0; overflow-y: auto; padding: 0 28px 15px 37px; -webkit-overflow-scrolling: touch; }
+    .mortgage_cycle_page .note_popup h2{ margin-bottom: 18px; }
     .comparison_graph { padding: 15px 15px; max-width: calc(100% - 40px); margin: 90px auto 0;}
     .comparison_graph .chart_sec .chart-container { height: 220px; }
     .comparison_graph .chart_sec .chart_legend { margin-top: 0px; }
@@ -219,6 +268,5 @@ background: linear-gradient(180deg, rgba(255, 255, 255, 1) 0%, rgba(225, 240, 22
     .total_savings_box .box h2 { font-size: 30px; }
     .mortgage_cycle_page .savings_list ul li { padding: 18px 6px 21px; }
     .prev_page_link { top: 30px; }
-
-
+    .mortgage_cycle_page .note_popup{ top: 80px; height: 460px; }
 }

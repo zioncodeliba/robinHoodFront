@@ -127,6 +127,7 @@
 
 }
 @media (max-width:767px) {
+    .suggestions_page .note_popup {height: 550px;}
     .suggestions_page { padding:22px 0 180px; }
     .suggestions_page .title { margin-bottom: 0; }
     .suggestions_page .title h1 { font-size: 22px; margin-bottom: 20px;font-weight: 300;}
@@ -177,6 +178,9 @@
 }
 @media (max-width:370px) {
     .suggestions_page .colin .note { margin-right: 20px; }
+}
+@media (max-width:376px) {
+    .suggestions_page .note_popup {height: 400px;}
 }
 @supports (-webkit-touch-callout: none) and (max-width: 767px) {
     .suggestions_page { padding:22px 0 250px; }

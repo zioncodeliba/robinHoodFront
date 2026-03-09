@@ -375,10 +375,13 @@ body{background-repeat: no-repeat;background-size: cover;}
   background-position: top center;
 }
 .main .l_left {position: absolute; left: 0; top: 19%; }
+/* new-loan page: left leaf position */
+.main:has(.mortgagepage) .l_left{left: 13px;}
 .main .l_right{position: absolute; right:0; bottom: -100px;}
 /* Hide left leaf on schedule meetings page only */
 .main:has(.schedule_meetings_page) .l_left{display: none;}
 /* Hide both leaves on notifications page only */
+.main:has(.notifications_page){height: auto;}
 .main:has(.notifications_page) .l_left,
 .main:has(.notifications_page) .l_right{display: none;}
 /* Hide both leaves on settings page only */

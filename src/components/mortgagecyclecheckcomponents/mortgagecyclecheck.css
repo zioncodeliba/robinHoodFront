@@ -30,7 +30,6 @@ body {overflow-y: hidden;}
 .mortgage_finaldetails .in:focus{border-color: var(--orange);}
 
 .mortgagecyclecheck_page .next_prev_btnk{margin-top: 40px;}
-
 .uploaded_list .delete_btn {width: 23px;}
 .uploaded_list .view_btn {width: 30px;}
 
