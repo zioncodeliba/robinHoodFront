@@ -675,6 +675,7 @@ const AIChatpage = () => {
           blockKey: item.block_key,
           timestamp: item.timestamp,
           historyId: item.id,
+          preventRollback: item?.prevent_rollback === true,
         });
       }
       const answerText = item.user_input || item.option_label;
@@ -712,6 +713,7 @@ const AIChatpage = () => {
           blockKey: item.block_key,
           timestamp: item.timestamp,
           historyId: item.id,
+          preventRollback: item?.prevent_rollback === true,
         });
       }
     });
@@ -897,8 +899,35 @@ const AIChatpage = () => {
   const buttonOptions = options.filter((option) => option.option_type === 'button');
   const isMortgageParameters = currentBlock?.type === 'mortgage_parameters';
   const isDateInput = inputOption?.option_type === 'date';
+  const isContractorNameInput = useMemo(() => {
+    if (!inputOption || isDateInput || inputOption.option_type === 'attach') {
+      return false;
+    }
+    const label = String(inputOption?.label || '').replace(/\s+/g, ' ').trim();
+    const message = String(currentBlock?.message || '').replace(/\s+/g, ' ').trim();
+    const normalized = `${label} ${message}`
+      .toLowerCase()
+      .replace(/["'״׳.\-_/\\]/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim();
+    if (!normalized) return false;
+    const hasContractorKeyword =
+      normalized.includes('קבלן') ||
+      normalized.includes('יזם') ||
+      normalized.includes('חברת בניה') ||
+      normalized.includes('חברת בנייה');
+    const hasNameIntent =
+      normalized.includes('שם') ||
+      normalized.includes('נא לציין') ||
+      normalized.includes('הקלד') ||
+      normalized.includes('כתבו');
+    return hasContractorKeyword && hasNameIntent;
+  }, [inputOption, isDateInput, currentBlock?.message]);
   const isPriceAmountInput = useMemo(() => {
     if (!inputOption || isDateInput || inputOption.option_type !== 'input') {
+      return false;
+    }
+    if (isContractorNameInput) {
       return false;
     }
     const label = String(inputOption?.label || '').replace(/\s+/g, ' ').trim();
@@ -906,7 +935,7 @@ const AIChatpage = () => {
     const combinedText = `${label} ${message}`.toLowerCase();
     const amountKeywords = ['מחיר', 'שווי', 'סכום', 'עלות', 'הכנסה', 'הכנסות', 'שכר', 'יתרה'];
     return amountKeywords.some((keyword) => combinedText.includes(keyword));
-  }, [inputOption, isDateInput, currentBlock?.message]);
+  }, [inputOption, isDateInput, isContractorNameInput, currentBlock?.message]);
   const isIdentityNumberInput = useMemo(() => {
     if (!inputOption || isDateInput || inputOption.option_type !== 'input') {
       return false;
@@ -1294,9 +1323,15 @@ const AIChatpage = () => {
   };
 
   const hasChoiceOptions = visibleButtonOptions.length > 0;
+  const hasTypedInputOption = useMemo(() => {
+    if (!inputOption) return false;
+    const optionType = String(inputOption.option_type || '').toLowerCase();
+    return optionType === 'input' || optionType === 'scroll' || optionType === 'date' || optionType === 'text';
+  }, [inputOption]);
+  const canTypeAlongsideChoiceOptions = hasChoiceOptions && hasTypedInputOption;
   const isInputModeAvailable =
     Boolean(inputOption) &&
-    !hasChoiceOptions &&
+    (!hasChoiceOptions || canTypeAlongsideChoiceOptions) &&
     !isMortgageParameters &&
     !shouldShowSignature &&
     !currentBlock?.is_terminal;
@@ -1306,7 +1341,8 @@ const AIChatpage = () => {
     if (currentBlock?.is_terminal) return 'השיחה הסתיימה';
     if (isMortgageParameters) return 'יש לבחור פרטי משכנתא למעלה';
     if (shouldShowSignature) return 'יש להשלים חתימה כדי להמשיך';
-    if (hasChoiceOptions) return 'יש לבחור אחת מהאפשרויות למעלה';
+    if (hasChoiceOptions && !canTypeAlongsideChoiceOptions) return 'יש לבחור אחת מהאפשרויות למעלה';
+    if (canTypeAlongsideChoiceOptions) return inputOption?.label || 'אפשר לבחור אפשרות או להקליד כאן...';
     if (isResidenceAddressInput && !selectedResidenceCity?.name) return 'יש לבחור עיר מגורים קודם';
     if (!inputOption) return 'אין שדה קלט בשלב זה';
     return inputOption?.label || 'נא להקליד כאן...';
@@ -1316,6 +1352,7 @@ const AIChatpage = () => {
     isMortgageParameters,
     shouldShowSignature,
     hasChoiceOptions,
+    canTypeAlongsideChoiceOptions,
     isResidenceAddressInput,
     selectedResidenceCity?.name,
     inputOption,
@@ -1565,6 +1602,7 @@ const AIChatpage = () => {
           value,
         }),
       });
+      await loadHistory(sessionId);
       if (response.next_block_key) {
         await loadBlock(sessionId, response.next_block_key);
       }
@@ -1865,19 +1903,6 @@ const AIChatpage = () => {
     return indexByBlock;
   }, [messages]);
 
-  const noEditFromIndex = useMemo(() => messages.findIndex((message) => {
-    if (message.role !== 'bot') return false;
-    const normalized = String(message.text || '')
-      .replace(/\\n/g, ' ')
-      .replace(/[״"'`.,!?;:()-]/g, ' ')
-      .replace(/\s+/g, ' ')
-      .trim();
-    return (
-      normalized.includes('מעולה סיימנו עם כל הפרטים הראשוניים') &&
-      normalized.includes('עכשיו נעבור לשאלות')
-    );
-  }), [messages]);
-
   const answeredBlockKeySet = useMemo(() => {
     const answered = new Set();
     messages.forEach((message) => {
@@ -1961,6 +1986,38 @@ const AIChatpage = () => {
     }
   };
 
+  const handleRollbackToLatestAllowed = async () => {
+    if (isSending || isRollingBack) return;
+    if (!sessionId) {
+      setError('לא נמצאה שיחה פעילה');
+      return;
+    }
+
+    setError('');
+    setIsRollingBack(true);
+    try {
+      const activeHistory = await fetchActiveHistory(sessionId);
+      const latestRollbackable = [...activeHistory].reverse().find((item) =>
+        item?.prevent_rollback === false &&
+        Boolean(item?.block_key),
+      );
+
+      if (!latestRollbackable) {
+        throw new Error('לא נמצאה שאלה שניתן לחזור אליה');
+      }
+
+      await rollbackToMessageBlock({
+        blockKey: latestRollbackable.block_key,
+        messageHistoryId: latestRollbackable.id,
+        reloadSession: true,
+      });
+    } catch (err) {
+      setError(err?.message || 'שגיאה בחזרה לשאלה האחרונה שניתנת לעריכה');
+    } finally {
+      setIsRollingBack(false);
+    }
+  };
+
   return (
     <div className="aichat_page">
       <div className="wrapper">
@@ -2000,15 +2057,18 @@ const AIChatpage = () => {
               const isActiveMortgageBlock = isMortgageBlockMessage && isActiveBlock && isMortgageParameters;
               const hasAnsweredBlock = answeredBlockKeySet.has(message.blockKey);
               const isHistoryUserAnswer = !isBot && Boolean(message.historyId);
-              const isBeforeNoEditBoundary = noEditFromIndex === -1 || index < noEditFromIndex;
+              const canRollbackMessage = message.preventRollback === false;
+              const isRollbackBlockedMessage = message.preventRollback === true;
               const shouldRenderEditButton =
                 isHistoryUserAnswer &&
-                isBeforeNoEditBoundary &&
+                canRollbackMessage &&
                 Boolean(message.blockKey) &&
                 hasAnsweredBlock &&
                 !isButtonBlockKey(message.blockKey) &&
                 !mortgageBlocks[message.blockKey] &&
                 !currentBlock?.is_terminal;
+              const shouldRenderRestartButton =
+                isRollbackBlockedMessage;
               const timeLabel = formatMessageTime(message.timestamp);
               const messageClass = isBot
                 ? (isButtonBlockMessage
@@ -2023,6 +2083,11 @@ const AIChatpage = () => {
                 isButtonBlockMessage &&
                 buttonOptionsForMessage.length > 0 &&
                 !(isActiveBlock && (isMortgageParameters || shouldShowSignature || currentBlock?.is_terminal));
+              const shouldRenderAnyButtonRow = shouldRenderButtonsForMessage || shouldRenderRestartButton;
+              const shouldUseFullWidthButtons =
+                shouldRenderButtonsForMessage &&
+                !shouldRenderRestartButton &&
+                getIsFullWidthButtons(buttonOptionsForMessage);
 
               return (
                 <div
@@ -2129,9 +2194,24 @@ const AIChatpage = () => {
                         </div>
                       </div>
                     )}
-                    {shouldRenderButtonsForMessage && (
-                      <div className={`btn_box d_flex d_flex_jb ${getIsFullWidthButtons(buttonOptionsForMessage) ? 'btn_box_full' : ''}`}>
-                        {buttonOptionsForMessage.map((option) => (
+                    {shouldRenderAnyButtonRow && (
+                      <div
+                        className={`btn_box d_flex ${shouldRenderRestartButton ? 'btn_box_with_restart' : 'd_flex_jb'} ${shouldUseFullWidthButtons ? 'btn_box_full' : ''}`}
+                      >
+                        {shouldRenderRestartButton && (
+                          <button
+                            type="button"
+                            className="message_restart_option"
+                            onClick={handleRollbackToLatestAllowed}
+                            disabled={isSending || isRollingBack}
+                            aria-label="חזרה לשאלה האחרונה שניתנת לעריכה"
+                            title="חזרה להתחלה"
+                          >
+                            <span>חזור</span>
+                            <span>להתחלה</span>
+                          </button>
+                        )}
+                        {shouldRenderButtonsForMessage && buttonOptionsForMessage.map((option) => (
                           <button
                             key={option.id}
                             onClick={() => handleButtonOptionClick({
@@ -2359,8 +2439,20 @@ const AIChatpage = () => {
                 onChange={handleInputValueChange}
                 onFocus={handleInputFocus}
                 disabled={isSendAreaDisabled}
-                inputMode={isPriceAmountInput || isIdentityNumberInput || isPhoneNumberInput ? 'numeric' : undefined}
-                pattern={isPriceAmountInput ? '[0-9,]*' : (isIdentityNumberInput || isPhoneNumberInput) ? '[0-9]*' : undefined}
+                inputMode={
+                  !isContractorNameInput && (isPriceAmountInput || isIdentityNumberInput || isPhoneNumberInput)
+                    ? 'numeric'
+                    : undefined
+                }
+                pattern={
+                  !isContractorNameInput
+                    ? (isPriceAmountInput
+                      ? '[0-9,]*'
+                      : (isIdentityNumberInput || isPhoneNumberInput)
+                        ? '[0-9]*'
+                        : undefined)
+                    : undefined
+                }
                 ref={isDateInput ? dateInputRef : chatInputRef}
                 onClick={isDateInput ? handleDateInputActivate : undefined}
                 onKeyDown={(e) => {
