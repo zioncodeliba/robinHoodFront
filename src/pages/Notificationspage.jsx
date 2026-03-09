@@ -255,7 +255,7 @@ const Notificationspage = () => {
         {approvalNotification ? (
           <div className="approval_note">
             <p>{approvalNotification.message}</p>
-            <a href="/" className="btn view_certificates">לחץ כאן לצפיה באישורים</a>
+            <a href="/suggestionspage" className="btn view_certificates">לחץ כאן לצפיה באישורים</a>
           </div>
         ) : null}
        {notificationsList.length > 0 ? (
