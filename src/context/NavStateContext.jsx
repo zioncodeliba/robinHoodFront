@@ -6,6 +6,7 @@ import {
   fetchNotificationsMeCached,
 } from '../utils/authGetCache';
 import { getAuthToken } from '../utils/authStorage';
+import { hasTreatmentStatusAccess } from '../utils/treatmentStatus';
 
 const NavStateContext = createContext({
   isLoaded: false,
@@ -66,19 +67,6 @@ const hasVisibleSuggestions = (responses) => {
   });
 };
 
-const hasApprovalStepUnlocked = (statusText) => {
-  const normalizedStatus = typeof statusText === 'string' ? statusText.trim() : '';
-  if (!normalizedStatus) {
-    return false;
-  }
-  if (normalizedStatus.includes('אישור עקרוני')) return true;
-  if (normalizedStatus.includes('תמהיל')) return true;
-  if (normalizedStatus.includes('משא ומתן')) return true;
-  if (normalizedStatus.includes('חתימ')) return true;
-  if (normalizedStatus.includes('קבלת הכסף')) return true;
-  return false;
-};
-
 export const NavStateProvider = ({ children }) => {
   const lastAutoRefreshRef = useRef(0);
   const lastTokenRef = useRef(
@@ -107,12 +95,14 @@ export const NavStateProvider = ({ children }) => {
     const token = getAuthToken();
     if (!token) {
       setCustomerProfile(null);
+      setHasPrincipalApproval(false);
       return { ok: false, status: 401, data: null };
     }
     try {
       const customerResult = await fetchCustomerMeCached(token, { force });
       if (customerResult.ok) {
         setCustomerProfile(customerResult.data || null);
+        setHasPrincipalApproval(hasTreatmentStatusAccess(customerResult.data?.status));
       }
       return customerResult;
     } catch {
@@ -179,7 +169,7 @@ export const NavStateProvider = ({ children }) => {
 
       if (customerResult.ok) {
         setCustomerProfile(customerData);
-        setHasPrincipalApproval(hasApprovalStepUnlocked(customerData?.status));
+        setHasPrincipalApproval(hasTreatmentStatusAccess(customerData?.status));
       } else {
         setCustomerProfile(null);
         setHasPrincipalApproval(false);

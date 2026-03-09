@@ -9,14 +9,7 @@ import treatmentstatusImage from "../assets/images/treatmentstatus_img.png";
 import treatmentstatusImagemob from "../assets/images/treatmentstatus_figure.png";
 import { useNavState } from "../context/NavStateContext";
 import { clearAuthToken, getAuthToken } from "../utils/authStorage";
-
-const stepsData = [
-  "אישור עקרוני",
-  "שיחת תמהיל",
-  "משא ומתן",
-  "חתימות",
-  "קבלת הכסף",
-];
+import { getTreatmentStepFromStatus, TREATMENT_STEPS } from "../utils/treatmentStatus";
 
 /**
  * Content for each step’s note popup (same popup as suggestions page: note_popup note_popup open).
@@ -43,44 +36,6 @@ const TREATMENT_NOTE_CONTENT = {
     title: "קבלת הכסף",
     body: "זהו השלב האחרון בתהליך. לאחר השלמת כל החתימות והאישורים, הבנק מעביר את כספי המשכנתא בהתאם לתנאי העסקה.\n\nברגע שהכסף מועבר, המשכנתא יוצאת לדרך, והדרך לבית החדש הושלמה.",
   },
-};
-
-const STEP_BY_STATUS = {
-  "אישור עקרוני": 1,
-  "שיחת תמהיל": 2,
-  "משא ומתן": 3,
-  "חתימות": 4,
-  "קבלת הכסף": 5,
-};
-
-const PRE_APPROVAL_STATUSES = new Set([
-  "",
-  "נרשם",
-  "שיחה עם הצ׳אט",
-  "העלאת קבצים",
-  "ממתין לאישור עקרוני",
-  "סיום צ׳אט בהצלחה",
-  "חוסר התאמה",
-]);
-
-const getStepFromCustomerStatus = (status) => {
-  const normalizedStatus = typeof status === "string" ? status.trim() : "";
-
-  if (STEP_BY_STATUS[normalizedStatus]) {
-    return STEP_BY_STATUS[normalizedStatus];
-  }
-
-  if (PRE_APPROVAL_STATUSES.has(normalizedStatus)) {
-    return 0;
-  }
-
-  if (normalizedStatus.includes("אישור עקרוני")) return 1;
-  if (normalizedStatus.includes("תמהיל")) return 2;
-  if (normalizedStatus.includes("משא ומתן")) return 3;
-  if (normalizedStatus.includes("חתימ")) return 4;
-  if (normalizedStatus.includes("קבלת הכסף")) return 5;
-
-  return 0;
 };
 
 const TreatmentStatuspage = () => {
@@ -152,9 +107,9 @@ const TreatmentStatuspage = () => {
     };
   }, [customerProfile, handleAuthFailure, refreshCustomerProfile]);
 
-  const currentStep = loadingStatus ? 0 : getStepFromCustomerStatus(customerStatus);
+  const currentStep = loadingStatus ? 0 : getTreatmentStepFromStatus(customerStatus);
 
-  const totalSteps = stepsData.length;
+  const totalSteps = TREATMENT_STEPS.length;
   const completedSteps = currentStep;
   const progressPercent = Math.round((completedSteps / totalSteps) * 100);
 
@@ -175,7 +130,7 @@ const TreatmentStatuspage = () => {
       {/* ✅ Steps */}
       <div className="step_box">
         <ul className="d_flex d_flex_jc">
-          {stepsData.map((label, index) => {
+          {TREATMENT_STEPS.map((label, index) => {
             const stepNum = index + 1;
             const isCompleted = stepNum <= currentStep;
 
