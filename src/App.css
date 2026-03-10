@@ -358,6 +358,7 @@ body{background-repeat: no-repeat;background-size: cover;}
   .main:has(.settings_page),
   .main:has(.treatment_status_page),
   .main:has(.mortgagepage),
+  .main:has(.notifications_page),
   .main.exscreenBg,
   .main.appointmentBg {
     background-image: url(./assets/images/desktop_background.png);
@@ -394,7 +395,7 @@ body{background-repeat: no-repeat;background-size: cover;}
 /* Hide left leaf on schedule meetings page only */
 .main:has(.schedule_meetings_page) .l_left{display: none;}
 /* Hide both leaves on notifications page only */
-.main:has(.notifications_page){height: auto;}
+.main:has(.notifications_page){min-height: 100vh; background-attachment: local; background-position: top center;}
 .main:has(.notifications_page) .l_left,
 .main:has(.notifications_page) .l_right{display: none;}
 /* Hide both leaves on settings page only */
@@ -841,6 +842,7 @@ header .left_col>div>.btn.registration:hover{background-color: var(--orange);}
     background-image: url(../src/assets/images/broker_mobile_bg3.jpg) !important; padding-top: 98px; background-size: 101% auto; background-position: top 0 center; }
   .main:has(.settings_page){ background-attachment: local; background-size: 101% 200vh; background-position: top center; }
   .main:has(.treatment_status_page){ background-attachment: local; background-size: 101% 200vh; background-position: top center; }
+  .main:has(.notifications_page){ background-attachment: local; background-size: 101% auto; background-position: top center; min-height: 100vh; }
   .main:has(.aichat_page) .ai_chat_box .inner{
     background-color: #fff !important;
     background-image: url(../src/assets/images/broker_mobile_bg3.jpg) !important;
@@ -1007,6 +1009,7 @@ header .left_col>div>.btn.registration:hover{background-color: var(--orange);}
 
    /* new */
    .main { padding-top: 78px;display: block; position: fixed;top: 0;left: 0; }
+   .main:has(.notifications_page) { position: relative; min-height: 100vh; }
   .registration_page .reglogo { margin: 0 auto 22px; max-width: 180px;}
   .registration_page .agree_check { margin-top: 20px; }
   .registration_page .btn_col { max-width: 352px; margin: 20px auto 0; }

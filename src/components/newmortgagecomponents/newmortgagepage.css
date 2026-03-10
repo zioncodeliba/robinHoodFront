@@ -8,7 +8,8 @@
 .mortgagepage .wrapper .right_col{z-index: 2;}
 .mortgagepage .wrapper .left_col{z-index: 0;}
 .mortgagepage .offer_box{padding-bottom: 134px;padding-right: 33px;position: relative;z-index: 0;}
-.mortgagepage .offer_box .robin_man{position: absolute;left: 20px;bottom: -9px;z-index: 0;}
+.mortgagepage .offer_box .robin_man{position: absolute;left: 20px;bottom: -9px;z-index: 0;    width: 210px;
+  transform: scaleX(-1);}
 .mortgagepage .offer_col{max-width: 226px;min-height: 103px;border-radius: 10px;border: 1px dashed var(--green);position: relative;text-align: center;padding: 31px 10px 10px;background: #EAF5E7;
 background: linear-gradient(90deg, rgba(234, 245, 231, 1) 60%, rgba(255, 255, 255, 1) 90%);}
 .mortgagepage .offer_col img{position: absolute;left: 0;right: 0;top:-51px;margin: 0 auto;}
@@ -95,7 +96,7 @@ background: linear-gradient(90deg, rgba(234, 245, 231, 1) 60%, rgba(255, 255, 25
    
     .mortgagepage .offer_box { padding-bottom: 102px; padding-right: 0; }
     .mortgagepage .offer_col { max-width: 226px; margin: 0 auto; }
-    .mortgagepage .offer_box .robin_man { position: absolute; left: 0; bottom: 30px; right: -260px; margin: 0 auto; max-width: 150px; transform: scale3d(-1, 1, 1); z-index: 0; }
+    .mortgagepage .offer_box .robin_man { position: absolute; left: 0; bottom: 15px; right: -260px; margin: 0 auto; max-width: 150px; transform: unset; z-index: 1; }
     .mortgagepage .homeimage{display: none;}
     .mortgagepage .routes_explanation .total { max-width: 90%; left: 0; right: 0; }
 
