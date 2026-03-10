@@ -519,14 +519,14 @@ const Suggestionspage = () => {
                             <img src={notei} alt="" />
                             <p>הסבר על המסלולים</p>
                           </div>
-                          <RoutesBankMortgage color={activeOffer.color} routes={activeOffer.routes} />
+                          <RoutesBankMortgage color={offer.color} routes={offer.routes} />
                         </div>
-                      {activeOffer.simulatorchartdata ? (
+                      {offer.simulatorchartdata ? (
                         <ReturnsChart
                           charttitle={'החזרים'}
                           interest={'ריבית'}
                           fund={'קרן'}
-                          dataSets={activeOffer.simulatorchartdata}
+                          dataSets={offer.simulatorchartdata}
                           kerenColor={"#27450E"}
                           rivitColor={"#E27600"}
                         />

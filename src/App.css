@@ -389,6 +389,7 @@ body{background-repeat: no-repeat;background-size: cover;}
 .main .l_left {position: absolute; left: 0; top: 19%; }
 /* new-loan page: left leaf position */
 .main:has(.mortgagepage) .l_left{left: 13px;}
+.main:has(.suggestions_page) .l_left{left: 13px;}
 .main .l_right{position: absolute; right:0; bottom: -100px;}
 /* Hide left leaf on schedule meetings page only */
 .main:has(.schedule_meetings_page) .l_left{display: none;}
