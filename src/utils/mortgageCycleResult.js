@@ -138,6 +138,36 @@ export const loadMortgageCycleResult = () => {
 export const getCalculatorResult = (payload) =>
   payload?.extracted_json?.calculator_result ?? null;
 
+export const isRefinanceCalculatorResult = (calcResult) =>
+  Array.isArray(calcResult?.comparison_table) ||
+  (calcResult?.detailed_scenarios &&
+    typeof calcResult.detailed_scenarios === "object");
+
+const getUploadedAtTime = (payload) => {
+  const parsed = new Date(payload?.uploaded_at || 0).getTime();
+  return Number.isFinite(parsed) ? parsed : 0;
+};
+
+export const getLatestMortgageCycleResponse = (responses) => {
+  if (!Array.isArray(responses) || responses.length === 0) {
+    return null;
+  }
+
+  return responses.reduce((latest, current) => {
+    const calcResult = getCalculatorResult(current);
+    if (!isMortgageCycleCalculatorResultValid(calcResult)) {
+      return latest;
+    }
+    if (!isRefinanceCalculatorResult(calcResult)) {
+      return latest;
+    }
+    if (!latest) {
+      return current;
+    }
+    return getUploadedAtTime(current) >= getUploadedAtTime(latest) ? current : latest;
+  }, null);
+};
+
 const SCENARIO_CURRENT = "משכנתא נוכחית";
 const SCENARIO_CURRENT_EN = "Current_Mortgage";
 const NO_SAVING_BEST_RESULT = "there is no saving!!";

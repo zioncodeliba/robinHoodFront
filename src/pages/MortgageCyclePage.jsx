@@ -12,11 +12,15 @@ import RoutesBankMortgage from '../components/suggestionscomponents/RoutesBankMo
 import SavingsList from '../components/mortgagecyclecomponents/SavingsList';
 import BarChartsavings from '../components/mortgagecyclecomponents/BarChartsavings';
 import ReturnsChart from '../components/commoncomponents/ReturnsChart';
-import ScheduleMeetingsPopup from "../components/schedulemeetingscomponents/ScheduleMeetingsPopup";
+import ScheduleMeetingsModal from "../components/schedulemeetingscomponents/ScheduleMeetingsModal";
 import {
   buildBankMortgageData,
+  getCalculatorResult,
+  getLatestMortgageCycleResponse,
   loadMortgageCycleResult,
+  saveMortgageCycleResult,
 } from "../utils/mortgageCycleResult";
+import { useNavState } from "../context/NavStateContext";
 import {
   fetchBankResponsesMeCached,
   fetchBankVisibilityMeCached,
@@ -87,11 +91,20 @@ const formatPercent = (value) => {
 const MortgageCyclePage = () => {
   const location = useLocation();
   const navigate = useNavigate();
+  const { bankResponses: navBankResponses, isLoaded: navStateLoaded } = useNavState();
   const [isScheduleModalOpen, setIsScheduleModalOpen] = useState(false);
   const [bookedMeeting, setBookedMeeting] = useState(() => loadUpcomingBookedMeeting());
   const storedResult = useMemo(() => loadMortgageCycleResult(), []);
-  const bankResponse = location.state?.bankResponse || storedResult;
-  const calcResult = bankResponse?.extracted_json?.calculator_result;
+  const fallbackNavBankResponse = useMemo(
+    () => getLatestMortgageCycleResponse(navBankResponses),
+    [navBankResponses]
+  );
+  const bankResponse =
+    location.state?.bankResponse ||
+    storedResult ||
+    fallbackNavBankResponse ||
+    null;
+  const calcResult = getCalculatorResult(bankResponse);
 
   const handleAuthFailure = useCallback(() => {
     clearAuthToken();
@@ -206,6 +219,12 @@ const MortgageCyclePage = () => {
       window.removeEventListener("storage", syncBookedMeeting);
     };
   }, []);
+
+  useEffect(() => {
+    if (!bankResponse) return;
+    if (location.state?.bankResponse || storedResult) return;
+    saveMortgageCycleResult(bankResponse);
+  }, [bankResponse, location.state?.bankResponse, storedResult]);
 
   const bankMortgageData = useMemo(
     () => buildBankMortgageData(bankResponse),
@@ -428,7 +447,7 @@ const MortgageCyclePage = () => {
 
   const mortgageCycleData = useMemo(() => {
     const scenarios = calcResult?.detailed_scenarios;
-    if (!scenarios || typeof scenarios !== "object") return [];
+    if (!scenarios || typeof scenarios !== "object") return null;
 
     const currentGraph =
       scenarios?.Current_Mortgage?.combined_graph ||
@@ -444,22 +463,35 @@ const MortgageCyclePage = () => {
     const selectedPayments = Array.isArray(selectedGraph?.payments) ? selectedGraph.payments : [];
 
     const maxLen = Math.max(currentPayments.length, selectedPayments.length);
-    if (!maxLen) return [];
+    if (!maxLen) return null;
 
-    const chart = [];
+    const chartByYear = {};
     for (let i = 0; i < maxLen; i += 1) {
       const monthValue =
         Number(selectedMonths[i]) ||
         Number(currentMonths[i]) ||
         i + 1;
-      chart.push({
-        name: String(monthValue),
+
+      const yearIndex = Math.floor((monthValue - 1) / 12) + 1;
+      const monthInYear = ((monthValue - 1) % 12) + 1;
+
+      if (!chartByYear[yearIndex]) {
+        chartByYear[yearIndex] = [];
+      }
+
+      chartByYear[yearIndex].push({
+        name: String(monthInYear),
         rivit: Number(currentPayments[i]) || 0,
         keren: Number(selectedPayments[i]) || 0,
       });
     }
-    return chart;
+
+    return Object.keys(chartByYear).length ? chartByYear : null;
   }, [calcResult, selectedScenarioName]);
+
+  if (!bankResponse && !navStateLoaded) {
+    return null;
+  }
 	
   return (
     <div className="mortgage_cycle_page">
@@ -493,6 +525,7 @@ const MortgageCyclePage = () => {
               interest={'משכנתא נוכחית'} 
               fund={selectedScenarioName || 'משכנתא לאחר מחזור'} 
               dataSets={mortgageCycleData}
+              variant="stacked-bars"
             />
           </div>
         </div>
@@ -538,27 +571,13 @@ const MortgageCyclePage = () => {
           </div>
         </div>
       </div>
-      {isScheduleModalOpen ? (
-        <div
-          className="schedule_meetings_modal_overlay"
-          role="presentation"
-          onClick={() => setIsScheduleModalOpen(false)}
-        >
-          <div
-            className="schedule_meetings_modal_dialog"
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="schedule-meetings-modal-title"
-            onClick={(event) => event.stopPropagation()}
-          >
-            <ScheduleMeetingsPopup
-              onClose={() => setIsScheduleModalOpen(false)}
-              onBooked={() => setBookedMeeting(loadUpcomingBookedMeeting())}
-              titleId="schedule-meetings-modal-title"
-            />
-          </div>
-        </div>
-      ) : null}
+      <ScheduleMeetingsModal
+        isOpen={isScheduleModalOpen}
+        onClose={() => setIsScheduleModalOpen(false)}
+        onBooked={() => setBookedMeeting(loadUpcomingBookedMeeting())}
+        titleId="schedule-meetings-modal-title"
+        contentVariant="refinance"
+      />
     </div>  
   );
 };

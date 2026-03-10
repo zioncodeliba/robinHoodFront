@@ -11,6 +11,13 @@ import {
     getDefaultAllowedBankIds,
     hasSupportedMortgageType,
 } from "../utils/customerFlowRouting";
+import {
+    APPROVAL_STAGE_FINAL,
+    APPROVAL_STAGE_PRINCIPAL,
+    getApprovalStatusMeta,
+    getBankApprovalStageMap,
+    isApprovalOfferResult,
+} from "../utils/approvalStatus";
 import useCustomerProfile, { getCustomerDisplayName } from "../hooks/useCustomerProfile";
 import { useNavState } from "../context/NavStateContext";
 
@@ -36,6 +43,9 @@ const BANK_MAP = {
 };
 
 const DEFAULT_BANK_ORDER = [3, 2, 1, 4, 8, 12];
+const DEFAULT_WAITING_PAGE_NOTE_TITLE = "מידע חשוב";
+const DEFAULT_WAITING_PAGE_NOTE_BODY =
+    "הבקשה לאישור העקרוני נמצאת בבדיקת הבנק ויכולה להימשך עד 5 ימי עסקים. ברגע שהבנק יסיים את הטיפול ויתקבל מענה, נעדכן אותך אוטומטית בהודעה במערכת ובאימייל.";
 
 const normalizeAllowedBankIds = (ids, fallback = DEFAULT_BANK_ORDER) => {
     if (!Array.isArray(ids)) return [...fallback];
@@ -43,27 +53,44 @@ const normalizeAllowedBankIds = (ids, fallback = DEFAULT_BANK_ORDER) => {
     return DEFAULT_BANK_ORDER.filter((id) => allowed.has(id));
 };
 
-const isRefinanceResult = (calcResult) =>
-    Array.isArray(calcResult?.comparison_table) ||
-    (calcResult?.detailed_scenarios && typeof calcResult.detailed_scenarios === "object");
+const resolveWaitingPageNoteForBank = (waitingPageNotes, bankId) => {
+    if (!bankId || !waitingPageNotes || typeof waitingPageNotes !== "object") {
+        return {
+            title: DEFAULT_WAITING_PAGE_NOTE_TITLE,
+            body: DEFAULT_WAITING_PAGE_NOTE_BODY,
+        };
+    }
 
-const isApprovalOfferResult = (calcResult) => {
-    if (!calcResult || typeof calcResult !== "object") return false;
-    if (isRefinanceResult(calcResult)) return false;
-    const proposedMix = calcResult?.proposed_mix;
-    if (!proposedMix || typeof proposedMix !== "object") return false;
-    return Boolean(
-        proposedMix?.summary ||
-        proposedMix?.metrics ||
-        proposedMix?.graph_data ||
-        (Array.isArray(proposedMix?.tracks_detail) && proposedMix.tracks_detail.length > 0)
-    );
+    const rawValue = waitingPageNotes[String(bankId)] ?? waitingPageNotes[bankId];
+
+    if (rawValue && typeof rawValue === "object") {
+        return {
+            title: typeof rawValue.title === "string" && rawValue.title.trim()
+                ? rawValue.title.trim()
+                : DEFAULT_WAITING_PAGE_NOTE_TITLE,
+            body: typeof rawValue.body === "string" && rawValue.body.trim()
+                ? rawValue.body.trim()
+                : DEFAULT_WAITING_PAGE_NOTE_BODY,
+        };
+    }
+
+    if (typeof rawValue === "string" && rawValue.trim()) {
+        return {
+            title: DEFAULT_WAITING_PAGE_NOTE_TITLE,
+            body: rawValue.trim(),
+        };
+    }
+
+    return {
+        title: DEFAULT_WAITING_PAGE_NOTE_TITLE,
+        body: DEFAULT_WAITING_PAGE_NOTE_BODY,
+    };
 };
 
 const HomeBeforeApproval = () => {
     const location = useLocation();
     const navigate = useNavigate();
-    const { bankVisibility, bankResponses, isLoaded: navStateLoaded } = useNavState();
+    const { bankVisibility, bankVisibilityDetails, bankResponses, isLoaded: navStateLoaded } = useNavState();
     const { userData } = useCustomerProfile();
     const mortgageType = String(userData?.mortgageType || userData?.mortgage_type || "").trim();
     const defaultAllowedBankIds = useMemo(
@@ -72,7 +99,6 @@ const HomeBeforeApproval = () => {
     );
     const displayName = getCustomerDisplayName(userData, "שם");
     const [allowedBankIds, setAllowedBankIds] = useState(defaultAllowedBankIds);
-    const [approvedBankIds, setApprovedBankIds] = useState([]);
     const params = new URLSearchParams(location.search);
     const bankIdParam = Number(params.get("bankId"));
     const statusKey = params.get("status");
@@ -83,7 +109,8 @@ const HomeBeforeApproval = () => {
 
     const statusLabels = {
         sent: "בקשה נשלחה לבנק",
-        awaiting_approval: "ממתין לאישור הבנק",
+        awaiting_approval: "ממתין לאישור עקרוני",
+        principal_approval: "אישור עקרוני",
         final_approval: "אישור סופי",
         declined: "הבקשה נדחתה",
         in_review: "בבדיקה"
@@ -97,26 +124,39 @@ const HomeBeforeApproval = () => {
         setAllowedBankIds(normalizeAllowedBankIds(bankVisibility, defaultAllowedBankIds));
     }, [bankVisibility, defaultAllowedBankIds, navStateLoaded]);
 
-    useEffect(() => {
-        const ids = Array.isArray(bankResponses)
-            ? bankResponses
-                .filter((item) => {
+    const approvalResponses = useMemo(
+        () =>
+            Array.isArray(bankResponses)
+                ? bankResponses.filter((item) => {
                     const calcResult = item?.extracted_json?.calculator_result;
                     return isApprovalOfferResult(calcResult);
                 })
-                .map((item) => Number(item?.bank_id))
-                .filter((id) => Number.isFinite(id))
-            : [];
-        setApprovedBankIds(Array.from(new Set(ids)));
-    }, [bankResponses]);
+                : [],
+        [bankResponses]
+    );
+
+    const approvalStageByBankId = useMemo(
+        () => getBankApprovalStageMap(approvalResponses),
+        [approvalResponses]
+    );
 
     const bankOrder = allowedBankIds;
     const hasBanks = bankOrder.length > 0;
     const activeBankId = hasBanks && bankOrder.includes(bankIdParam) ? bankIdParam : bankOrder[0];
     const selectedBank = activeBankId ? BANK_MAP[activeBankId] : null;
-    const isApproved = activeBankId ? approvedBankIds.includes(activeBankId) : false;
+    const waitingPageNote = resolveWaitingPageNoteForBank(
+        bankVisibilityDetails?.waiting_page_notes,
+        activeBankId
+    );
+    const activeBankApprovalStage = activeBankId ? approvalStageByBankId.get(activeBankId) : null;
     const statusLabel = statusTextParam
-        || (isApproved ? "אישור עקרוני" : (statusLabels[statusKey] || statusLabels.awaiting_approval));
+        || (
+            activeBankApprovalStage === APPROVAL_STAGE_FINAL
+                ? getApprovalStatusMeta(APPROVAL_STAGE_FINAL).text
+                : activeBankApprovalStage === APPROVAL_STAGE_PRINCIPAL
+                    ? getApprovalStatusMeta(APPROVAL_STAGE_PRINCIPAL).text
+                    : (statusLabels[statusKey] || statusLabels.awaiting_approval)
+        );
     const questionsdata = [
         {
             question: "כמה זמן לוקח האישור העקרוני?",
@@ -183,8 +223,8 @@ const HomeBeforeApproval = () => {
                 <div className="left_col">
                     <div className="offer_col">
                         <img src={offericon} alt="" />
-                        <h4>מידע חשוב</h4>
-                        <p>הבקשה לאישור העקרוני נמצאת בבדיקת הבנק ויכולה להימשך עד 5 ימי עסקים. ברגע שהבנק יסיים את הטיפול ויתקבל מענה, נעדכן אותך אוטומטית בהודעה במערכת ובאימייל.</p>
+                        <h4>{waitingPageNote.title}</h4>
+                        <p style={{ whiteSpace: "pre-line" }}>{waitingPageNote.body}</p>
                     </div>
                     <FrequentlyQuestions questionsdata={questionsdata} />
                 </div>

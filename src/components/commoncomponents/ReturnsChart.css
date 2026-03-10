@@ -14,6 +14,14 @@
 .chart_sec .chart_tab button.active{background-color: var(--green);color: var(--white);}
 .chart_sec .chart_title{font-size: 18px;line-height: 24px;}
 .chart_sec .chart-container{height: 213px;}
+.chart_sec--stacked .chart_inner--stacked{padding: 18px 18px 16px;border-radius: 24px;background: #F1F2EF;box-shadow: 0 10px 40px rgba(0, 0, 0, 0.06);}
+.chart_sec--stacked .chart_tab{direction: rtl;justify-content:flex-start;margin-bottom: 10px;}
+.chart_sec--stacked .chart_header{display:flex;direction:rtl;justify-content:flex-start;margin-bottom: 6px;}
+.chart_sec--stacked .chart_title{font-size: 18px;line-height: 24px;font-weight: 700;color: var(--green);}
+.chart_sec--stacked .chart-container--stacked{height: 260px;}
+.chart_sec--stacked .chart_footer_legend{display:flex;justify-content:flex-end;align-items:center;gap:24px;flex-wrap:wrap;margin-top: 8px;color: var(--green);font-size: 14px;font-weight: 500;}
+.chart_sec--stacked .chart_footer_legend_item{display:flex;align-items:center;gap:8px;}
+.chart_sec--stacked .chart_footer_legend_item .dot{width: 14px;height: 14px;border-radius: 50%;display: inline-block;}
 .chart_sec .recharts-layer.recharts-cartesian-axis.recharts-yAxis.yAxis g.recharts-layer.recharts-cartesian-axis-tick:first-child{opacity: 0 !important;}
 .chart_sec .recharts-layer.recharts-cartesian-axis.recharts-yAxis.yAxis text { transform: translateX(-40px); }
 .chart_sec svg{outline: none !important;}
@@ -34,6 +42,8 @@
 
 @media (max-width:413px) {
     .chart_sec { max-width: calc(100% - 20px); }
+    .chart_sec--stacked .chart_footer_legend{gap: 14px;}
+    .chart_sec--stacked .chart-container--stacked{height: 230px;}
     
 
 

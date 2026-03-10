@@ -17,6 +17,14 @@ import { useNavState } from "../context/NavStateContext";
 import YourRoutesMortgageDetails from '../components/commoncomponents/YourRoutesMortgageDetails';
 import AffordableOffer from '../components/viewofferscomponents/AffordableOffer';
 import StatusSummary from '../components/commoncomponents/StatusSummary';
+import ScheduleMeetingsModal from "../components/schedulemeetingscomponents/ScheduleMeetingsModal";
+import { loadUpcomingBookedMeeting } from "../utils/meetingBookingStorage";
+import {
+  APPROVAL_STAGE_WAITING,
+  getApprovalStatusMeta,
+  getBankApprovalStageMap,
+  isApprovalOfferResult,
+} from "../utils/approvalStatus";
 
 const BANK_LOGOS = {
   hapoalim: "/banks/hapoalim.svg",
@@ -70,23 +78,6 @@ const normalizeAllowedBankIds = (ids, fallback = DEFAULT_BANK_IDS) => {
   return DEFAULT_BANK_IDS.filter((id) => allowed.has(id));
 };
 
-const isRefinanceResult = (calcResult) =>
-  Array.isArray(calcResult?.comparison_table) ||
-  (calcResult?.detailed_scenarios && typeof calcResult.detailed_scenarios === "object");
-
-const isApprovalOfferResult = (calcResult) => {
-  if (!calcResult || typeof calcResult !== "object") return false;
-  if (isRefinanceResult(calcResult)) return false;
-  const proposedMix = calcResult?.proposed_mix;
-  if (!proposedMix || typeof proposedMix !== "object") return false;
-  return Boolean(
-    proposedMix?.summary ||
-    proposedMix?.metrics ||
-    proposedMix?.graph_data ||
-    (Array.isArray(proposedMix?.tracks_detail) && proposedMix.tracks_detail.length > 0)
-  );
-};
-
 const ViewOfferspage = () => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -99,6 +90,8 @@ const ViewOfferspage = () => {
   const [selectedOfferIndex, setSelectedOfferIndex] = useState(0);
   const [canScrollPrev, setCanScrollPrev] = useState(false);
   const [canScrollNext, setCanScrollNext] = useState(false);
+  const [isScheduleModalOpen, setIsScheduleModalOpen] = useState(false);
+  const [bookedMeeting, setBookedMeeting] = useState(() => loadUpcomingBookedMeeting());
   const isSyncingFromRouteRef = useRef(false);
   const { userData } = useCustomerProfile();
   const displayName = getCustomerDisplayName(userData, "שם");
@@ -241,6 +234,39 @@ const ViewOfferspage = () => {
   }, [offersLoaded, offersLoading, visibilityLoaded, offerBankIds.length, allowedBankIds.length, navigate]);
 
   useEffect(() => {
+    if (!isScheduleModalOpen) return undefined;
+    const originalOverflow = document.body.style.overflow;
+    const closeOnEsc = (event) => {
+      if (event.key === "Escape") {
+        setIsScheduleModalOpen(false);
+      }
+    };
+
+    document.body.style.overflow = "hidden";
+    window.addEventListener("keydown", closeOnEsc);
+
+    return () => {
+      document.body.style.overflow = originalOverflow;
+      window.removeEventListener("keydown", closeOnEsc);
+    };
+  }, [isScheduleModalOpen]);
+
+  useEffect(() => {
+    const syncBookedMeeting = () => {
+      setBookedMeeting(loadUpcomingBookedMeeting());
+    };
+
+    syncBookedMeeting();
+    window.addEventListener("focus", syncBookedMeeting);
+    window.addEventListener("storage", syncBookedMeeting);
+
+    return () => {
+      window.removeEventListener("focus", syncBookedMeeting);
+      window.removeEventListener("storage", syncBookedMeeting);
+    };
+  }, []);
+
+  useEffect(() => {
     if (carouselBanks.length === 0) {
       setSelectedOfferIndex(0);
       return;
@@ -378,24 +404,37 @@ const ViewOfferspage = () => {
     return best;
   }, [visibleBankResponses, offerBanks]);
 
+  const hasBookedMeeting = useMemo(() => {
+    if (!bookedMeeting?.start_at) return false;
+    const startAt = new Date(bookedMeeting.start_at);
+    if (!Number.isFinite(startAt.getTime())) return false;
+    return true;
+  }, [bookedMeeting]);
+
   const offerBankIdsSet = useMemo(() => new Set(offerBankIds), [offerBankIds]);
+  const approvalStageByBankId = useMemo(
+    () => getBankApprovalStageMap(visibleBankResponses),
+    [visibleBankResponses]
+  );
 
   const statusData = useMemo(() => ({
     title: "ריכוז הסטטוסים שלי",
     offertext: bestOffer?.bankName ? `ההצעה המשתלמת ביותר: ${bestOffer.bankName}` : '',
     list: approvedBanks.map((bank) => {
-      const hasOffer = offerBankIdsSet.has(bank.id);
+      const stage = approvalStageByBankId.get(bank.id) || APPROVAL_STAGE_WAITING;
+      const statusMeta = getApprovalStatusMeta(stage);
+      const hasOffer = stage !== APPROVAL_STAGE_WAITING;
       return {
         bankLogo: bank.bankLogo,
         bankName: bank.bankName,
-        statusText: hasOffer ? "אישור עקרוני" : "ממתין לאישור עקרוני",
-        statusClass: hasOffer ? "final_approval" : "awaiting_approval",
+        statusText: statusMeta.text,
+        statusClass: statusMeta.className,
         link: hasOffer
           ? `/suggestionspage?bankId=${bank.id}`
           : `/homebeforeapproval?bankId=${bank.id}&status=sent`,
       };
     }),
-  }), [approvedBanks, offerBankIdsSet, bestOffer?.bankName]);
+  }), [approvalStageByBankId, approvedBanks, bestOffer?.bankName]);
 
   useEffect(() => {
     if (!emblaApi) return;
@@ -553,7 +592,11 @@ const ViewOfferspage = () => {
           </div>
         )}
         <div className="inner d_flex d_flex_jb">
-          <AffordableOffer savings={bestOffer?.savings} />
+          <AffordableOffer
+            savings={bestOffer?.savings}
+            onScheduleMeeting={() => setIsScheduleModalOpen(true)}
+            buttonLabel={hasBookedMeeting ? "פגישה נקבעה, לחץ לשינוי" : "לבניית תמהיל מותאם אישית לחץ כאן"}
+          />
           {offersCarouselNoteVisible ? (
             <div className="offer_col">
               <img src={offer_i} alt="" />
@@ -574,6 +617,13 @@ const ViewOfferspage = () => {
           <img src={nextprevarrow} alt="" />
         </button>
       </div>
+      <ScheduleMeetingsModal
+        isOpen={isScheduleModalOpen}
+        onClose={() => setIsScheduleModalOpen(false)}
+        onBooked={() => setBookedMeeting(loadUpcomingBookedMeeting())}
+        titleId="schedule-meetings-modal-title"
+        contentVariant="offers"
+      />
     </div>
   );
 };

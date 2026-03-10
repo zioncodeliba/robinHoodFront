@@ -11,6 +11,7 @@ import loginleftimgmobile from '../assets/images/homepage_figure_leaf.png';
 
 import {
   getCalculatorResult,
+  getLatestMortgageCycleResponse,
   hasCalculatorOffer,
   isMortgageCycleCalculatorResultValid,
   loadMortgageCycleResult,
@@ -269,18 +270,24 @@ const Homepage = () => {
           localStorage.removeItem(NEW_MORTGAGE_KEY);
           return;
         }
+        const latestRefinanceResponse = getLatestMortgageCycleResponse(allBankResponses);
+
         if (
           customerStatus === "מחזור - יש הצעה" ||
           customerStatus === "מיחזור - נקבעה פגישה" ||
           customerStatus === "מחזור - נקבעה פגישה"
         ) {
           const storedResult = loadMortgageCycleResult();
-          didRedirect = true;
-          navigate("/mortgagecyclepage", {
-            state: storedResult ? { bankResponse: storedResult } : undefined,
-            replace: true,
-          });
-          return;
+          const routedResult = storedResult || latestRefinanceResponse || null;
+          if (routedResult) {
+            saveMortgageCycleResult(routedResult);
+            didRedirect = true;
+            navigate(hasCalculatorOffer(getCalculatorResult(routedResult)) ? "/mortgagecyclepage" : "/noofferfound", {
+              state: { bankResponse: routedResult },
+              replace: true,
+            });
+            return;
+          }
         }
 
         if (!isRefinanceFlow && localStorage.getItem(NEW_MORTGAGE_KEY) === "true") {

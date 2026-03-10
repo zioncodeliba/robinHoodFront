@@ -15,6 +15,12 @@ import {
     getDefaultAllowedBankIds,
     hasSupportedMortgageType,
 } from "../utils/customerFlowRouting";
+import {
+    APPROVAL_STAGE_WAITING,
+    getApprovalStatusMeta,
+    getBankApprovalStageMap,
+    isApprovalOfferResult,
+} from "../utils/approvalStatus";
 import useCustomerProfile, { getCustomerDisplayName } from "../hooks/useCustomerProfile";
 import { useNavState } from "../context/NavStateContext";
 
@@ -96,23 +102,6 @@ const normalizeAllowedBankIds = (ids, fallback = DEFAULT_BANK_IDS) => {
     return DEFAULT_BANK_IDS.filter((id) => allowed.has(id));
 };
 
-const isRefinanceResult = (calcResult) =>
-    Array.isArray(calcResult?.comparison_table) ||
-    (calcResult?.detailed_scenarios && typeof calcResult.detailed_scenarios === "object");
-
-const isApprovalOfferResult = (calcResult) => {
-    if (!calcResult || typeof calcResult !== "object") return false;
-    if (isRefinanceResult(calcResult)) return false;
-    const proposedMix = calcResult?.proposed_mix;
-    if (!proposedMix || typeof proposedMix !== "object") return false;
-    return Boolean(
-        proposedMix?.summary ||
-        proposedMix?.metrics ||
-        proposedMix?.graph_data ||
-        (Array.isArray(proposedMix?.tracks_detail) && proposedMix.tracks_detail.length > 0)
-    );
-};
-
 const DEFAULT_OFFERS_CAROUSEL_NOTE =
     "נשלח בקשה לאישור עקרוני לכלל הבנקים כשיתקבלו האישורים ישלח עדכון.";
 
@@ -126,7 +115,6 @@ const HomeBeforeApproval2 = () => {
         [mortgageType]
     );
     const [allowedBankIds, setAllowedBankIds] = useState(defaultAllowedBankIds);
-    const [approvedBankIds, setApprovedBankIds] = useState([]);
     const [canScrollPrev, setCanScrollPrev] = useState(false);
     const [canScrollNext, setCanScrollNext] = useState(false);
     const displayName = getCustomerDisplayName(userData, "שם");
@@ -176,40 +164,48 @@ const HomeBeforeApproval2 = () => {
         setAllowedBankIds(normalizeAllowedBankIds(bankVisibility, defaultAllowedBankIds));
     }, [bankVisibility, defaultAllowedBankIds, navStateLoaded]);
 
-    useEffect(() => {
-        const ids = Array.isArray(bankResponses)
-            ? bankResponses
-                .filter((item) => {
+    const approvalResponses = useMemo(
+        () =>
+            Array.isArray(bankResponses)
+                ? bankResponses.filter((item) => {
                     const calcResult = item?.extracted_json?.calculator_result;
                     return isApprovalOfferResult(calcResult);
                 })
-                .map((item) => Number(item?.bank_id))
-                .filter((id) => Number.isFinite(id))
-            : [];
-        setApprovedBankIds(Array.from(new Set(ids)));
-    }, [bankResponses]);
+                : [],
+        [bankResponses]
+    );
 
     const visibleBanks = useMemo(
         () => BANK_LIST.filter((bank) => allowedBankIds.includes(bank.id)),
         [allowedBankIds]
     );
 
+    const approvalStageByBankId = useMemo(
+        () => getBankApprovalStageMap(approvalResponses),
+        [approvalResponses]
+    );
+
     const approvedVisibleBankIds = useMemo(() => {
-        if (!allowedBankIds.length || !approvedBankIds.length) return [];
+        if (!allowedBankIds.length || approvalStageByBankId.size === 0) return [];
         const allowedSet = new Set(allowedBankIds);
-        return approvedBankIds.filter((bankId) => allowedSet.has(bankId));
-    }, [allowedBankIds, approvedBankIds]);
+        return Array.from(approvalStageByBankId.keys()).filter((bankId) => allowedSet.has(bankId));
+    }, [allowedBankIds, approvalStageByBankId]);
 
     const statusList = useMemo(() => {
-        const approvedSet = new Set(approvedVisibleBankIds);
         return visibleBanks.map((bank) => {
-            const isApproved = approvedSet.has(bank.id);
-            const statusText = isApproved ? "אישור עקרוני" : "ממתין לאישור עקרוני";
-            const statusClass = isApproved ? "final_approval" : "awaiting_approval";
-            const link = `/homebeforeapproval?bankId=${bank.id}&status=sent`;
-            return { ...bank, statusText, statusClass, link };
+            const stage = approvalStageByBankId.get(bank.id) || APPROVAL_STAGE_WAITING;
+            const statusMeta = getApprovalStatusMeta(stage);
+            const link = stage === APPROVAL_STAGE_WAITING
+                ? `/homebeforeapproval?bankId=${bank.id}&status=sent`
+                : `/suggestionspage?bankId=${bank.id}`;
+            return {
+                ...bank,
+                statusText: statusMeta.text,
+                statusClass: statusMeta.className,
+                link,
+            };
         });
-    }, [visibleBanks, approvedVisibleBankIds]);
+    }, [approvalStageByBankId, visibleBanks]);
     const carouselBanks = statusList.length ? statusList : [null];
     const [selectedOfferIndex, setSelectedOfferIndex] = useState(0);
     const [emblaRef, emblaApi] = useEmblaCarousel({

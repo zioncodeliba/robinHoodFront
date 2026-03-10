@@ -226,7 +226,7 @@
   .signature_docs_footer button{width: auto;}
   .aichat_page .calculator_box .range_box .tooltip {box-sizing: border-box; top: -37px !important;}
   .aichat_page .calculator_box .range_box .arrow { top: 50px; margin-top: -38px; right: 32px; }
-  .routes_bank_mortgage .list_routes::after {right: 2%;}
+  /* .routes_bank_mortgage .list_routes::after {right: 2%;} */
 
 
 }

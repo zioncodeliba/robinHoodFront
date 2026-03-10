@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import { getUniformBasketDisplayTitle, getUniformBasketOrder } from '../../utils/uniformBaskets';
 
 const formatMoney = (value) => {
   if (value === null || value === undefined || Number.isNaN(Number(value))) return '-';
@@ -31,8 +32,8 @@ const getWeightedAverageRate = (tracks = []) => {
   let sumRate = 0;
   let count = 0;
   tracks.forEach((track) => {
-    const rate = Number(track?.['ריבית']);
-    const amount = Number(track?.['סכום']);
+    const rate = Number(track?.Interest);
+    const amount = Number(track?.Amount);
     if (!Number.isNaN(rate)) {
       sumRate += rate;
       count += 1;
@@ -51,33 +52,28 @@ const getWeightedAverageRate = (tracks = []) => {
   return null;
 };
 
-const parseBasketOrder = (title, index) => {
-  const match = title.match(/\d+/);
-  const num = match ? Number(match[0]) : Number(index) + 1;
-  return Number.isNaN(num) ? index : num;
-};
-
 const UniformBasket = ({ baskets, periodYears, onActiveChange }) => {
   const [activeTab, setActiveTab] = useState(0);
 
   const basketsData = useMemo(() => {
     if (!baskets || typeof baskets !== 'object') return [];
     return Object.entries(baskets)
-      .map(([title, data], index) => ({ title, data, index }))
-      .sort((a, b) => parseBasketOrder(a.title, a.index) - parseBasketOrder(b.title, b.index))
-      .map(({ title, data }, index) => {
+      .map(([rawTitle, data], index) => ({ rawTitle, data, index }))
+      .sort((a, b) => getUniformBasketOrder(a.rawTitle, a.index) - getUniformBasketOrder(b.rawTitle, b.index))
+      .map(({ rawTitle, data }, index) => {
         const summary = data?.summary || {};
         const rate = getWeightedAverageRate(data?.tracks_detail);
         return {
           id: index + 1,
-          title,
+          rawTitle,
+          title: getUniformBasketDisplayTitle(rawTitle),
           raw: data,
           values: {
-            amount: formatMoney(summary['סכום_הלוואה']),
+            amount: formatMoney(summary?.Loan_Amount),
             maxMonthly: formatMoney(getMaxMonthly(data)),
-            firstPayment: formatMoney(summary['החזר_חודשי_ראשון']),
+            firstPayment: formatMoney(summary?.First_Monthly_Payment),
             period: periodYears ? `${periodYears}` : '-',
-            totalPayments: formatMoney(summary['סהכ_החזר_משוער']),
+            totalPayments: formatMoney(summary?.Total_Estimated_Repayment),
             interest: formatPercent(rate),
           },
         };

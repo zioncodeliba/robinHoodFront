@@ -10,6 +10,41 @@ import { saveBookedMeeting } from "../../utils/meetingBookingStorage";
 
 const MIN_LEAD_MINUTES = 60;
 
+const POPUP_COPY_BY_VARIANT = {
+  refinance: {
+    title: (
+      <>
+        ב ר כ ו ת !!!
+        <br />
+        על החלטתך למחזר את המשכנתא
+      </>
+    ),
+    intro: "יש לנו תמהיל משכנתא מותאם אישית שיחסוך לך עשרות אלפי שקלים...",
+    details: (
+      <>
+        על מנת להנות מכל הטוב הזה
+        <br />
+        פשוט בחרו <strong>שעה ויום</strong> ותאמו שיחה
+        <br />
+        עם אחד מצוות המומחים של רובין
+      </>
+    ),
+  },
+  offers: {
+    title: <>ב ר כ ו ת !!!</>,
+    intro: "יש לנו תמהיל משכנתא מותאם אישית שיחסוך לך עשרות אלפי שקלים...",
+    details: (
+      <>
+        על מנת להנות מכל הטוב הזה
+        <br />
+        פשוט בחרו שעה ויום ותאמו שיחה
+        <br />
+        עם אחד מצוות המומחים של רובין
+      </>
+    ),
+  },
+};
+
 const filterFutureSlots = (days, minLeadMinutes = MIN_LEAD_MINUTES) => {
   if (!Array.isArray(days)) return [];
 
@@ -35,6 +70,7 @@ const ScheduleMeetingsPopup = ({
   onClose,
   onBooked,
   titleId = "schedule-meetings-title",
+  contentVariant = "refinance",
 }) => {
   const navigate = useNavigate();
   const apiBase = useMemo(() => getGatewayBase(), []);
@@ -192,6 +228,7 @@ const ScheduleMeetingsPopup = ({
   const summaryText = selectedDay && selectedTime
     ? `שיחת יעוץ ביום ${formatSummaryDay(selectedDay.date)} בשעה ${selectedTime}`
     : "בחרו יום ושעה לפגישה";
+  const popupCopy = POPUP_COPY_BY_VARIANT[contentVariant] || POPUP_COPY_BY_VARIANT.refinance;
 
   return (
     <div className="schedule_meetings_popup">
@@ -204,19 +241,9 @@ const ScheduleMeetingsPopup = ({
         <img src={close} alt="" />
       </button>
       <img src={congo} alt="" />
-      <h2 id={titleId}>
-        ב ר כ ו ת !!!
-        <br />
-        על החלטתך למחזר את המשכנתא
-      </h2>
-      <p>יש לנו תמהיל משכנתא מותאם אישית שיחסוך לך עשרות אלפי שקלים...</p>
-      <p>
-        על מנת להנות מכל הטוב הזה
-        <br />
-        פשוט בחרו <strong>שעה ויום</strong> ותאמו שיחה
-        <br />
-        עם אחד מצוות המומחים של רובין
-      </p>
+      <h2 id={titleId}>{popupCopy.title}</h2>
+      <p>{popupCopy.intro}</p>
+      <p>{popupCopy.details}</p>
       {error ? <div className="form_error">{error}</div> : null}
       <div className="available_days inner">
         <p>ימים פנויים:</p>

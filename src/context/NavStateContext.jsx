@@ -15,6 +15,7 @@ const NavStateContext = createContext({
   hasPrincipalApproval: false,
   customerProfile: null,
   bankVisibility: [],
+  bankVisibilityDetails: null,
   bankResponses: [],
   notifications: [],
   refreshNavState: async () => ({
@@ -28,6 +29,7 @@ const NavStateContext = createContext({
     bankResponses: [],
     customerProfile: null,
     bankVisibility: [],
+    bankVisibilityDetails: null,
   }),
   refreshCustomerProfile: async () => ({ ok: false, status: 401, data: null }),
 });
@@ -78,6 +80,7 @@ export const NavStateProvider = ({ children }) => {
   const [hasPrincipalApproval, setHasPrincipalApproval] = useState(false);
   const [customerProfile, setCustomerProfile] = useState(null);
   const [bankVisibility, setBankVisibility] = useState([]);
+  const [bankVisibilityDetails, setBankVisibilityDetails] = useState(null);
   const [bankResponses, setBankResponses] = useState([]);
   const [notifications, setNotifications] = useState([]);
 
@@ -87,6 +90,7 @@ export const NavStateProvider = ({ children }) => {
     setHasPrincipalApproval(false);
     setCustomerProfile(null);
     setBankVisibility([]);
+    setBankVisibilityDetails(null);
     setBankResponses([]);
     setNotifications([]);
   }, []);
@@ -126,6 +130,7 @@ export const NavStateProvider = ({ children }) => {
         bankResponses: [],
         customerProfile: null,
         bankVisibility: [],
+        bankVisibilityDetails: null,
       };
     }
 
@@ -144,8 +149,11 @@ export const NavStateProvider = ({ children }) => {
         ? (Array.isArray(suggestionsResult.data) ? suggestionsResult.data : [])
         : [];
       const customerData = customerResult.ok ? (customerResult.data || null) : null;
-      const allowedBankIds = visibilityResult.ok
-        ? (Array.isArray(visibilityResult.data?.allowed_bank_ids) ? visibilityResult.data.allowed_bank_ids : [])
+      const visibilityData = visibilityResult.ok && visibilityResult.data && typeof visibilityResult.data === 'object'
+        ? visibilityResult.data
+        : null;
+      const allowedBankIds = visibilityData && Array.isArray(visibilityData.allowed_bank_ids)
+        ? visibilityData.allowed_bank_ids
         : [];
 
       if (notificationsResult.ok) {
@@ -177,8 +185,10 @@ export const NavStateProvider = ({ children }) => {
 
       if (visibilityResult.ok) {
         setBankVisibility(allowedBankIds);
+        setBankVisibilityDetails(visibilityData);
       } else {
         setBankVisibility([]);
+        setBankVisibilityDetails(null);
       }
 
       const ok = notificationsResult.ok
@@ -202,6 +212,7 @@ export const NavStateProvider = ({ children }) => {
         bankResponses: responsesData,
         customerProfile: customerData,
         bankVisibility: allowedBankIds,
+        bankVisibilityDetails: visibilityData,
       };
     } catch {
       resetState();
@@ -216,6 +227,7 @@ export const NavStateProvider = ({ children }) => {
         bankResponses: [],
         customerProfile: null,
         bankVisibility: [],
+        bankVisibilityDetails: null,
       };
     } finally {
       setIsLoaded(true);
@@ -292,6 +304,7 @@ export const NavStateProvider = ({ children }) => {
       hasPrincipalApproval,
       customerProfile,
       bankVisibility,
+      bankVisibilityDetails,
       bankResponses,
       notifications,
       refreshNavState,
@@ -304,6 +317,7 @@ export const NavStateProvider = ({ children }) => {
       hasPrincipalApproval,
       customerProfile,
       bankVisibility,
+      bankVisibilityDetails,
       bankResponses,
       notifications,
       refreshNavState,

@@ -12,6 +12,12 @@ import ReturnsChart from '../components/commoncomponents/ReturnsChart';
 import StatusSummary from '../components/commoncomponents/StatusSummary';
 import useCustomerProfile, { getCustomerDisplayName } from "../hooks/useCustomerProfile";
 import { useNavState } from "../context/NavStateContext";
+import {
+  APPROVAL_STAGE_WAITING,
+  getApprovalStatusMeta,
+  getBankApprovalStageMap,
+  isApprovalOfferResult,
+} from "../utils/approvalStatus";
 
 const BANK_LOGOS = {
   hapoalim: "/banks/hapoalim.png",
@@ -67,22 +73,12 @@ const normalizeAllowedBankIds = (ids, fallback = DEFAULT_BANK_IDS) => {
   return DEFAULT_BANK_IDS.filter((id) => allowed.has(id));
 };
 
-const isRefinanceResult = (calcResult) =>
-  Array.isArray(calcResult?.comparison_table) ||
-  (calcResult?.detailed_scenarios && typeof calcResult.detailed_scenarios === "object");
-
-const isApprovalOfferResult = (calcResult) => {
-  if (!calcResult || typeof calcResult !== "object") return false;
-  if (isRefinanceResult(calcResult)) return false;
-  const proposedMix = calcResult?.proposed_mix;
-  if (!proposedMix || typeof proposedMix !== "object") return false;
-  return Boolean(
-    proposedMix?.summary ||
-    proposedMix?.metrics ||
-    proposedMix?.graph_data ||
-    (Array.isArray(proposedMix?.tracks_detail) && proposedMix.tracks_detail.length > 0)
-  );
-};
+const getSummary = (response) =>
+  response?.extracted_json?.calculator_result?.proposed_mix?.summary ||
+  response?.extracted_json?.calculator_result?.proposed_mix?.metrics ||
+  response?.extracted_json?.calculator_result?.optimal_mix?.summary ||
+  response?.extracted_json?.calculator_result?.optimal_mix?.metrics ||
+  null;
 
 const mapRoutesFromResponse = (response) => {
   const calc = response?.extracted_json?.calculator_result || null;
@@ -91,80 +87,119 @@ const mapRoutesFromResponse = (response) => {
     calc?.optimal_mix?.tracks_detail ||
     null;
 
-  if (!Array.isArray(tracksDetail) || tracksDetail.length === 0) return [];
+  if (Array.isArray(tracksDetail) && tracksDetail.length > 0) {
+    const mappedTracks = tracksDetail.map((track) => {
+      const amount = toNumber(
+        track?.Amount ??
+        track?.['סכום'] ??
+        track?.amount ??
+        track?.loan_value ??
+        track?.balance
+      ) || 0;
+      const rawPercent = toNumber(
+        track?.Percentage ??
+        track?.percent ??
+        track?.['אחוז'] ??
+        track?.['אחוז מסכום ההלוואה'] ??
+        track?.percentage ??
+        track?.['שיעור']
+      );
+      const rawInterest = toNumber(
+        track?.Interest ??
+        track?.['ריבית'] ??
+        track?.['שיעור_ריבית'] ??
+        track?.['ריבית שנתית'] ??
+        track?.interest ??
+        track?.rate
+      );
+      const rawMonthlyPayment = toNumber(
+        track?.Monthly_Payment ??
+        track?.['החזר_חודשי'] ??
+        track?.monthly_payment ??
+        track?.payment
+      );
+      const months = toNumber(
+        track?.Term_Months ??
+        track?.['תקופה_חודשים'] ??
+        track?.['תקופה (חודשים)'] ??
+        track?.months
+      );
+      const name =
+        track?.Name ||
+        track?.['סוג_מסלול'] ||
+        track?.['שם'] ||
+        track?.['מסלול'] ||
+        track?.loan_type_name ||
+        'מסלול';
+      return {
+        name,
+        amount,
+        rawPercent,
+        rawInterest,
+        rawMonthlyPayment,
+        months,
+      };
+    });
 
-  const mappedTracks = tracksDetail.map((track) => {
+    const total = mappedTracks.reduce((sum, item) => sum + item.amount, 0);
+    return mappedTracks.map((item) => ({
+      name: item.name,
+      amount: item.amount,
+      months: item.months,
+      percentage: formatPercent(
+        item.rawPercent !== null
+          ? item.rawPercent
+          : total
+            ? (item.amount / total) * 100
+            : 0
+      ) || '0%',
+      interest: formatPercent(item.rawInterest) || '—',
+      balance: formatCurrency(item.rawMonthlyPayment ?? item.amount),
+    }));
+  }
+
+  const table = calc?.proposed_mix?.table || calc?.optimal_mix?.table || null;
+  if (!Array.isArray(table) || table.length === 0) return [];
+
+  const total = table.reduce(
+    (sum, row) =>
+      sum + (
+        toNumber(
+          row?.Amount ??
+          row?.['סכום']
+        ) || 0
+      ),
+    0
+  );
+
+  return table.map((row) => {
     const amount = toNumber(
-      track?.['סכום'] ??
-      track?.amount ??
-      track?.loan_value ??
-      track?.balance
+      row?.Amount ??
+      row?.['סכום']
     ) || 0;
-    const rawPercent = toNumber(
-      track?.['אחוז'] ??
-      track?.['אחוז מסכום ההלוואה'] ??
-      track?.percentage ??
-      track?.['שיעור']
-    );
-    const rawInterest = toNumber(
-      track?.['ריבית'] ??
-      track?.['שיעור_ריבית'] ??
-      track?.['ריבית שנתית'] ??
-      track?.interest ??
-      track?.rate
-    );
-    const rawMonthlyPayment = toNumber(
-      track?.['החזר_חודשי'] ??
-      track?.monthly_payment ??
-      track?.payment
-    );
-    const months = toNumber(
-      track?.['תקופה_חודשים'] ??
-      track?.['תקופה (חודשים)'] ??
-      track?.months
-    );
-    const name =
-      track?.['סוג_מסלול'] ||
-      track?.['שם'] ||
-      track?.['מסלול'] ||
-      track?.loan_type_name ||
-      'מסלול';
+    const percent = total ? (amount / total) * 100 : 0;
     return {
-      name,
+      name: row?.Name || row?.['סוג_מסלול'] || row?.['שם'] || row?.['מסלול'] || 'מסלול',
       amount,
-      rawPercent,
-      rawInterest,
-      rawMonthlyPayment,
-      months,
+      months: toNumber(
+        row?.Term_Months ??
+        row?.['תקופה_חודשים'] ??
+        row?.['תקופה (חודשים)'] ??
+        row?.months
+      ),
+      percentage: formatPercent(percent) || '0%',
+      interest: formatPercent(row?.Interest ?? row?.['ריבית']) || '—',
+      balance: formatCurrency(row?.Monthly_Payment ?? row?.['החזר_חודשי'] ?? amount),
     };
   });
-
-  const total = mappedTracks.reduce((sum, item) => sum + item.amount, 0);
-  return mappedTracks.map((item) => ({
-    name: item.name,
-    amount: item.amount,
-    months: item.months,
-    percentage: formatPercent(
-      item.rawPercent !== null
-        ? item.rawPercent
-        : total
-          ? (item.amount / total) * 100
-          : 0
-    ) || '0%',
-    interest: formatPercent(item.rawInterest) || '—',
-    balance: formatCurrency(item.rawMonthlyPayment ?? item.amount),
-  }));
 };
 
 const getSummaryTotalPayments = (response) => {
-  const calc = response?.extracted_json?.calculator_result || null;
   return toNumber(
-    calc?.proposed_mix?.summary?.['סהכ_החזר_משוער'] ??
-    calc?.proposed_mix?.metrics?.['סהכ_החזר_משוער'] ??
-    calc?.optimal_mix?.metrics?.['סהכ_החזר_משוער'] ??
-    calc?.proposed_mix?.summary?.['סך הכל החזר משוער'] ??
-    calc?.proposed_mix?.summary?.total_repayment ??
-    calc?.proposed_mix?.metrics?.total_repayment
+    getSummary(response)?.Total_Estimated_Repayment ??
+    getSummary(response)?.['סהכ_החזר_משוער'] ??
+    getSummary(response)?.['סך הכל החזר משוער'] ??
+    getSummary(response)?.total_repayment
   );
 };
 
@@ -179,8 +214,16 @@ const getTotalSavings = (response) => {
 const buildChartDataFromGraph = (graph) => {
   if (!graph || typeof graph !== 'object') return null;
   const months = Array.isArray(graph.months) ? graph.months : [];
-  const interest = Array.isArray(graph.interest_payment) ? graph.interest_payment : [];
-  const principal = Array.isArray(graph.principal_repayment) ? graph.principal_repayment : [];
+  const interest = Array.isArray(graph.interest_payment)
+    ? graph.interest_payment
+    : Array.isArray(graph.interest_component)
+      ? graph.interest_component
+      : [];
+  const principal = Array.isArray(graph.principal_repayment)
+    ? graph.principal_repayment
+    : Array.isArray(graph.principal_component)
+      ? graph.principal_component
+      : [];
   const length = Math.min(months.length || 0, interest.length || 0, principal.length || 0);
   if (length === 0) return null;
 
@@ -254,12 +297,10 @@ const MortgagePage = () => {
       return Number.isFinite(bankId) && allowedBankIdsSet.has(bankId);
     });
   }, [allowedBankIds.length, allowedBankIdsSet, approvalBankResponses]);
-  const offerBankIdsSet = useMemo(() => {
-    const ids = visibleBankResponses
-      .map((item) => Number(item?.bank_id))
-      .filter((id) => Number.isFinite(id));
-    return new Set(ids);
-  }, [visibleBankResponses]);
+  const approvalStageByBankId = useMemo(
+    () => getBankApprovalStageMap(visibleBankResponses.length > 0 ? visibleBankResponses : approvalBankResponses),
+    [approvalBankResponses, visibleBankResponses]
+  );
   const bestOffer = useMemo(() => {
     if (!visibleBankResponses.length) return null;
     const latestByBank = new Map();
@@ -297,18 +338,20 @@ const MortgagePage = () => {
     title: "ריכוז הסטטוסים שלי",
     offertext: bestOffer?.bankName ? `ההצעה המשתלמת ביותר: ${bestOffer.bankName}` : '',
     list: approvedBanks.map((bank) => {
-      const hasOffer = offerBankIdsSet.has(bank.id);
+      const stage = approvalStageByBankId.get(bank.id) || APPROVAL_STAGE_WAITING;
+      const statusMeta = getApprovalStatusMeta(stage);
+      const hasOffer = stage !== APPROVAL_STAGE_WAITING;
       return {
         bankLogo: bank.bankLogo,
         bankName: bank.bankName,
-        statusText: hasOffer ? "אישור עקרוני" : "ממתין לאישור עקרוני",
-        statusClass: hasOffer ? "final_approval" : "awaiting_approval",
+        statusText: statusMeta.text,
+        statusClass: statusMeta.className,
         link: hasOffer
           ? `/suggestionspage?bankId=${bank.id}`
           : `/homebeforeapproval?bankId=${bank.id}&status=sent`,
       };
     }),
-  }), [approvedBanks, offerBankIdsSet, bestOffer?.bankName]);
+  }), [approvalStageByBankId, approvedBanks, bestOffer?.bankName]);
   const selectedBankResponse = useMemo(() => {
     const safeResponses = visibleBankResponses.length > 0
       ? visibleBankResponses

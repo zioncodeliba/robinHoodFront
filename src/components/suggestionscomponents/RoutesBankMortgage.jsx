@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import "./RoutesBankMortgage.css";
 
 const RoutesBankMortgage = ({
   color,

@@ -3,7 +3,11 @@ import React from "react";
 
 import offermanImage from "../../assets/images/viewoffer_figure.png";
 
-const AffordableOffer = ({ savings }) => {
+const AffordableOffer = ({
+  savings,
+  onScheduleMeeting,
+  buttonLabel = "לבניית תמהיל מותאם אישית לחץ כאן",
+}) => {
   const hasSavings = Number.isFinite(savings);
   const formattedSavings = hasSavings
     ? Math.round(savings).toLocaleString('he-IL')
@@ -15,7 +19,7 @@ const AffordableOffer = ({ savings }) => {
         <h3>ההצעה המשתלמת ביותר 
 חוסכת לך:</h3>
         <h4>{hasSavings ? (<><i>₪</i>{formattedSavings}</>) : '—'}</h4>
-        <a href="/schedulemeetings" className="btn">לבניית תמהיל מותאם אישית לחץ כאן</a>
+        <button type="button" className="btn" onClick={onScheduleMeeting}>{buttonLabel}</button>
     </div>  
   );
 };

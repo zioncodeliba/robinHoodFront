@@ -1,5 +1,5 @@
 // Homepage.jsx
-import React, { useMemo } from "react";
+import React, { useEffect, useMemo } from "react";
 import { useLocation } from "react-router-dom";
 import '../components/nooffercompomponents/NoofferFoundpage.css';
 
@@ -9,16 +9,35 @@ import NoOfferMortgageDetails from '../components/nooffercompomponents/NoOfferMo
 import {
   buildBankMortgageData,
   buildMortgageDataFromTracks,
+  getLatestMortgageCycleResponse,
   loadMortgageCycleResult,
+  saveMortgageCycleResult,
 } from "../utils/mortgageCycleResult";
+import { useNavState } from "../context/NavStateContext";
 // import RoutesMortgageDetails from '../components/mortgagecyclecomponents/RoutesMortgageDetails';
 
 
 
 const NoofferFoundpage = () => {
   const location = useLocation();
+  const { bankResponses: navBankResponses } = useNavState();
   const storedResult = useMemo(() => loadMortgageCycleResult(), []);
-  const bankResponse = location.state?.bankResponse || storedResult;
+  const fallbackNavBankResponse = useMemo(
+    () => getLatestMortgageCycleResponse(navBankResponses),
+    [navBankResponses]
+  );
+  const bankResponse =
+    location.state?.bankResponse ||
+    storedResult ||
+    fallbackNavBankResponse ||
+    null;
+
+  useEffect(() => {
+    if (!bankResponse) return;
+    if (location.state?.bankResponse || storedResult) return;
+    saveMortgageCycleResult(bankResponse);
+  }, [bankResponse, location.state?.bankResponse, storedResult]);
+
   const { mortgageData } = useMemo(
     () => buildMortgageDataFromTracks(bankResponse),
     [bankResponse]

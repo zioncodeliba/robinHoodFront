@@ -2389,7 +2389,7 @@ const AIChatpage = () => {
                                   >
                                     {signatureTemplateDownloadingKey === `${bank.bank_key}:credit-card-authorization`
                                       ? 'פותח...'
-                                      : 'הרשאה לכרטיסי אשראי'}
+                                      : 'הסכמה להוצאת חיווי אשראי'}
                                   </button>
                                 ) : (
                                   <span className="signature_docs_missing">הרשאה לכרטיסי אשראי לא זמינה</span>
