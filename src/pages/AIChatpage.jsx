@@ -20,6 +20,7 @@ const DEFAULT_STEP_AMOUNT = 10000;
 const DEFAULT_MIN_TERM = 5;
 const DEFAULT_MAX_TERM = 30;
 const DEFAULT_STEP_TERM = 1;
+const BOT_TYPING_DELAY_MS = 3000;
 const DATA_GOV_CKAN_BASE = 'https://data.gov.il/api/3/action/datastore_search';
 const DATA_GOV_CITIES_RESOURCE_ID = '5c78e9fa-c2e2-4771-93ff-7f400a12f7ba';
 const DATA_GOV_STREETS_RESOURCE_ID = '9ad3862c-8391-4b2f-84a4-2d4c68625f4b';
@@ -73,6 +74,7 @@ const AIChatpage = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isSending, setIsSending] = useState(false);
   const [isRollingBack, setIsRollingBack] = useState(false);
+  const [isBotTyping, setIsBotTyping] = useState(false);
   const [error, setError] = useState('');
   const [hasHistory, setHasHistory] = useState(false);
   const [pinnedBlockKey, setPinnedBlockKey] = useState(null);
@@ -107,6 +109,7 @@ const AIChatpage = () => {
   const dateInputRef = useRef(null);
   const countryInputWrapperRef = useRef(null);
   const liveMessageCounterRef = useRef(0);
+  const botTypingTokenRef = useRef(0);
   const optionsCacheRef = useRef(new Map());
   const optionsInFlightRef = useRef(new Map());
   const sessionInitRef = useRef(false);
@@ -224,6 +227,19 @@ const AIChatpage = () => {
         },
       ];
     });
+  };
+
+  const startBotTypingIndicator = () => {
+    const nextToken = botTypingTokenRef.current + 1;
+    botTypingTokenRef.current = nextToken;
+    setIsBotTyping(true);
+    return nextToken;
+  };
+
+  const stopBotTypingIndicator = (token = null) => {
+    if (token !== null && botTypingTokenRef.current !== token) return;
+    botTypingTokenRef.current += 1;
+    setIsBotTyping(false);
   };
 
   const shallowEqual = (left, right) => {
@@ -828,6 +844,7 @@ const AIChatpage = () => {
   const loadSession = async () => {
     setError('');
     setIsLoading(true);
+    stopBotTypingIndicator();
     try {
       let activeSessionId = await getActiveSessionId();
       if (!activeSessionId) {
@@ -876,6 +893,10 @@ const AIChatpage = () => {
     sessionInitRef.current = true;
     loadSession();
   }, [authToken]);
+
+  useEffect(() => () => {
+    stopBotTypingIndicator();
+  }, []);
 
   useEffect(() => {
     if (!currentBlock?.block_key) return;
@@ -1167,7 +1188,7 @@ const AIChatpage = () => {
         window.cancelAnimationFrame(rafId);
       }
     };
-  }, [messages, isLoading, isMortgageParameters, currentBlock?.block_key]);
+  }, [messages, isLoading, isBotTyping, isMortgageParameters, currentBlock?.block_key]);
 
   const signatureBlockId = 52;
   const shouldShowSignature = currentBlock?.id === signatureBlockId;
@@ -1460,6 +1481,15 @@ const AIChatpage = () => {
     return hasBorrower && hasAdditional && (hasMortgage || normalized.includes('הלוואה'));
   };
 
+  const shouldUseSeparateRestartRowForQuestionText = (text) => {
+    if (!text) return false;
+    const normalized = text.replace(/\\n/g, ' ').replace(/\s+/g, ' ').trim();
+    return (
+      (normalized.includes('מצב המשפחתי') && normalized.includes('נא לבחור את המצב המתאים')) ||
+      normalized.includes('מה העבודה העיקרית')
+    );
+  };
+
   const calculateMonthlyPayment = (amount, years) => {
     if (!amount || !years) return 0;
     const baseYears = 30;
@@ -1582,6 +1612,8 @@ const AIChatpage = () => {
     if (!sessionId) return false;
     setIsSending(true);
     setError('');
+    const typingToken = startBotTypingIndicator();
+    const typingStartedAt = Date.now();
     if (appendUserMessage) {
       setMessages((prev) => [
         ...prev,
@@ -1602,7 +1634,22 @@ const AIChatpage = () => {
           value,
         }),
       });
-      await loadHistory(sessionId);
+      const waitForTypingIndicator = async () => {
+        const elapsed = Date.now() - typingStartedAt;
+        const remaining = BOT_TYPING_DELAY_MS - elapsed;
+        if (remaining > 0) {
+          await sleep(remaining);
+        }
+      };
+
+      if (response.next_block_key) {
+        await Promise.all([
+          loadHistory(sessionId),
+          waitForTypingIndicator(),
+        ]);
+      } else {
+        await loadHistory(sessionId);
+      }
       if (response.next_block_key) {
         await loadBlock(sessionId, response.next_block_key);
       }
@@ -1611,6 +1658,7 @@ const AIChatpage = () => {
       setError(err?.message || 'שגיאה בשליחת התשובה');
       return false;
     } finally {
+      stopBotTypingIndicator(typingToken);
       setIsSending(false);
     }
   };
@@ -1913,6 +1961,16 @@ const AIChatpage = () => {
     return answered;
   }, [messages]);
 
+  const historyIdsWithVisibleUserAnswer = useMemo(() => {
+    const historyIds = new Set();
+    messages.forEach((message) => {
+      if (message.role !== 'user' || !message.historyId) return;
+      if (isButtonBlockKey(message.blockKey) || mortgageBlocks[message.blockKey]) return;
+      historyIds.add(message.historyId);
+    });
+    return historyIds;
+  }, [messages, buttonBlocks, mortgageBlocks, currentBlock?.block_key, options]);
+
   const handleButtonOptionClick = async ({
     messageId,
     blockKey,
@@ -2057,6 +2115,13 @@ const AIChatpage = () => {
               const isActiveMortgageBlock = isMortgageBlockMessage && isActiveBlock && isMortgageParameters;
               const hasAnsweredBlock = answeredBlockKeySet.has(message.blockKey);
               const isHistoryUserAnswer = !isBot && Boolean(message.historyId);
+              const isTextHistoryMessage =
+                Boolean(message.historyId) &&
+                !isButtonBlockKey(message.blockKey) &&
+                !mortgageBlocks[message.blockKey];
+              const hasVisibleHistoryAnswer =
+                Boolean(message.historyId) &&
+                historyIdsWithVisibleUserAnswer.has(message.historyId);
               const canRollbackMessage = message.preventRollback === false;
               const isRollbackBlockedMessage = message.preventRollback === true;
               const shouldRenderEditButton =
@@ -2068,7 +2133,11 @@ const AIChatpage = () => {
                 !mortgageBlocks[message.blockKey] &&
                 !currentBlock?.is_terminal;
               const shouldRenderRestartButton =
-                isRollbackBlockedMessage;
+                isRollbackBlockedMessage &&
+                (
+                  !isTextHistoryMessage ||
+                  (hasVisibleHistoryAnswer ? !isBot : isBot)
+                );
               const timeLabel = formatMessageTime(message.timestamp);
               const messageClass = isBot
                 ? (isButtonBlockMessage
@@ -2083,10 +2152,17 @@ const AIChatpage = () => {
                 isButtonBlockMessage &&
                 buttonOptionsForMessage.length > 0 &&
                 !(isActiveBlock && (isMortgageParameters || shouldShowSignature || currentBlock?.is_terminal));
-              const shouldRenderAnyButtonRow = shouldRenderButtonsForMessage || shouldRenderRestartButton;
+              const shouldRenderSeparateRestartRow =
+                shouldRenderRestartButton &&
+                shouldRenderButtonsForMessage &&
+                shouldUseSeparateRestartRowForQuestionText(message.text);
+              const shouldRenderInlineRestartButton =
+                shouldRenderRestartButton && !shouldRenderSeparateRestartRow;
+              const shouldRenderAnyButtonRow =
+                shouldRenderButtonsForMessage || shouldRenderInlineRestartButton;
               const shouldUseFullWidthButtons =
                 shouldRenderButtonsForMessage &&
-                !shouldRenderRestartButton &&
+                !shouldRenderInlineRestartButton &&
                 getIsFullWidthButtons(buttonOptionsForMessage);
 
               return (
@@ -2196,9 +2272,9 @@ const AIChatpage = () => {
                     )}
                     {shouldRenderAnyButtonRow && (
                       <div
-                        className={`btn_box d_flex ${shouldRenderRestartButton ? 'btn_box_with_restart' : 'd_flex_jb'} ${shouldUseFullWidthButtons ? 'btn_box_full' : ''}`}
+                        className={`btn_box d_flex ${shouldRenderInlineRestartButton ? 'btn_box_with_restart' : 'd_flex_jb'} ${shouldUseFullWidthButtons ? 'btn_box_full' : ''}`}
                       >
-                        {shouldRenderRestartButton && (
+                        {shouldRenderInlineRestartButton && (
                           <button
                             type="button"
                             className="message_restart_option"
@@ -2243,10 +2319,41 @@ const AIChatpage = () => {
                         ))}
                       </div>
                     )}
+                    {shouldRenderSeparateRestartRow && (
+                      <div
+                        className="btn_box_restart_row btn_box_restart_row_after_buttons"
+                      >
+                        <button
+                          type="button"
+                          className="message_restart_option"
+                          onClick={handleRollbackToLatestAllowed}
+                          disabled={isSending || isRollingBack}
+                          aria-label="חזרה לשאלה האחרונה שניתנת לעריכה"
+                          title="חזרה להתחלה"
+                        >
+                          <span>חזור</span>
+                          <span>להתחלה</span>
+                        </button>
+                      </div>
+                    )}
                   </div>
                 </div>
               );
             })}
+            {isBotTyping && !isLoading && (
+              <div className="colin boat_chat ai_chat_typing_row" aria-live="polite" aria-label="הצ'אט מקליד">
+                <div className="icon"><img src={bouticon} alt="" /></div>
+                <div className="text">
+                  <div className="message_box is_typing">
+                    <div className="ai_chat_typing_dots" aria-hidden="true">
+                      <span />
+                      <span />
+                      <span />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
 
             {shouldShowSignature && (
               <div className="order_benefit">
