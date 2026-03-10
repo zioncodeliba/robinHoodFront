@@ -12,6 +12,7 @@ import {
   clearAuthGetCache,
 } from '../utils/authGetCache';
 import { clearAuthToken, getAuthToken } from '../utils/authStorage';
+import { WHATSAPP_SUPPORT_LINK } from '../utils/whatsappSupport';
 import { useNavState } from '../context/NavStateContext';
 import useCustomerProfile, { getCustomerDisplayName } from '../hooks/useCustomerProfile';
 
@@ -244,7 +245,16 @@ const Header = () => {
               </li>
               {/* simulation */}
               <li><Link to="/simulatorpage" onClick={handleDesktopNavClick}>סימולציה</Link></li>
-              <li><Link to="/appointment" className='whatsapp' onClick={handleDesktopNavClick}>תמיכה בWhatsApp <img src={whatsapp} alt="" /></Link></li>
+              <li>
+                <a
+                  href={WHATSAPP_SUPPORT_LINK}
+                  className='whatsapp'
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  תמיכה בWhatsApp <img src={whatsapp} alt="" />
+                </a>
+              </li>
               {/* Mortgage monitoring */}
               {/* <li><Link to="/treatmentstatuspage" onClick={handleDesktopNavClick}> ניטור משכנתא</Link></li> */}
               {/* My suggestions */}
@@ -282,7 +292,16 @@ const Header = () => {
               </li>
               {/* simulation */}
               <li><Link to="/simulatorpage" onClick={handleDesktopNavClick}>סימולציה</Link></li>
-              <li><Link to="/appointment" className='whatsapp' onClick={handleDesktopNavClick}>תמיכה בWhatsApp <img src={whatsapp} alt="" /></Link></li>
+              <li>
+                <a
+                  href={WHATSAPP_SUPPORT_LINK}
+                  className='whatsapp'
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  תמיכה בWhatsApp <img src={whatsapp} alt="" />
+                </a>
+              </li>
               </>
             )}
           </ul>
@@ -311,7 +330,16 @@ const Header = () => {
                   </Link>
                 </li>
                 <li><Link to="/settings" onClick={() => setIsOpen(false)}><img src={SettingIcon} alt="" />הגדרות</Link></li>
-                <li><Link to="/appointment" onClick={() => setIsOpen(false)}><img src={whatsapp} alt="" />תמיכה ב WhatsApp </Link></li>
+                <li>
+                  <a
+                    href={WHATSAPP_SUPPORT_LINK}
+                    onClick={() => setIsOpen(false)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    <img src={whatsapp} alt="" />תמיכה ב WhatsApp
+                  </a>
+                </li>
                 <li><Link to="#" onClick={(e) => {e.preventDefault(); handleLogout(); setIsOpen(false);}}><img src={logoutIcon} alt="" />התנתק</Link></li>
             </ul>
            <img src={panmemuImage} className='pan_menu' alt="" />

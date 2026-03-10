@@ -301,6 +301,9 @@ const Suggestionspage = () => {
       : Array.isArray(graph.principal_component)
         ? graph.principal_component
         : [];
+    const indexation = Array.isArray(graph.indexation_component)
+      ? graph.indexation_component
+      : [];
     const length = Math.min(months.length || 0, interest.length || 0, principal.length || 0);
     if (length === 0) return null;
 
@@ -316,6 +319,7 @@ const Suggestionspage = () => {
         name: String(monthInYear),
         rivit: Number(interest[i]) || 0,
         keren: Number(principal[i]) || 0,
+        hatzmada: Number(indexation[i]) || 0,
       });
     }
     return byYear;
@@ -525,10 +529,14 @@ const Suggestionspage = () => {
                         <ReturnsChart
                           charttitle={'החזרים'}
                           interest={'ריבית'}
+                          indexation={'הצמדה'}
                           fund={'קרן'}
                           dataSets={offer.simulatorchartdata}
-                          kerenColor={"#27450E"}
-                          rivitColor={"#E27600"}
+                          variant="stacked-bars"
+                          key={`suggestion-chart-${offer.id}`}
+                          kerenColor={"#E27600"}
+                          hatzmadaColor={"#A7B88F"}
+                          rivitColor={"#27450E"}
                         />
                       ) : null}
                       <NotePopup isOpen={openPopupId === offer.id} onClose={closePopup} />

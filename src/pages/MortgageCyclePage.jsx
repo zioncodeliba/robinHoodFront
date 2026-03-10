@@ -526,6 +526,7 @@ const MortgageCyclePage = () => {
               fund={selectedScenarioName || 'משכנתא לאחר מחזור'} 
               dataSets={mortgageCycleData}
               variant="stacked-bars"
+              rivitColor={"#E27600"}
             />
           </div>
         </div>

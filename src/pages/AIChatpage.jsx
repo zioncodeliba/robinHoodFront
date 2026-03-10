@@ -12,6 +12,7 @@ import whatsappFabIcon from '../assets/images/aichat_whatsapp.png';
 import aichatSignPen from '../assets/images/aichat_signpen.png';
 import { getGatewayBase } from "../utils/apiBase";
 import { getAuthToken } from "../utils/authStorage";
+import { WHATSAPP_SUPPORT_LINK } from '../utils/whatsappSupport';
 
 const DEFAULT_MIN_AMOUNT = 100000;
 const DEFAULT_MAX_AMOUNT = 1500000;
@@ -24,7 +25,6 @@ const DATA_GOV_CITIES_RESOURCE_ID = '5c78e9fa-c2e2-4771-93ff-7f400a12f7ba';
 const DATA_GOV_STREETS_RESOURCE_ID = '9ad3862c-8391-4b2f-84a4-2d4c68625f4b';
 const CITY_FETCH_PAGE_SIZE = 1000;
 const STREET_FETCH_PAGE_SIZE = 1000;
-const WHATSAPP_SUPPORT_LINK = 'https://wa.me/972504071205';
 const FALLBACK_COUNTRIES = [
   'ישראל',
   'ארצות הברית',
