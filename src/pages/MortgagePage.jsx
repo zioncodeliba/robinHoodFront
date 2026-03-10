@@ -224,6 +224,9 @@ const buildChartDataFromGraph = (graph) => {
     : Array.isArray(graph.principal_component)
       ? graph.principal_component
       : [];
+  const indexation = Array.isArray(graph.indexation_component)
+    ? graph.indexation_component
+    : [];
   const length = Math.min(months.length || 0, interest.length || 0, principal.length || 0);
   if (length === 0) return null;
 
@@ -239,6 +242,7 @@ const buildChartDataFromGraph = (graph) => {
       name: String(monthInYear),
       rivit: Number(interest[i]) || 0,
       keren: Number(principal[i]) || 0,
+      hatzmada: Number(indexation[i]) || 0,
     });
   }
   return byYear;
@@ -409,10 +413,14 @@ const MortgagePage = () => {
               <ReturnsChart
                 charttitle={'החזרים'}
                 interest={'ריבית'}
+                indexation={'הצמדה'}
                 fund={'קרן'}
                 dataSets={selectedBankChartData}
-                kerenColor={"#27450E"}
-                rivitColor={"#E4061F"}
+                variant="stacked-bars"
+                key={`${selectedBankId}-${selectedBankResponse?.uploaded_at || 'returns-chart'}`}
+                kerenColor={"#E27600"}
+                hatzmadaColor={"#A7B88F"}
+                rivitColor={"#27450E"}
               />
             ) : null}
           </div>
