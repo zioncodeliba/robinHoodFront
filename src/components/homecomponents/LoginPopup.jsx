@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
+import ForgotPasswordModal from './ForgotPasswordModal';
 import useGoogleAuth from '../../utils/useGoogleAuth';
 import { getGatewayApiBase } from '../../utils/apiBase';
 import { clearAffiliateCode, getAffiliateCode } from '../../utils/affiliate';
@@ -17,6 +18,7 @@ import otpIcon from '../../assets/images/otp.svg';
 const LoginPopup = ({showloginPopup}) => {
   const navigate = useNavigate();
   const { isLoaded, handleGoogleLogin } = useGoogleAuth();
+  const [isForgotPasswordOpen, setIsForgotPasswordOpen] = useState(false);
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isAppleLoading, setIsAppleLoading] = useState(false);
@@ -170,9 +172,19 @@ const LoginPopup = ({showloginPopup}) => {
         <div className="form_error">{error}</div>
       )}
       <div>
-        <Link to="/forgotpassword" className="forgot_password">שכחת סיסמא?</Link>   
+        <button
+          type="button"
+          className="forgot_password forgot_password_trigger"
+          onClick={() => setIsForgotPasswordOpen(true)}
+        >
+          שכחת סיסמא?
+        </button>
       </div>
       <a href="/" className='btn btn_login'>כניסה</a>
+      <ForgotPasswordModal
+        isOpen={isForgotPasswordOpen}
+        onClose={() => setIsForgotPasswordOpen(false)}
+      />
     </div>
   );
 };

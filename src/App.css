@@ -510,10 +510,27 @@ header .left_col>div>.btn.registration:hover{background-color: var(--orange);}
 .comman_loginpopup .submit{margin-left: 0; margin-right: auto; width: fit-content; display: block;margin-top: 23px;}
 .comman_loginpopup .forgot_password{font-size: 18px;line-height: 24px;font-weight: 400;color: var(--white);text-decoration: underline;display: block;margin:34px auto 24px;margin-left: 0;width: fit-content;}
 .comman_loginpopup .forgot_password:hover{color: var(--orange);}
+.comman_loginpopup .forgot_password_trigger{background: transparent;border: none;padding: 0;cursor: pointer;}
 .comman_loginpopup .btn_login{width:fit-content;margin: 0 auto;margin-left: 0;text-align: center;min-width: 206px;}
 
 .comman_loginpopup .form_error_com{    color: #FF0000; font-size: 12px; line-height: 16px; width: 100%; text-align: right; background-color: transparent; padding: 0; margin: 0; font-weight: 400;}
 .comman_loginpopup .form_error_com.form_success{color: green !important;text-align: center;  margin-top: 5px;}
+
+.forgot_password_modal_overlay{position:fixed;inset:0;background:rgba(0,0,0,0.45);display:flex;align-items:center;justify-content:center;z-index:1400;padding:16px;}
+.forgot_password_modal{width:min(100%,420px);background:#242424f2;border-radius:24px;padding:28px 24px 24px;box-shadow:0 20px 60px rgba(0,0,0,0.3);backdrop-filter:blur(18px);position:relative;text-align:right;}
+.forgot_password_modal h2{color:var(--white);font-size:28px;line-height:32px;margin-bottom:10px;}
+.forgot_password_modal p{color:var(--white);font-size:16px;line-height:24px;margin-bottom:18px;}
+.forgot_password_modal .col_form{position:relative;margin-bottom:12px;}
+.forgot_password_modal .col_form span{position:absolute;width:38px;height:38px;border-radius:50%;background-color:var(--white);display:flex;align-items:center;justify-content:center;top:5px;right:5px;}
+.forgot_password_modal .col_form .in{width:100%;height:49px;border:1px solid var(--white);border-radius:30px;padding-right:51px;font-size:18px;font-weight:400;color:var(--white);background:transparent;}
+.forgot_password_modal .col_form .in:focus{border-color:#e27600;}
+.forgot_password_modal .form_error_com{color:#ff8f8f;font-size:12px;line-height:16px;margin-top:6px;}
+.forgot_password_modal .form_error_com.form_success{color:#b4ff8b !important;}
+.forgot_password_modal_actions{display:flex;align-items:center;gap:12px;justify-content:flex-start;margin-top:18px;flex-wrap:wrap;}
+.forgot_password_modal_secondary{background:transparent;border:1px solid var(--white);color:var(--white);border-radius:999px;padding:11px 20px;cursor:pointer;}
+.forgot_password_modal_secondary:hover{border-color:var(--orange);color:var(--orange);}
+.forgot_password_modal_close{position:absolute;left:16px;top:14px;background:transparent;border:none;color:var(--white);font-size:18px;line-height:1;cursor:pointer;}
+.forgot_password_modal_close:disabled,.forgot_password_modal_secondary:disabled{opacity:.5;cursor:not-allowed;}
 
 
 
@@ -646,6 +663,11 @@ header .left_col>div>.btn.registration:hover{background-color: var(--orange);}
 .login_page .link.otp{margin-top: 0;}
 .login_page.registration_page .reglogo{margin-bottom: 10px;}
 .login_page.registration_page .reglogo img{width: 100%;height: auto;object-fit: contain;}
+
+/* reset_password_page */
+.reset_password_page .wrap { padding: 42px 20px 130px; }
+.reset_password_page .form_input + .form_input { margin-top: 14px; }
+.reset_password_page .btn { min-width: 220px; }
 
 /* aichat */
 .ai_charpage{padding: 85px 20px 0;text-align: center;}
@@ -813,6 +835,9 @@ header .left_col>div>.btn.registration:hover{background-color: var(--orange);}
   .registration_page .btn_col { margin-top: 16px; }
   .login_page .loginman { max-width: 280px; margin: 0 auto 0; }
   .comman_loginpopup .or { margin: 8px 0; }
+  .forgot_password_modal{padding:24px 18px 20px;}
+  .forgot_password_modal h2{font-size:24px;line-height:28px;}
+  .forgot_password_modal p{font-size:15px;line-height:22px;}
 
   .otp_screen .brand_desktop{max-width: 160px;}
   .otp_screen .had_col { padding: 9px 20px 10px; }
@@ -972,6 +997,14 @@ header .left_col>div>.btn.registration:hover{background-color: var(--orange);}
   .login_page .login_btn:hover{background-color: var(--orange);}
   .login_page.registration_page .reglogo { margin: 0 auto 5px; width: 210px; max-width: 230px; }
   .login_page.registration_page .reglogo img { width: 100%; height: auto; object-fit: contain; }
+  .forgot_password_modal{width:min(100%,360px);padding:22px 16px 18px;}
+  .forgot_password_modal .col_form .in{height:42px;font-size:16px;}
+  .forgot_password_modal .col_form span{width:34px;height:34px;top:4px;right:4px;}
+  .forgot_password_modal_actions{gap:10px;}
+  .forgot_password_modal_actions .btn{font-size:18px;padding:12px 24px;}
+  .forgot_password_modal_secondary{padding:10px 18px;}
+  .reset_password_page .wrap { padding: 24px 12px 90px; }
+  .reset_password_page .btn { min-width: 190px; }
 
 
   /* explanation_screen */

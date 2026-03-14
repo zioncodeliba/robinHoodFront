@@ -49,6 +49,7 @@ import BrokerHomepage from './pages/BrokerHomepage';
 import ExplanationScreen1 from './pages/ExplanationScreen1';
 import OtpScreen from './pages/OtpScreen';
 import OtpVerify from './pages/OtpVerify';
+import ResetPasswordPage from './pages/ResetPasswordPage';
 // import OtpVerifyCopy from './pages/OtpVerify copy';
 import AIChatpage from './pages/AIChatpage';
 // import AIChatpageStatic from './pages/AIChatpageStatic';
@@ -91,6 +92,7 @@ const PATH_ALIASES = {
   '/registrationpage': '/registration',
   '/otpscreen': '/login-with-otp',
   '/otpverify': '/otp-verify',
+  '/resetpasswordpage': '/reset-password',
   '/explanationscreen1': '/explanation-screen',
   '/explanationscreen2': '/explanation-screen2',
   '/appointmentconfirmationpage': '/appointment',
@@ -262,6 +264,7 @@ function AppWrapper() {
     "/explanation-screen2",
     "/login-with-otp",
     "/otp-verify",
+    "/reset-password",
     "/registration",
   ];
   const isLandingPromo = path === "/"
@@ -270,10 +273,10 @@ function AppWrapper() {
     && !isDesktop;
   const hideHeader = hideHeaderPaths.includes(path) || isLandingPromo;
 
-  const hidepan = ["/simulatorpage", "/brokerhomepage", "/login"].includes(path) || isLandingPromo;
+  const hidepan = ["/simulatorpage", "/brokerhomepage", "/login", "/reset-password"].includes(path) || isLandingPromo;
   const appointmentBg = ["/appointment"].includes(path);
-  const exscreenBg = ["/explanation-screen", "/explanation-screen2", "/login-with-otp", "/otp-verify", "/registration", "/login"].includes(path) || isLandingPromo;
-  const HidestickyMenu = ["/registration", "/login", "/login-with-otp", "/otp-verify", "/aichat", "/aichat-static"].includes(path) || isLandingPromo;
+  const exscreenBg = ["/explanation-screen", "/explanation-screen2", "/login-with-otp", "/otp-verify", "/reset-password", "/registration", "/login"].includes(path) || isLandingPromo;
+  const HidestickyMenu = ["/registration", "/login", "/login-with-otp", "/otp-verify", "/reset-password", "/aichat", "/aichat-static"].includes(path) || isLandingPromo;
 
   const LandingRoute = () => {
     const isAuthenticated = getAuthToken() || localStorage.getItem('affiliate_token');
@@ -310,6 +313,7 @@ function AppWrapper() {
             <Route path="/login" element={<Loginpage />} />
             <Route path="/login-with-otp" element={<OtpScreen />} />
             <Route path="/otp-verify" element={<OtpVerify />} />
+            <Route path="/reset-password" element={<ResetPasswordPage />} />
 
             {/* Protected routes */}
             <Route path="/new-loan" element={<ProtectedRoute><MortgagePage /></ProtectedRoute>} />
