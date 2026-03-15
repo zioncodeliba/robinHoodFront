@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
+import ForgotPasswordModal from '../components/homecomponents/ForgotPasswordModal';
 import useGoogleAuth from '../utils/useGoogleAuth';
 import { getGatewayApiBase } from '../utils/apiBase';
 import { clearAffiliateCode, getAffiliateCode } from '../utils/affiliate';
@@ -21,6 +22,7 @@ const Loginpage = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { isLoaded, handleGoogleLogin } = useGoogleAuth();
+  const [isForgotPasswordOpen, setIsForgotPasswordOpen] = useState(false);
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isAppleLoading, setIsAppleLoading] = useState(false);
@@ -202,13 +204,24 @@ const Loginpage = () => {
         {isAppleLoading ? 'מתחבר...' : 'כניסה באמצעות Apple'}
       </button>
 
-      {/* <div className='forgot_box'>
-        <Link to="/forgotpassword" className="forgot_password">שכחת סיסמא?</Link>
-      </div> */}
+      <div className='forgot_box'>
+        <button
+          type="button"
+          className="forgot_password forgot_password_trigger"
+          onClick={() => setIsForgotPasswordOpen(true)}
+        >
+          שכחת סיסמא?
+        </button>
+      </div>
 
       <div className="btn_box">
         <Link to="/registration" className='login_btn btn'>הרשמה</Link>
       </div>
+
+      <ForgotPasswordModal
+        isOpen={isForgotPasswordOpen}
+        onClose={() => setIsForgotPasswordOpen(false)}
+      />
 
     </div>
   );
